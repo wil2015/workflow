@@ -1,0 +1,91 @@
+/* Importa o CSS essencial do bpmn-js */
+@import 'bpmn-js/dist/assets/diagram-js.css';
+@import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
+
+body, html {
+  font-family: Arial, sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Define o tamanho do editor */
+#canvas {
+  flex-grow: 1; /* Ocupa todo o espaço disponível */
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+}
+
+/* Estiliza a barra de botões */
+.buttons {
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.buttons a {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 12px;
+  text-decoration: none;
+  border-radius: 4px;
+  margin: 0 5px;
+  font-size: 14px;
+}
+
+/* Estilo para botões de download desabilitados (CORRETO) */
+.buttons a[download]:not(.active) {
+  background-color: #aaa;
+  pointer-events: none; /* Desativa o clique */
+}
+
+/* Esconde o input de arquivo */
+#file-input {
+  display: none;
+}
+
+/* ... estilos anteriores ... */
+
+/* MODAL STYLES */
+.hidden { display: none !important; }
+
+#modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000; /* Fica acima do diagrama */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#modal-content {
+  background: white;
+  padding: 20px;
+  width: 80%;
+  max-width: 800px;
+  height: 80%; /* Janela grande para as tabelas */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: auto;
+}
+
+#modal-close {
+  position: absolute;
+  top: 10px; right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #aaa;
+}
+
+#modal-close:hover { color: black; }
+
+/* Estilo simples para tabelas que virão do PHP */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }

@@ -1,0 +1,19 @@
+# 1. Começa com uma imagem oficial do Node.js
+FROM node:24-alpine
+
+# 2. Define o diretório de trabalho dentro do container
+WORKDIR /app
+
+# 3. Copia os arquivos de pacote para o container
+COPY package.json package-lock.json ./
+
+# 4. Instala as dependências (npm install)
+RUN npm install
+
+# 5. Expõe a porta padrão do Vite (5173)
+EXPOSE 5173
+
+# 6. O comando padrão para iniciar o container:
+#    Roda "npm run dev" e usa "--host" para que ele 
+#    seja acessível de fora do container.
+CMD ["npm", "run", "dev", "--", "--host"]

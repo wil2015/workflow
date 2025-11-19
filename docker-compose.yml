@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  # --- SERVIÇO 1: FRONTEND (Node/Vite) ---
+  frontend:
+    image: node:24-alpine
+    container_name: app_frontend
+    working_dir: /app
+    volumes:
+      - ./:/app               # Sincroniza a pasta toda
+      - /app/node_modules     # Evita conflito de node_modules
+    ports:
+      - "5173:5173"           # Porta do Vite
+    command: sh -c "npm install && npm run build && npm run dev -- --host"
+    depends_on:
+      - backend
+
+  # --- SERVIÇO 2: BACKEND (Apache/PHP) ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: app_backend
+    volumes:
+      # Mapeia APENAS a pasta backend para o Apache
+      # O Apache vai servir em: http://localhost:8080/backend/
+      - ./backend:/var/www/html/backend
+    ports:
+      - "8080:80"             # Acessível externamente na 8080

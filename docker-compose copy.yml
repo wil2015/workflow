@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  frontend:
+    container_name: meu_dev_vite
+    # Diz ao compose para construir a imagem usando
+    # o Dockerfile da pasta atual ( . )
+    build: .
+    ports:
+      # Mapeia a porta 5173 do container para a porta 5173
+      # da sua máquina (localhost:5173)
+      - "5173:5173"
+    volumes:
+      # Sincroniza seu código-fonte com o container.
+      # Se você mudar um arquivo local, o Vite dentro
+      # do container vê a mudança e atualiza o navegador.
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+      # Adicione outras pastas/arquivos que você criar, 
+      # como vite.config.js, etc.

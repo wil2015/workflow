@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-M">
+    <title>Teste Rápido do bpmn-js</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-font/css/bpmn.css">
+
+    <style>
+        /* 2. Define um tamanho para o container do diagrama */
+        #container {
+            width: 100%;
+            height: 90vh;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container"></div>
+
+    <script src="https://unpkg.com/bpmn-js/dist/bpmn-modeler.development.js"></script>
+
+    <script>
+        // 5. Seu código JavaScript para iniciar o editor
+        
+        // Pega o container
+        const container = document.getElementById('container');
+
+        // Cria uma nova instância do Modelador BPMN
+        const bpmnModeler = new BpmnJS({
+            container: container
+        });
+
+        // Função para criar um novo diagrama em branco
+        async function criarDiagramaNovo() {
+            try {
+                // 'createDiagram' cria um diagrama básico (StartEvent)
+                await bpmnModeler.createDiagram();
+                console.log('Diagrama em branco criado!');
+            } catch (err) {
+                console.error('Erro ao criar diagrama', err);
+            }
+        }
+
+        // Chama a função
+        criarDiagramaNovo();
+
+    </script>
+</body>
+</html>

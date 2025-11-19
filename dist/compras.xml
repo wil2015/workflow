@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_0x8l6g2">
+    <bpmn:participant id="Participant_Empresa" name="Empresa (Processo de Compras)" processRef="Process_Compras" />
+    <bpmn:participant id="Participant_Fornecedor" name="Fornecedor Externo" />
+    <bpmn:messageFlow id="Flow_EmailOrcamento" name="E-mail: Convite" sourceRef="Activity_SelecionarFornecedores" targetRef="Participant_Fornecedor" />
+    <bpmn:messageFlow id="Flow_RecebeOrcamento" name="E-mail: Orçamento" sourceRef="Participant_Fornecedor" targetRef="Event_AguardarOrcamentos" />
+    <bpmn:messageFlow id="Flow_LinkAssinatura" name="Link de Assinatura (1doc)" sourceRef="Participant_Fornecedor" targetRef="DataStoreReference_1doc" />
+    <bpmn:messageFlow id="Flow_AssinaturaFeita" name="Assina Digitalmente" sourceRef="Participant_Fornecedor" targetRef="DataStoreReference_1doc" />
+    <bpmn:messageFlow id="Flow_Notificacao1doc" name="Notificação de Conclusão" sourceRef="Participant_Fornecedor" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:messageFlow id="Flow_RecebeNF" name="Nota Fiscal (XML/PDF)" sourceRef="Participant_Fornecedor" targetRef="Event_RecebeNF" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Compras" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_CCP_GAF" name="CCP / GAF (Solicitantes)">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_AbrirSolicitacao</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Compras" name="Departamento de Compras">
+        <bpmn:flowNodeRef>Activity_SelecionarSolicitacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_SelecionarFornecedores</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_AguardarOrcamentos</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ClassificarValores</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Enviar1doc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReceberAssinatura</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_RecebeNF</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Atesto</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_MemorandoOC</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Financeiro" name="Financeiro">
+        <bpmn:flowNodeRef>Activity_Pagar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Conclusao</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    
+    <bpmn:startEvent id="StartEvent_1" name="Necessidade de Compra">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_AbrirSolicitacao" name="Abrir Solicitação no ERP Senior">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_SelecionarSolicitacao" name="Selecionar Solicitações (até R$ 10k)">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_SelecionarFornecedores" name="Selecionar Fornecedores e Disparar E-mail">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:sendTask>
+    
+    <bpmn:intermediateCatchEvent id="Event_AguardarOrcamentos" name="Aguardar Retorno (Orçamentos)">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_Orcamento" />
+    </bpmn:intermediateCatchEvent>
+    
+    <bpmn:userTask id="Activity_ClassificarValores" name="Lançar Valores (Pesquisa de Mercado)">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:sendTask id="Activity_Enviar1doc" name="Enviar para Assinatura (Via 1doc)">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Assinando</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1doc">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:sendTask>
+    
+    <bpmn:receiveTask id="Activity_ReceberAssinatura" name="Confirmar Assinaturas (1doc)">
+      <bpmn:incoming>Flow_Assinando</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:receiveTask>
+    
+    <bpmn:dataStoreReference id="DataStoreReference_1doc" name="Plataforma 1doc (Nuvem)" />
+    
+    <bpmn:intermediateCatchEvent id="Event_RecebeNF" name="Nota Fiscal Recebida">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_NF" />
+    </bpmn:intermediateCatchEvent>
+    
+    <bpmn:userTask id="Activity_Atesto" name="Realizar Atesto e Doação de Impostos">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_MemorandoOC" name="Gerar Memorando e OC (Senior)">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Conclusao" name="Processo Finalizado">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_AbrirSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_AbrirSolicitacao" targetRef="Activity_SelecionarSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_SelecionarSolicitacao" targetRef="Activity_SelecionarFornecedores" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_SelecionarFornecedores" targetRef="Event_AguardarOrcamentos" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="Activity_ClassificarValores" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Activity_ClassificarValores" targetRef="Activity_Enviar1doc" />
+    <bpmn:sequenceFlow id="Flow_Assinando" sourceRef="Activity_Enviar1doc" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_Atesto" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_MemorandoOC" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Activity_MemorandoOC" targetRef="Activity_Pagar" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_Pagar" targetRef="EndEvent_Conclusao" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0x8l6g2">
+      <bpmndi:BPMNShape id="Participant_Empresa_di" bpmnElement="Participant_Empresa" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1700" height="490" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CCP_GAF_di" bpmnElement="Lane_CCP_GAF" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1670" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Compras_di" bpmnElement="Lane_Compras" isHorizontal="true">
+        <dc:Bounds x="190" y="200" width="1670" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
+        <dc:Bounds x="190" y="450" width="1670" height="120" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="252" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="231" y="165" width="79" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_AbrirSolicitacao_di" bpmnElement="Activity_AbrirSolicitacao">
+        <dc:Bounds x="340" y="100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SelecionarSolicitacao_di" bpmnElement="Activity_SelecionarSolicitacao">
+        <dc:Bounds x="340" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SelecionarFornecedores_di" bpmnElement="Activity_SelecionarFornecedores">
+        <dc:Bounds x="500" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Event_AguardarOrcamentos_di" bpmnElement="Event_AguardarOrcamentos">
+        <dc:Bounds x="692" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="668" y="345" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_ClassificarValores_di" bpmnElement="Activity_ClassificarValores">
+        <dc:Bounds x="820" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Activity_Enviar1doc_di" bpmnElement="Activity_Enviar1doc">
+        <dc:Bounds x="980" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1doc_di" bpmnElement="DataStoreReference_1doc">
+        <dc:Bounds x="1005" y="395" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="990" y="452" width="82" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReceberAssinatura_di" bpmnElement="Activity_ReceberAssinatura">
+        <dc:Bounds x="1120" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="Event_RecebeNF_di" bpmnElement="Event_RecebeNF">
+        <dc:Bounds x="1282" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1273" y="345" width="55" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Atesto_di" bpmnElement="Activity_Atesto">
+        <dc:Bounds x="1360" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_MemorandoOC">
+        <dc:Bounds x="1520" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Pagar_di" bpmnElement="Activity_Pagar">
+        <dc:Bounds x="1520" y="470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Conclusao_di" bpmnElement="EndEvent_Conclusao">
+        <dc:Bounds x="1682" y="492" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1670" y="535" width="60" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="288" y="140" /><di:waypoint x="340" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="390" y="180" /><di:waypoint x="390" y="280" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="440" y="320" /><di:waypoint x="500" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="600" y="320" /><di:waypoint x="692" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="728" y="320" /><di:waypoint x="820" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="920" y="320" /><di:waypoint x="980" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assinando_di" bpmnElement="Flow_Assinando"><di:waypoint x="1080" y="320" /><di:waypoint x="1120" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="1220" y="320" /><di:waypoint x="1282" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8"><di:waypoint x="1318" y="320" /><di:waypoint x="1360" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9"><di:waypoint x="1460" y="320" /><di:waypoint x="1520" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10"><di:waypoint x="1570" y="360" /><di:waypoint x="1570" y="470" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11"><di:waypoint x="1620" y="510" /><di:waypoint x="1682" y="510" /></bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1doc_di" bpmnElement="DataOutputAssociation_1doc">
+        <di:waypoint x="1030" y="360" />
+        <di:waypoint x="1030" y="395" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNShape id="Participant_Fornecedor_di" bpmnElement="Participant_Fornecedor" isHorizontal="true">
+        <dc:Bounds x="160" y="650" width="1700" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_EmailOrcamento_di" bpmnElement="Flow_EmailOrcamento"><di:waypoint x="550" y="360" /><di:waypoint x="550" y="650" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RecebeOrcamento_di" bpmnElement="Flow_RecebeOrcamento"><di:waypoint x="710" y="650" /><di:waypoint x="710" y="338" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LinkAssinatura_di" bpmnElement="Flow_LinkAssinatura"><di:waypoint x="1030" y="445" /><di:waypoint x="1030" y="650" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AssinaturaFeita_di" bpmnElement="Flow_AssinaturaFeita"><di:waypoint x="1030" y="650" /><di:waypoint x="1030" y="445" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notificacao1doc_di" bpmnElement="Flow_Notificacao1doc"><di:waypoint x="1170" y="650" /><di:waypoint x="1170" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RecebeNF_di" bpmnElement="Flow_RecebeNF"><di:waypoint x="1300" y="650" /><di:waypoint x="1300" y="338" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
