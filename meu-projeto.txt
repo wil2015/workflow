@@ -1,0 +1,14 @@
+meu-projeto/
+├── backend/
+│   ├── salvar_fluxo.php
+│   └── views/
+│       ├── selecionar_solicitacoes.php  (Lê SQL Server)
+│       ├── selecionar_fornecedores.php
+│       └── lancar_valores.php
+├── public/
+│   └── compras.xml  (Salve o conteúdo do seu XML aqui)
+├── src/
+│   ├── main.js
+│   └── style.css
+├── index.html
+└── vite.config.js

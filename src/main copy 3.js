@@ -87,40 +87,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Clique nas Tarefas
   const eventBus = viewer.get('eventBus');
 
-  eventBus.on('element.click', async (e) => {
+  eventBus.on('element.click', (e) => {
     const element = e.element;
     const id = element.id; 
-    const type = element.type; // Ex: bpmn:UserTask
 
-    // Só tentamos abrir modal se for uma Tarefa de Usuário ou Manual
-    // (Ignora StartEvent, Setas, etc)
-    if (!type.toLowerCase().includes('task')) {
-      return;
+    console.log('Clicou:', id);
+
+    if (id === 'Activity_SelecionarSolicitacao') {
+      openPhpModal('/backend/views/selecionar_solicitacoes.php');
+    } 
+    else if (id === 'Activity_SelecionarFornecedores') {
+      openPhpModal('/backend/views/selecionar_fornecedores.php');
     }
-
-    console.log('Consultando rota para:', id);
-
-    try {
-      // 1. Pergunta ao PHP qual a configuração para este ID
-      // O proxy do Vite encaminha para o Apache
-      const rotaResponse = await fetch(`/backend/router.php?task_id=${id}`);
-      
-      if (rotaResponse.status === 404) {
-        console.log('Nenhuma tela configurada para esta tarefa.');
-        return; // Não faz nada (ou mostra um aviso suave)
-      }
-
-      const config = await rotaResponse.json();
-
-      if (config.sucesso) {
-        // 2. Se o PHP devolveu uma URL, abrimos o modal
-        // (Opcional) Você pode usar config.titulo para mudar o h2 do modal
-        openPhpModal(config.url);
-      }
-
-    } catch (err) {
-      console.error('Erro ao buscar rota:', err);
-      alert('Erro de comunicação com o servidor de rotas.');
+    else if (id === 'Activity_ClassificarValores') {
+      openPhpModal('/backend/views/lancar_valores.php');
     }
   });
 
