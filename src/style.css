@@ -11,12 +11,6 @@ body, html {
   flex-direction: column;
 }
 
-/* Define o tamanho do editor */
-#canvas {
-  flex-grow: 1; /* Ocupa todo o espaço disponível */
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-}
 
 /* Estiliza a barra de botões */
 .buttons {
@@ -89,3 +83,67 @@ body, html {
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f2f2f2; }
+
+
+
+/* ... seus estilos anteriores ... */
+
+.container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+.section { margin-bottom: 40px; }
+
+/* Grid de Cartões */
+.cards-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+.card-fluxo {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  width: 200px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.card-fluxo:hover { transform: translateY(-5px); border-color: #007bff; }
+.card-fluxo h3 { margin-top: 0; color: #333; }
+
+/* Toolbar do Viewer */
+.toolbar { background: #eee; padding: 10px; display: flex; align-items: center; gap: 20px; }
+.hidden { display: none !important; }
+
+/* Tabela */
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+tr:hover { background-color: #f9f9f9; }
+.btn-small { padding: 5px 10px; background: #007bff; color: white; border-radius: 4px; text-decoration: none; cursor: pointer;}
+
+
+/* --- CORREÇÃO DO TAMANHO DA TELA --- */
+
+/* 1. O Container Pai (que segura a barra e o desenho) */
+#viewer-container {
+  display: flex;            /* Ativa o Flexbox */
+  flex-direction: column;   /* Empilha verticalmente: Barra em cima, Desenho embaixo */
+  height: 100vh;           /* Força ter 100% da altura da janela */
+  width: 100vw;            /* Força ter 100% da largura */
+  overflow: hidden;         /* Evita barras de rolagem duplas */
+}
+
+/* 2. A Barra de Ferramentas (Toolbar) */
+.toolbar {
+  background: #eee;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;           /* Impede a barra de ser esmagada */
+}
+
+/* 3. O Canvas (Onde o desenho fica) */
+#canvas {
+  flex-grow: 1;             /* MÁGICA: Ocupa todo o espaço restante disponível */
+  width: 100%;
+  height: 100%;             /* Reseta alturas fixas */
+  background-color: #fff;
+  position: relative;       /* Necessário para o bpmn-js se posicionar */
+}
