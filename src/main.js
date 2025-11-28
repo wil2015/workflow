@@ -96,24 +96,37 @@ document.addEventListener('DOMContentLoaded', () => {
   //  LÓGICA DO VISUALIZADOR (TELA DO DIAGRAMA)
   // ============================================================
 
-  async function abrirDiagrama(xmlFilename, titulo) {
+async function abrirDiagrama(xmlFilename, titulo) {
     // Troca de tela
     dashboardContainer.classList.add('hidden');
     viewerContainer.classList.remove('hidden');
     tituloFluxoAtual.textContent = titulo;
 
     try {
-      // Busca o XML na pasta public
-      // Nota: xmlFilename deve vir do banco como 'compras.xml'
       const response = await fetch('/public/' + xmlFilename);
       
       if (!response.ok) throw new Error(`Arquivo ${xmlFilename} não encontrado.`);
       
       const xml = await response.text();
       
-      // Importa para o visualizador
       await viewer.importXML(xml);
-      viewer.get('canvas').zoom(1);;
+      
+      // --- LÓGICA DE ZOOM INTELIGENTE ---
+      const canvas = viewer.get('canvas');
+
+      // 1. Primeiro, encaixa o diagrama na tela para calcular o centro
+      canvas.zoom('fit-viewport');
+      
+      // 2. Pega as coordenadas da visão atual (que está centralizada, mas pequena)
+      const viewbox = canvas.viewbox();
+      const center = {
+        x: viewbox.x + viewbox.width / 2,
+        y: viewbox.y + viewbox.height / 2
+      };
+
+      // 3. Aplica Zoom de 100% (1.0) focado exatamente no centro calculado
+      // Isso evita que o diagrama suma para o canto
+      canvas.zoom(1, center);
 
     } catch (err) {
       console.error('Erro ao abrir diagrama:', err);
