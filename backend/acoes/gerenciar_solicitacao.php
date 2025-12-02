@@ -40,16 +40,15 @@ try {
 
             // 2. Insere Forçando o ID (id = numsol) e (id_processo_senior = numsol)
             // Assumindo id_fluxo_definicao = 1 para Compras
-            $sql = "INSERT INTO processos_instancia 
-                    (id, id_fluxo_definicao, id_processo_senior, data_inicio, estatus_atual, etapa_bpmn_atual) 
-                    VALUES (:id, 1, :id_senior, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
-            
+           $sql = "INSERT INTO processos_instancia 
+                    (id_processo_instancia, id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
+                    VALUES (:numsol, :numsol, 1, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
-                ':id' => $numsol,
-                ':id_senior' => $numsol
+                ':numsol' => $numsol // O número do Senior (ex: 1050) vai para os dois campos
             ]);
-            
+
             $processosCriados++;
         }
 
@@ -63,12 +62,13 @@ try {
 
     } elseif ($acao === 'cancelar') {
         // Cancelar agora é deletar o processo diretamente pelo ID (que é o numsol)
-        $idProcesso = $_POST['id_processo'];
+        $idExterno = $_POST['id_processo']; // Este é o numsol (ex: 1050)
         
-        $stmt = $pdo->prepare("DELETE FROM processos_instancia WHERE id = ?");
-        $stmt->execute([$idProcesso]);
+            // MUDANÇA AQUI: WHERE id_processo_instancia = ?
+            $stmt = $pdo->prepare("DELETE FROM processos_instancia WHERE id_processo_instancia = ?");
+            $stmt->execute([$idExterno]);
 
-        echo json_encode(['sucesso' => true, 'msg' => "Processo #$idProcesso cancelado."]);
+            echo json_encode(['sucesso' => true, 'msg' => "Processo (Solicitação #$idExterno) cancelado."]);
 
     } else {
         throw new Exception("Ação inválida.");
