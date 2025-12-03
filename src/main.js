@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = element.id; 
     
     if (!element.type || !element.type.toLowerCase().includes('task')) return;
+    // Permite Tasks OU Eventos (Events)
+    //if (!type || (!type.toLowerCase().includes('task') && !type.toLowerCase().includes('event'))) return;
 
     try {
       // Pergunta ao router qual arquivo PHP abrir

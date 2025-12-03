@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_0x8l6g2">
+    <bpmn:participant id="Participant_Empresa" name="Empresa (Processo de Compras - Setor Público)" processRef="Process_Compras" />
+    <bpmn:participant id="Participant_Fornecedor" name="Fornecedor Externo" />
+    <bpmn:messageFlow id="Flow_EmailOrcamento" name="E-mail: Convite" sourceRef="Activity_SelecionarFornecedores" targetRef="Participant_Fornecedor" />
+    <bpmn:messageFlow id="Flow_RecebeOrcamento" name="E-mail: Orçamento" sourceRef="Participant_Fornecedor" targetRef="Event_AguardarOrcamentos" />
+    <bpmn:messageFlow id="Flow_LinkAssinatura" name="Link 1doc" sourceRef="Participant_Fornecedor" targetRef="DataStoreReference_1doc" />
+    <bpmn:messageFlow id="Flow_AssinaturaFeita" name="Assina" sourceRef="Participant_Fornecedor" targetRef="DataStoreReference_1doc" />
+    <bpmn:messageFlow id="Flow_Notificacao1doc" name="Notificação" sourceRef="Participant_Fornecedor" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:messageFlow id="Flow_RecebeNF" name="Nota Fiscal" sourceRef="Participant_Fornecedor" targetRef="Event_RecebeNF" />
+    <bpmn:messageFlow id="Flow_RecusaNF" name="E-mail: Recusa/Correção" sourceRef="Activity_NotificarRecusa" targetRef="Participant_Fornecedor" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Compras" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_CCP_GAF" name="CCP / GAF (Solicitantes)">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_AbrirSolicitacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_AtestoSolicitante</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Compras" name="Departamento de Compras">
+        <bpmn:flowNodeRef>Activity_SelecionarSolicitacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_SelecionarFornecedores</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_AguardarOrcamentos</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SubProcess_PesquisaMercado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Enviar1doc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReceberAssinatura</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_RecebeNF</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ConferenciaFiscal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Aprovacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_NotificarRecusa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_MemorandoOC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ArquivarProcesso</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Conclusao</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Financeiro" name="Financeiro">
+        <bpmn:flowNodeRef>Activity_PagarDevolver</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_1" name="Necessidade de Compra">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_AbrirSolicitacao" name="Abrir Solicitação no ERP Senior">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_SelecionarSolicitacao" name="Selecionar Solicitações (até R$ 10k)">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:sendTask id="Activity_SelecionarFornecedores" name="Selecionar Fornecedores e Disparar E-mail">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_Emails">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:sendTask>
+
+    <bpmn:intermediateCatchEvent id="Event_AguardarOrcamentos" name="Aguardar Retorno (Orçamentos)">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_Orcamento" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:subProcess id="SubProcess_PesquisaMercado" name="Elaboração de Pesquisa e Seleção">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_Grade">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:startEvent id="Event_SubStart" name="Orçamentos Recebidos">
+        <bpmn:outgoing>Flow_Sub1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="Task_Tabular" name="Tabular Orçamentos (Grade)">
+        <bpmn:incoming>Flow_Sub1</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub2</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:businessRuleTask id="Task_Comparar" name="Comparar Menor Preço (Por Item)">
+        <bpmn:incoming>Flow_Sub2</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub3</bpmn:outgoing>
+      </bpmn:businessRuleTask>
+      <bpmn:userTask id="Task_DefinirVencedores" name="Definir Vencedor(es) por Item">
+        <bpmn:incoming>Flow_Sub3</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub4</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="Event_SubEnd" name="Vencedores Definidos">
+        <bpmn:incoming>Flow_Sub4</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_Sub1" sourceRef="Event_SubStart" targetRef="Task_Tabular" />
+      <bpmn:sequenceFlow id="Flow_Sub2" sourceRef="Task_Tabular" targetRef="Task_Comparar" />
+      <bpmn:sequenceFlow id="Flow_Sub3" sourceRef="Task_Comparar" targetRef="Task_DefinirVencedores" />
+      <bpmn:sequenceFlow id="Flow_Sub4" sourceRef="Task_DefinirVencedores" targetRef="Event_SubEnd" />
+    </bpmn:subProcess>
+
+    <bpmn:dataObjectReference id="DataObjectReference_Grade" name="Grade Comparativa (Item x Fornecedor)" dataObjectRef="DataObject_Grade" />
+    <bpmn:dataObject id="DataObject_Grade" />
+
+    <bpmn:sendTask id="Activity_Enviar1doc" name="Enviar para Assinatura (Via 1doc)">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_Assinando</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1doc">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_ReceberAssinatura" name="Confirmar Assinaturas (1doc)">
+      <bpmn:incoming>Flow_Assinando</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:receiveTask>
+
+    <bpmn:dataStoreReference id="DataStoreReference_1doc" name="Plataforma 1doc" />
+
+    <bpmn:intermediateCatchEvent id="Event_RecebeNF" name="Nota Fiscal Recebida">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:incoming>Flow_RetornoCorrecao</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_NF" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:userTask id="Activity_ConferenciaFiscal" name="Conferência Fiscal/Impostos (Compras)">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_ParaSolicitante</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_NF">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_AtestoSolicitante" name="Atesto de Recebimento/Serviço (Solicitante)">
+      <bpmn:incoming>Flow_ParaSolicitante</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoAtesto</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_Atesto">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Aprovacao" name="Atesto Aprovado?">
+      <bpmn:incoming>Flow_RetornoAtesto</bpmn:incoming>
+      <bpmn:outgoing>Flow_SimAprovado</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NaoReprovado</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_NotificarRecusa" name="Rejeitar NF e Solicitar Correção">
+      <bpmn:incoming>Flow_NaoReprovado</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoCorrecao</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:userTask id="Activity_MemorandoOC" name="Elaborar Memorando e OC na Senior e Encaminhar">
+      <bpmn:incoming>Flow_SimAprovado</bpmn:incoming>
+      <bpmn:outgoing>Flow_ParaFinancas</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_PagarDevolver" name="Pagar e Devolver Comprovante">
+      <bpmn:incoming>Flow_ParaFinancas</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoComprovante</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_ArquivarProcesso" name="Arquivar Comprovante e Encerrar (1doc)">
+      <bpmn:incoming>Flow_RetornoComprovante</bpmn:incoming>
+      <bpmn:outgoing>Flow_Final</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_Final">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="EndEvent_Conclusao" name="Processo Finalizado">
+      <bpmn:incoming>Flow_Final</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_AbrirSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_AbrirSolicitacao" targetRef="Activity_SelecionarSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_SelecionarSolicitacao" targetRef="Activity_SelecionarFornecedores" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_SelecionarFornecedores" targetRef="Event_AguardarOrcamentos" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="SubProcess_PesquisaMercado" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="SubProcess_PesquisaMercado" targetRef="Activity_Enviar1doc" />
+    <bpmn:sequenceFlow id="Flow_Assinando" sourceRef="Activity_Enviar1doc" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_ConferenciaFiscal" />
+    <bpmn:sequenceFlow id="Flow_ParaSolicitante" sourceRef="Activity_ConferenciaFiscal" targetRef="Activity_AtestoSolicitante" />
+    <bpmn:sequenceFlow id="Flow_RetornoAtesto" sourceRef="Activity_AtestoSolicitante" targetRef="Gateway_Aprovacao" />
+    <bpmn:sequenceFlow id="Flow_SimAprovado" name="Sim" sourceRef="Gateway_Aprovacao" targetRef="Activity_MemorandoOC" />
+    <bpmn:sequenceFlow id="Flow_NaoReprovado" name="Não (Recusa)" sourceRef="Gateway_Aprovacao" targetRef="Activity_NotificarRecusa" />
+    <bpmn:sequenceFlow id="Flow_RetornoCorrecao" sourceRef="Activity_NotificarRecusa" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_ParaFinancas" sourceRef="Activity_MemorandoOC" targetRef="Activity_PagarDevolver" />
+    <bpmn:sequenceFlow id="Flow_RetornoComprovante" sourceRef="Activity_PagarDevolver" targetRef="Activity_ArquivarProcesso" />
+    <bpmn:sequenceFlow id="Flow_Final" sourceRef="Activity_ArquivarProcesso" targetRef="EndEvent_Conclusao" />
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0x8l6g2">
+      <bpmndi:BPMNShape id="Participant_Empresa_di" bpmnElement="Participant_Empresa" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2500" height="650" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CCP_GAF_di" bpmnElement="Lane_CCP_GAF" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2470" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Compras_di" bpmnElement="Lane_Compras" isHorizontal="true">
+        <dc:Bounds x="190" y="220" width="2470" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
+        <dc:Bounds x="190" y="600" width="2470" height="130" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="252" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_AbrirSolicitacao_di" bpmnElement="Activity_AbrirSolicitacao">
+        <dc:Bounds x="340" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SelecionarSolicitacao_di" bpmnElement="Activity_SelecionarSolicitacao">
+        <dc:Bounds x="340" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SelecionarFornecedores_di" bpmnElement="Activity_SelecionarFornecedores">
+        <dc:Bounds x="500" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_AguardarOrcamentos_di" bpmnElement="Event_AguardarOrcamentos">
+        <dc:Bounds x="692" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubProcess_PesquisaMercado_di" bpmnElement="SubProcess_PesquisaMercado" isExpanded="true">
+        <dc:Bounds x="780" y="260" width="500" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_SubStart_di" bpmnElement="Event_SubStart">
+        <dc:Bounds x="802" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Tabular_di" bpmnElement="Task_Tabular">
+        <dc:Bounds x="870" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Comparar_di" bpmnElement="Task_Comparar">
+        <dc:Bounds x="1000" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DefinirVencedores_di" bpmnElement="Task_DefinirVencedores">
+        <dc:Bounds x="1130" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_SubEnd_di" bpmnElement="Event_SubEnd">
+        <dc:Bounds x="1272" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Sub1_di" bpmnElement="Flow_Sub1"><di:waypoint x="838" y="360" /><di:waypoint x="870" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub2_di" bpmnElement="Flow_Sub2"><di:waypoint x="970" y="360" /><di:waypoint x="1000" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub3_di" bpmnElement="Flow_Sub3"><di:waypoint x="1100" y="360" /><di:waypoint x="1130" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sub4_di" bpmnElement="Flow_Sub4"><di:waypoint x="1230" y="360" /><di:waypoint x="1272" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataObjectReference_Grade_di" bpmnElement="DataObjectReference_Grade">
+        <dc:Bounds x="802" y="500" width="36" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_Grade_di" bpmnElement="DataOutputAssociation_Grade">
+        <di:waypoint x="1030" y="460" />
+        <di:waypoint x="1030" y="505" />
+        <di:waypoint x="1375" y="505" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1045" y="480" width="80" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNShape id="Activity_Enviar1doc_di" bpmnElement="Activity_Enviar1doc">
+        <dc:Bounds x="1350" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1doc_di" bpmnElement="DataStoreReference_1doc">
+        <dc:Bounds x="1375" y="480" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1365" y="540" width="80" height="20" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReceberAssinatura_di" bpmnElement="Activity_ReceberAssinatura">
+        <dc:Bounds x="1490" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_RecebeNF_di" bpmnElement="Event_RecebeNF">
+        <dc:Bounds x="1652" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ConferenciaFiscal_di" bpmnElement="Activity_ConferenciaFiscal">
+        <dc:Bounds x="1740" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_AtestoSolicitante_di" bpmnElement="Activity_AtestoSolicitante">
+        <dc:Bounds x="1820" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Aprovacao_di" bpmnElement="Gateway_Aprovacao" isMarkerVisible="true">
+        <dc:Bounds x="1970" y="335" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_NotificarRecusa_di" bpmnElement="Activity_NotificarRecusa">
+        <dc:Bounds x="1970" y="430" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_MemorandoOC">
+        <dc:Bounds x="2100" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_PagarDevolver_di" bpmnElement="Activity_PagarDevolver">
+        <dc:Bounds x="2100" y="620" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ArquivarProcesso_di" bpmnElement="Activity_ArquivarProcesso">
+        <dc:Bounds x="2250" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Conclusao_di" bpmnElement="EndEvent_Conclusao">
+        <dc:Bounds x="2400" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="288" y="150" /><di:waypoint x="340" y="150" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="390" y="190" /><di:waypoint x="390" y="320" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="440" y="360" /><di:waypoint x="500" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="600" y="360" /><di:waypoint x="692" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="728" y="360" /><di:waypoint x="780" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="1280" y="360" /><di:waypoint x="1350" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assinando_di" bpmnElement="Flow_Assinando"><di:waypoint x="1450" y="360" /><di:waypoint x="1490" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="1590" y="360" /><di:waypoint x="1652" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8"><di:waypoint x="1688" y="360" /><di:waypoint x="1740" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ParaSolicitante_di" bpmnElement="Flow_ParaSolicitante"><di:waypoint x="1790" y="320" /><di:waypoint x="1790" y="150" /><di:waypoint x="1820" y="150" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoAtesto_di" bpmnElement="Flow_RetornoAtesto"><di:waypoint x="1920" y="150" /><di:waypoint x="1950" y="150" /><di:waypoint x="1950" y="360" /><di:waypoint x="1970" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SimAprovado_di" bpmnElement="Flow_SimAprovado"><di:waypoint x="2020" y="360" /><di:waypoint x="2100" y="360" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NaoReprovado_di" bpmnElement="Flow_NaoReprovado"><di:waypoint x="1995" y="385" /><di:waypoint x="1995" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoCorrecao_di" bpmnElement="Flow_RetornoCorrecao"><di:waypoint x="1970" y="470" /><di:waypoint x="1670" y="470" /><di:waypoint x="1670" y="378" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ParaFinancas_di" bpmnElement="Flow_ParaFinancas"><di:waypoint x="2150" y="400" /><di:waypoint x="2150" y="620" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoComprovante_di" bpmnElement="Flow_RetornoComprovante"><di:waypoint x="2200" y="660" /><di:waypoint x="2300" y="660" /><di:waypoint x="2300" y="400" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Final_di" bpmnElement="Flow_Final"><di:waypoint x="2350" y="360" /><di:waypoint x="2400" y="360" /></bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutputAssociation_Emails_di" bpmnElement="DataOutputAssociation_Emails">
+        <di:waypoint x="550" y="400" />
+        <di:waypoint x="550" y="505" />
+        <di:waypoint x="1375" y="505" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="830" y="506" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1doc_di" bpmnElement="DataOutputAssociation_1doc">
+        <di:waypoint x="1400" y="400" />
+        <di:waypoint x="1400" y="480" />
+        <bpmndi:BPMNLabel>
+           <dc:Bounds x="1405" y="430" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutputAssociation_NF_di" bpmnElement="DataOutputAssociation_NF">
+        <di:waypoint x="1790" y="400" />
+        <di:waypoint x="1790" y="505" />
+        <di:waypoint x="1425" y="505" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1600" y="506" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutputAssociation_Atesto_di" bpmnElement="DataOutputAssociation_Atesto">
+        <di:waypoint x="1870" y="110" />
+        <di:waypoint x="1870" y="80" />
+        <di:waypoint x="1410" y="80" />
+        <di:waypoint x="1410" y="480" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1550" y="60" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutputAssociation_Final_di" bpmnElement="DataOutputAssociation_Final">
+        <di:waypoint x="2300" y="400" />
+        <di:waypoint x="2300" y="505" />
+        <di:waypoint x="1425" y="505" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1900" y="506" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNShape id="Participant_Fornecedor_di" bpmnElement="Participant_Fornecedor" isHorizontal="true"><dc:Bounds x="160" y="820" width="2500" height="100" /></bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

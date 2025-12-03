@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Inexigibilidade" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_Inexigibilidade">
+    <bpmn:participant id="Participant_Orgao" name="Órgão Público (Inexigibilidade - Fornecedor Exclusivo)" processRef="Process_Inexigibilidade" />
+    <bpmn:participant id="Participant_Fornecedor" name="Fornecedor Exclusivo" />
+    <bpmn:messageFlow id="Flow_Msg_PedidoOrcamento" name="Pedido de Orçamento" sourceRef="Activity_SolicitarOrcamento" targetRef="Participant_Fornecedor" />
+    <bpmn:messageFlow id="Flow_Msg_Orcamento" name="Proposta + Carta de Exclusividade" sourceRef="Participant_Fornecedor" targetRef="Activity_ReceberOrcamento" />
+    <bpmn:messageFlow id="Flow_Msg_Contrato" name="Contrato Assinado" sourceRef="Participant_Fornecedor" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:messageFlow id="Flow_Msg_ContratoEnvio" name="Contrato para Assinatura" sourceRef="Activity_AutorizacaoCompra" targetRef="Participant_Fornecedor" />
+    <bpmn:messageFlow id="Flow_Msg_NF" name="Nota Fiscal" sourceRef="Participant_Fornecedor" targetRef="Event_RecebeNF" />
+    <bpmn:messageFlow id="Flow_Msg_Recusa" name="Notificação de Recusa" sourceRef="Activity_NotificarRecusa" targetRef="Participant_Fornecedor" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Inexigibilidade" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Inexigibilidade">
+      <bpmn:lane id="Lane_Solicitante" name="Solicitante (CCP / GAF)">
+        <bpmn:flowNodeRef>StartEvent_Need</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_EnviarPedido</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_AtestoSolicitante</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Compras" name="Departamento de Compras">
+        <bpmn:flowNodeRef>Activity_ReceberSolicitacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_SolicitarOrcamento</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReceberOrcamento</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_SolicitarReserva</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ElaborarDispensa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_AutorizacaoCompra</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReceberAssinatura</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_RecebeNF</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ConferenciaFiscal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Aprovacao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_NotificarRecusa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_MemorandoOC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Arquivar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Fim</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_PublicarExtrato</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Orcamento" name="Planejamento (CCP/Finanças)">
+        <bpmn:flowNodeRef>Activity_ReservaRecurso</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Juridico" name="Assessoria Jurídica">
+        <bpmn:flowNodeRef>Activity_ParecerJuridico</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Gestao" name="Alta Gestão (Presidência / GAF)">
+        <bpmn:flowNodeRef>Activity_AssinaDispensa</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Contabilidade" name="Contabilidade">
+        <bpmn:flowNodeRef>Activity_VerificarImpostos</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Financeiro" name="Financeiro">
+        <bpmn:flowNodeRef>Activity_PagarDevolver</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_Need" name="Necessidade Identificada">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_EnviarPedido" name="Enviar Pedido">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_ReceberSolicitacao" name="Receber Solicitação">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:sendTask id="Activity_SolicitarOrcamento" name="Pedir Orçamento ao Fornecedor Exclusivo">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:receiveTask id="Activity_ReceberOrcamento" name="Receber Orçamento e Carta de Exclusividade">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_CartaExclusividade">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:receiveTask>
+
+    <bpmn:userTask id="Activity_SolicitarReserva" name="Solicitar Reserva Orçamentária">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_ReservaRecurso" name="Efetuar Reserva de Recursos">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Activity_ElaborarDispensa" name="Gerar Processo de Inexigibilidade (Automático)">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Activity_ParecerJuridico" name="Parecer Jurídico (Validação da Exclusividade)">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Parecer">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_AssinaDispensa" name="Ratificar Inexigibilidade (Presidência/GAF)">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Ratificacao">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Activity_PublicarExtrato" name="Gerar e Publicar Extrato (Automático)">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Publicacao">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Activity_AutorizacaoCompra" name="Enviar Contrato para Assinatura (1doc)">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_Assinando</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Contrato">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:sendTask>
+
+    <bpmn:receiveTask id="Activity_ReceberAssinatura" name="Confirmar Assinatura">
+      <bpmn:incoming>Flow_Assinando</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:receiveTask>
+
+    <bpmn:intermediateCatchEvent id="Event_RecebeNF" name="Recebe Nota Fiscal">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:incoming>Flow_RetornoCorrecao</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEvent_NF" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:userTask id="Activity_ConferenciaFiscal" name="Conferência Inicial (Compras)">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_NF">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_VerificarImpostos" name="Verificação Contábil (Impostos)">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_AtestoSolicitante" name="Atesto Técnico (Solicitante)">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoAtesto</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Atesto">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Aprovacao" name="Aprovado?">
+      <bpmn:incoming>Flow_RetornoAtesto</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sim</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Nao</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:sendTask id="Activity_NotificarRecusa" name="Rejeitar NF">
+      <bpmn:incoming>Flow_Nao</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoCorrecao</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:userTask id="Activity_MemorandoOC" name="Memorando + OC (Senior)">
+      <bpmn:incoming>Flow_Sim</bpmn:incoming>
+      <bpmn:outgoing>Flow_ParaFinancas</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Activity_PagarDevolver" name="Pagar e Devolver Comprovante">
+      <bpmn:incoming>Flow_ParaFinancas</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetornoComp</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Activity_Arquivar" name="Arquivar Processo (Automático 1doc)">
+      <bpmn:incoming>Flow_RetornoComp</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fim</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutput_Final">
+        <bpmn:targetRef>DataStoreReference_1doc</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_Fim" name="Fim">
+      <bpmn:incoming>Flow_Fim</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:dataStoreReference id="DataStoreReference_1doc" name="1doc: Processo de Inexigibilidade" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Need" targetRef="Activity_EnviarPedido" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_EnviarPedido" targetRef="Activity_ReceberSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_ReceberSolicitacao" targetRef="Activity_SolicitarOrcamento" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_SolicitarOrcamento" targetRef="Activity_ReceberOrcamento" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Activity_ReceberOrcamento" targetRef="Activity_SolicitarReserva" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Activity_SolicitarReserva" targetRef="Activity_ReservaRecurso" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReservaRecurso" targetRef="Activity_ElaborarDispensa" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Activity_ElaborarDispensa" targetRef="Activity_ParecerJuridico" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_ParecerJuridico" targetRef="Activity_AssinaDispensa" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Activity_AssinaDispensa" targetRef="Activity_PublicarExtrato" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_PublicarExtrato" targetRef="Activity_AutorizacaoCompra" />
+    <bpmn:sequenceFlow id="Flow_Assinando" sourceRef="Activity_AutorizacaoCompra" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Event_RecebeNF" targetRef="Activity_ConferenciaFiscal" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Activity_ConferenciaFiscal" targetRef="Activity_VerificarImpostos" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Activity_VerificarImpostos" targetRef="Activity_AtestoSolicitante" />
+    <bpmn:sequenceFlow id="Flow_RetornoAtesto" sourceRef="Activity_AtestoSolicitante" targetRef="Gateway_Aprovacao" />
+    <bpmn:sequenceFlow id="Flow_Sim" name="Sim" sourceRef="Gateway_Aprovacao" targetRef="Activity_MemorandoOC" />
+    <bpmn:sequenceFlow id="Flow_Nao" name="Não" sourceRef="Gateway_Aprovacao" targetRef="Activity_NotificarRecusa" />
+    <bpmn:sequenceFlow id="Flow_RetornoCorrecao" sourceRef="Activity_NotificarRecusa" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_ParaFinancas" sourceRef="Activity_MemorandoOC" targetRef="Activity_PagarDevolver" />
+    <bpmn:sequenceFlow id="Flow_RetornoComp" sourceRef="Activity_PagarDevolver" targetRef="Activity_Arquivar" />
+    <bpmn:sequenceFlow id="Flow_Fim" sourceRef="Activity_Arquivar" targetRef="EndEvent_Fim" />
+
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Inexigibilidade">
+    <bpmndi:BPMNPlane id="BPMNPlane_Inexigibilidade" bpmnElement="Collaboration_Inexigibilidade">
+      <bpmndi:BPMNShape id="Participant_Orgao_di" bpmnElement="Participant_Orgao" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="3000" height="950" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Lane_Solicitante_di" bpmnElement="Lane_Solicitante" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2970" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Compras_di" bpmnElement="Lane_Compras" isHorizontal="true">
+        <dc:Bounds x="190" y="220" width="2970" height="350" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Orcamento_di" bpmnElement="Lane_Orcamento" isHorizontal="true">
+        <dc:Bounds x="190" y="570" width="2970" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Juridico_di" bpmnElement="Lane_Juridico" isHorizontal="true">
+        <dc:Bounds x="190" y="690" width="2970" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Gestao_di" bpmnElement="Lane_Gestao" isHorizontal="true">
+        <dc:Bounds x="190" y="810" width="2970" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Contabilidade_di" bpmnElement="Lane_Contabilidade" isHorizontal="true">
+        <dc:Bounds x="190" y="930" width="2970" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
+        <dc:Bounds x="190" y="1050" width="2970" height="120" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="StartEvent_Need_di" bpmnElement="StartEvent_Need"><dc:Bounds x="250" y="130" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_EnviarPedido_di" bpmnElement="Activity_EnviarPedido"><dc:Bounds x="340" y="108" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReceberSolicitacao_di" bpmnElement="Activity_ReceberSolicitacao"><dc:Bounds x="340" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_SolicitarOrcamento_di" bpmnElement="Activity_SolicitarOrcamento"><dc:Bounds x="480" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReceberOrcamento_di" bpmnElement="Activity_ReceberOrcamento"><dc:Bounds x="620" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_SolicitarReserva_di" bpmnElement="Activity_SolicitarReserva"><dc:Bounds x="760" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReservaRecurso_di" bpmnElement="Activity_ReservaRecurso"><dc:Bounds x="760" y="590" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_ElaborarDispensa_di" bpmnElement="Activity_ElaborarDispensa"><dc:Bounds x="900" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_ParecerJuridico_di" bpmnElement="Activity_ParecerJuridico"><dc:Bounds x="1040" y="710" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_AssinaDispensa_di" bpmnElement="Activity_AssinaDispensa"><dc:Bounds x="1180" y="830" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_PublicarExtrato_di" bpmnElement="Activity_PublicarExtrato"><dc:Bounds x="1320" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_AutorizacaoCompra_di" bpmnElement="Activity_AutorizacaoCompra"><dc:Bounds x="1460" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ReceberAssinatura_di" bpmnElement="Activity_ReceberAssinatura"><dc:Bounds x="1600" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_RecebeNF_di" bpmnElement="Event_RecebeNF"><dc:Bounds x="1740" y="372" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_ConferenciaFiscal_di" bpmnElement="Activity_ConferenciaFiscal"><dc:Bounds x="1820" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_VerificarImpostos_di" bpmnElement="Activity_VerificarImpostos"><dc:Bounds x="1960" y="950" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_AtestoSolicitante_di" bpmnElement="Activity_AtestoSolicitante"><dc:Bounds x="2100" y="108" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Gateway_Aprovacao_di" bpmnElement="Gateway_Aprovacao" isMarkerVisible="true"><dc:Bounds x="2260" y="365" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_NotificarRecusa_di" bpmnElement="Activity_NotificarRecusa"><dc:Bounds x="2235" y="470" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_MemorandoOC"><dc:Bounds x="2380" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_PagarDevolver_di" bpmnElement="Activity_PagarDevolver"><dc:Bounds x="2380" y="1070" width="100" height="80" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Activity_Arquivar_di" bpmnElement="Activity_Arquivar"><dc:Bounds x="2520" y="350" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Fim_di" bpmnElement="EndEvent_Fim"><dc:Bounds x="2660" y="372" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="DataStoreReference_1doc_di" bpmnElement="DataStoreReference_1doc"><dc:Bounds x="1485" y="500" width="50" height="50" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="286" y="148" /><di:waypoint x="340" y="148" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="390" y="188" /><di:waypoint x="390" y="350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="440" y="390" /><di:waypoint x="480" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="580" y="390" /><di:waypoint x="620" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="720" y="390" /><di:waypoint x="760" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="810" y="430" /><di:waypoint x="810" y="590" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="860" y="630" /><di:waypoint x="950" y="630" /><di:waypoint x="950" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8"><di:waypoint x="1000" y="390" /><di:waypoint x="1020" y="390" /><di:waypoint x="1020" y="750" /><di:waypoint x="1040" y="750" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9"><di:waypoint x="1140" y="750" /><di:waypoint x="1160" y="750" /><di:waypoint x="1160" y="870" /><di:waypoint x="1180" y="870" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10"><di:waypoint x="1280" y="870" /><di:waypoint x="1300" y="870" /><di:waypoint x="1300" y="390" /><di:waypoint x="1320" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11"><di:waypoint x="1420" y="390" /><di:waypoint x="1460" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assinando_di" bpmnElement="Flow_Assinando"><di:waypoint x="1560" y="390" /><di:waypoint x="1600" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12"><di:waypoint x="1700" y="390" /><di:waypoint x="1740" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13"><di:waypoint x="1776" y="390" /><di:waypoint x="1820" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14"><di:waypoint x="1920" y="390" /><di:waypoint x="1940" y="390" /><di:waypoint x="1940" y="990" /><di:waypoint x="1960" y="990" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15"><di:waypoint x="2060" y="990" /><di:waypoint x="2080" y="990" /><di:waypoint x="2080" y="148" /><di:waypoint x="2100" y="148" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoAtesto_di" bpmnElement="Flow_RetornoAtesto"><di:waypoint x="2200" y="148" /><di:waypoint x="2220" y="148" /><di:waypoint x="2220" y="390" /><di:waypoint x="2260" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sim_di" bpmnElement="Flow_Sim"><di:waypoint x="2310" y="390" /><di:waypoint x="2380" y="390" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Nao_di" bpmnElement="Flow_Nao"><di:waypoint x="2285" y="415" /><di:waypoint x="2285" y="470" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoCorrecao_di" bpmnElement="Flow_RetornoCorrecao"><di:waypoint x="2235" y="510" /><di:waypoint x="1758" y="510" /><di:waypoint x="1758" y="408" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ParaFinancas_di" bpmnElement="Flow_ParaFinancas"><di:waypoint x="2430" y="430" /><di:waypoint x="2430" y="1070" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetornoComp_di" bpmnElement="Flow_RetornoComp"><di:waypoint x="2480" y="1110" /><di:waypoint x="2570" y="1110" /><di:waypoint x="2570" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fim_di" bpmnElement="Flow_Fim"><di:waypoint x="2620" y="390" /><di:waypoint x="2660" y="390" /></bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="DataOutput_CartaExclusividade_di" bpmnElement="DataOutput_CartaExclusividade"><di:waypoint x="670" y="430" /><di:waypoint x="670" y="525" /><di:waypoint x="1485" y="525" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Parecer_di" bpmnElement="DataOutput_Parecer"><di:waypoint x="1090" y="710" /><di:waypoint x="1090" y="525" /><di:waypoint x="1485" y="525" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Ratificacao_di" bpmnElement="DataOutput_Ratificacao"><di:waypoint x="1230" y="830" /><di:waypoint x="1230" y="525" /><di:waypoint x="1485" y="525" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Publicacao_di" bpmnElement="DataOutput_Publicacao"><di:waypoint x="1370" y="430" /><di:waypoint x="1370" y="525" /><di:waypoint x="1485" y="525" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Contrato_di" bpmnElement="DataOutput_Contrato"><di:waypoint x="1510" y="430" /><di:waypoint x="1510" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_NF_di" bpmnElement="DataOutput_NF"><di:waypoint x="1870" y="430" /><di:waypoint x="1870" y="525" /><di:waypoint x="1535" y="525" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Atesto_di" bpmnElement="DataOutput_Atesto"><di:waypoint x="2150" y="188" /><di:waypoint x="2150" y="250" /><di:waypoint x="1510" y="250" /><di:waypoint x="1510" y="500" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutput_Final_di" bpmnElement="DataOutput_Final"><di:waypoint x="2570" y="350" /><di:waypoint x="2570" y="250" /><di:waypoint x="1510" y="250" /><di:waypoint x="1510" y="500" /></bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNShape id="Participant_Fornecedor_di" bpmnElement="Participant_Fornecedor" isHorizontal="true"><dc:Bounds x="160" y="1200" width="2800" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Msg_PedidoOrcamento_di" bpmnElement="Flow_Msg_PedidoOrcamento"><di:waypoint x="530" y="430" /><di:waypoint x="530" y="1200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_Orcamento_di" bpmnElement="Flow_Msg_Orcamento"><di:waypoint x="670" y="1200" /><di:waypoint x="670" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_ContratoEnvio_di" bpmnElement="Flow_Msg_ContratoEnvio"><di:waypoint x="1510" y="430" /><di:waypoint x="1510" y="1200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_Contrato_di" bpmnElement="Flow_Msg_Contrato"><di:waypoint x="1650" y="1200" /><di:waypoint x="1650" y="430" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_NF_di" bpmnElement="Flow_Msg_NF"><di:waypoint x="1758" y="1200" /><di:waypoint x="1758" y="408" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_Recusa_di" bpmnElement="Flow_Msg_Recusa"><di:waypoint x="2285" y="550" /><di:waypoint x="2285" y="1200" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -25,8 +25,8 @@ try {
 
         // Prepara o insert
         $sql = "INSERT INTO licitacao_participantes 
-                (id_processo_instancia, cod_fornecedor_senior, nome_fornecedor, cnpj_cpf) 
-                VALUES (:id_proc, :cod, :nome, :doc)
+                (id_processo_instancia, id_fornecedor_senior, nome_do_fornecedor) 
+                VALUES (:id_proc, :cod, :nome)
                 ON DUPLICATE KEY UPDATE status_participante = 'Selecionado'";
         
         $stmt = $pdo->prepare($sql);
@@ -40,8 +40,8 @@ try {
             $stmt->execute([
                 ':id_proc' => $idProcesso,
                 ':cod'     => $forn['cod'],
-                ':nome'    => $forn['nome'],
-                ':doc'     => $forn['doc']
+                ':nome'    => $forn['nome']
+                
             ]);
             $count++;
         }

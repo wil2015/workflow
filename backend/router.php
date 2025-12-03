@@ -30,6 +30,10 @@ $bancoDeDadosSimulado = [
     'Activity_ClassificarValores' => [
         'url' => '/backend/views/lancar_valores.php',
         'titulo' => 'Classificação de Propostas'
+    ],
+     'Activity_Enviar1doc' => [
+        'url' => '/backend/views/enviar_1doc.php',
+        'titulo' => 'Mapa comparativo (Grade)'
     ]
 ];
 
