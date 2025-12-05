@@ -1,9 +1,9 @@
 <?php
 // backend/router.php
-
+require 'db_conexao.php'; 
 // 1. Recebe o ID da tarefa vindo do JS
 $taskId = $_GET['task_id'] ?? '';
-$processKey = $_GET['process_key'] ?? 'compras'; // Padrão 'compras' por enquanto
+$processKey = $_GET['process_key'] ?? 1; // Padrão 'compras' por enquanto
 
 if (empty($taskId)) {
     http_response_code(400);
@@ -13,9 +13,9 @@ if (empty($taskId)) {
 
 // 2. Conecta ao Banco (Exemplo PDO)
 // $pdo = new PDO('mysql:host=db;dbname=seu_banco', 'user', 'pass');
-// $stmt = $pdo->prepare("SELECT caminho_view, titulo_modal FROM workflow_etapas WHERE bpmn_task_id = ? AND processo_chave = ?");
-// $stmt->execute([$taskId, $processKey]);
-// $config = $stmt->fetch(PDO::FETCH_ASSOC);
+ $stmt = $pdo->prepare("SELECT caminho_view, titulo_modal FROM etapas_do_fluxo WHERE id_etapa_bpmn = ? AND id_fluxo_definicao = ?");
+ $stmt->execute([$taskId, $processKey]);
+ $config = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // --- SIMULAÇÃO (Enquanto você não cria a tabela real) ---
 $bancoDeDadosSimulado = [
@@ -37,7 +37,8 @@ $bancoDeDadosSimulado = [
     ]
 ];
 
-$config = $bancoDeDadosSimulado[$taskId] ?? null;
+//$config = $bancoDeDadosSimulado[$taskId] ?? null;
+$config[$taskId] ?? null;
 // --------------------------------------------------------
 
 // 3. Retorna o resultado
@@ -45,8 +46,8 @@ if ($config) {
     header('Content-Type: application/json');
     echo json_encode([
         'sucesso' => true,
-        'url' => $config['url'],
-        'titulo' => $config['titulo']
+        'url' => $config['caminho_view'],
+        'titulo' => $config['titulo_modal']
     ]);
 } else {
     // Se não achou no banco, retorna erro 404 (Não encontrado)

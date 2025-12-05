@@ -128,33 +128,16 @@ if ($connSenior) {
 
 <script>
 (function() {
-    function initDT() {
-        $('#tb-fornecedores').DataTable({
-            "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
-            "pageLength": 10,
-            "order": [[ 1, "asc" ]],
-            "columnDefs": [ { "orderable": false, "targets": 0 } ]
-        });
+    // ... (Init DataTable e Carregamento de Libs igual ao anterior) ...
+    // Vou focar apenas na mudança do SALVAR e REMOVER:
 
-        $('#chk-all-forn').on('click', function(){
-            var rows = $('#tb-fornecedores').DataTable().rows({ 'search': 'applied' }).nodes();
-            $('input[type="checkbox"]', rows).prop('checked', this.checked);
-        });
-    }
-
-    if (typeof jQuery == 'undefined') {
-        var s = document.createElement("script"); s.src = "https://code.jquery.com/jquery-3.7.0.min.js";
-        s.onload = function() {
-            var sd = document.createElement("script"); sd.src = "https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js";
-            sd.onload = initDT; document.head.appendChild(sd);
-        }; document.head.appendChild(s);
-    } else { initDT(); }
-
+    // 1. Fechar
     document.getElementById('btn-close-forn').addEventListener('click', function() {
         document.getElementById('modal-overlay').classList.add('hidden');
         document.getElementById('modal-body').innerHTML = '';
     });
 
+    // 2. SALVAR SELEÇÃO
     const btnSave = document.getElementById('btn-save-forn');
     btnSave.addEventListener('click', async function() {
         var table = $('#tb-fornecedores').DataTable();
@@ -163,11 +146,9 @@ if ($connSenior) {
         if (checked.length === 0) { alert('Selecione ao menos um fornecedor.'); return; }
 
         btnSave.disabled = true; btnSave.innerText = "Salvando...";
-
         const fd = new FormData();
         fd.append('acao', 'salvar_participantes');
         fd.append('id_processo', '<?= $idProcesso ?>');
-        
         checked.each(function() { fd.append('participantes[]', this.value); });
 
         try {
@@ -176,26 +157,19 @@ if ($connSenior) {
             
             if (res.sucesso) {
                 alert(res.msg);
-                // AQUI: Força reload para mostrar os itens salvos com o botão vermelho
+                // MUDANÇA: Fecha o modal apenas.
                 document.getElementById('modal-overlay').classList.add('hidden');
-                // Se preferir reabrir o modal automaticamente, seria mais complexo.
-                // O reload da página é o jeito mais seguro de atualizar o estado visual.
-                window.location.reload(); 
             } else {
                 alert('Erro: ' + res.erro);
             }
-        } catch (err) { 
-            // Se der erro de JSON, mostra o texto cru para debug
-            console.error(err);
-            alert('Falha ao salvar. Verifique o console.'); 
-        }
+        } catch (err) { console.error(err); alert('Falha ao salvar.'); }
         finally { btnSave.disabled = false; btnSave.innerText = "Salvar Seleção"; }
     });
 
-    // Lógica do Botão Vermelho (Remover)
+    // 3. REMOVER (Botão X)
     $('#tb-fornecedores tbody').on('click', '.js-rm-forn', async function() {
         const codFornecedor = $(this).data('cod');
-        if (!confirm('Remover este fornecedor da lista de participantes?')) return;
+        if (!confirm('Remover fornecedor da lista?')) return;
 
         const fd = new FormData();
         fd.append('acao', 'remover_participante');
@@ -206,9 +180,16 @@ if ($connSenior) {
             const req = await fetch('/backend/acoes/gerenciar_participantes.php', { method: 'POST', body: fd });
             const res = await req.json();
             if (res.sucesso) {
-                // Atualiza a tabela (remove a formatação de selecionado)
-                // O ideal é recarregar a tela para restaurar o checkbox
-                window.location.reload();
+                // Atualiza visualmente trocando o botão X pelo checkbox
+                // (Para simplificar, apenas removemos a formatação de "selecionado")
+                var row = $(this).parents('tr');
+                row.removeClass('row-selected');
+                
+                // Recria o checkbox na célula (Hack visual para não precisar de reload)
+                // O ideal seria reload do modal, mas se quer ficar na tela, isso serve.
+                // OU: Simplesmente avisamos "Removido" e fechamos o modal para forçar reabertura limpa.
+                alert('Removido! Reabra a janela para atualizar a lista completa.');
+                document.getElementById('modal-overlay').classList.add('hidden');
             } else { alert('Erro: ' + res.erro); }
         } catch (err) { alert('Erro: ' + err.message); }
     });

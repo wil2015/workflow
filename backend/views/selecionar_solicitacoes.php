@@ -53,6 +53,7 @@ if ($connSenior) {
 }
 ?>
 
+<!-- APENAS O HTML E SCRIPT ATUALIZADOS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <style>
     .dataTables_wrapper { font-size: 13px; margin-top: 10px; }
@@ -60,18 +61,20 @@ if ($connSenior) {
     .badge-info { background: #17a2b8; color: white; }
     .row-disabled { background-color: #f9f9f9; color: #999; }
     .btn-danger { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-    .btn-danger:hover { background: #c82333; }
 </style>
 
+<!-- HEADER IGUAL -->
 <div class="modal-header">
     <?php if ($idProcessoMySQL): ?>
         <h2>Gerenciar Processo #<?= $idProcessoMySQL ?></h2>
-        <p>Solicitação vinculada: <strong>#<?= $numSolSenior ?? 'N/A' ?></strong></p>
+        <p>Solicitação Senior: <strong>#<?= $numSolReal ?? 'N/A' ?></strong></p>
     <?php else: ?>
         <h2>Iniciar Novo Processo</h2>
+        <p>Selecione as solicitações disponíveis no ERP.</p>
     <?php endif; ?>
 </div>
 
+<!-- TABELA IGUAL -->
 <div style="padding: 0 10px;">
     <table id="tabela-solicitacoes" class="display" style="width:100%">
         <thead>
@@ -89,14 +92,13 @@ if ($connSenior) {
         <tbody>
             <?php foreach ($listaSolicitacoes as $sol): 
                 $numsol = $sol['numsol'];
-                // Se estamos vendo um processo específico, consideramos ele vinculado visualmente
-                $isLinked = isset($processosVinculados[$numsol]) || ($idProcessoMySQL && $numsol == $numSolSenior);
+                $estaVinculado = isset($processosVinculados[$numsol]);
                 $chaveEnvio = $sol['codemp'] . '-' . $numsol;
             ?>
-            <tr class="<?= $isLinked ? 'row-disabled' : '' ?>">
+            <tr class="<?= $estaVinculado ? 'row-disabled' : '' ?>">
                 <td class="text-center">
-                    <?php if ($isLinked): ?>
-                        <span style="color:#999">-</span>
+                    <?php if ($estaVinculado): ?>
+                        <button type="button" class="btn-cancel-mini js-cancelar-btn" data-id="<?= $numsol ?>" title="Cancelar">&times;</button>
                     <?php else: ?>
                         <input type="checkbox" name="selecionados[]" value="<?= $chaveEnvio ?>" class="chk-item-erp">
                     <?php endif; ?>
@@ -106,7 +108,7 @@ if ($connSenior) {
                 <td><?= number_format($sol['qtdsol'], 2, ',', '.') ?> <?= $sol['unimed'] ?></td>
                 <td>R$ <?= number_format($sol['presol'], 2, ',', '.') ?></td>
                 <td>
-                    <?php if ($isLinked): ?>
+                    <?php if ($estaVinculado): ?>
                         <span class="badge badge-info">Vinculado</span>
                     <?php else: ?>
                         <span class="badge badge-success">Disponível</span>
@@ -118,15 +120,13 @@ if ($connSenior) {
     </table>
 </div>
 
-<div class="modal-footer" style="justify-content: space-between; display: flex;">
+<!-- RODAPÉ -->
+<div class="modal-footer" style="display: flex; justify-content: space-between;">
     <div>
-        <?php if ($idProcessoMySQL && $numSolSenior): ?>
-            <button type="button" class="btn-danger" id="btn-cancelar-geral" data-id="<?= $numSolSenior ?>">
-                Deletar Processo
-            </button>
+        <?php if ($idProcessoMySQL): ?>
+            <button class="btn-danger" id="btn-deletar-processo" data-id="<?= $numSolReal ?>">Excluir Processo</button>
         <?php endif; ?>
     </div>
-    
     <div>
         <button class="btn-cancel" id="btn-fechar-modal-erp">Fechar</button>
         <?php if (!$idProcessoMySQL): ?>
@@ -135,6 +135,7 @@ if ($connSenior) {
     </div>
 </div>
 
+<!-- SCRIPT CORRIGIDO (SEM RELOAD) -->
 <script>
 (function() {
     function initDataTable() {
@@ -163,16 +164,19 @@ if ($connSenior) {
         }; document.head.appendChild(s);
     } else { initDataTable(); }
 
+    // FECHAR: Apenas esconde o modal
     document.getElementById('btn-fechar-modal-erp').addEventListener('click', function() {
         document.getElementById('modal-overlay').classList.add('hidden');
         document.getElementById('modal-body').innerHTML = '';
     });
 
+    // GERAR PROCESSOS
     const btnGerar = document.getElementById('btn-gerar-processo-erp');
     if (btnGerar) {
         btnGerar.addEventListener('click', async function() {
             var tabela = $('#tabela-solicitacoes').DataTable();
             var checkedInputs = tabela.$('input.chk-item-erp:checked');
+
             if (checkedInputs.length === 0) { alert('Selecione um item.'); return; }
 
             btnGerar.disabled = true; btnGerar.innerText = "Processando...";
@@ -183,37 +187,60 @@ if ($connSenior) {
             try {
                 const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
                 const res = await req.json();
-                if (res.sucesso) { alert(res.msg); document.getElementById('modal-overlay').classList.add('hidden'); window.location.reload(); }
-                else { alert('Erro: ' + res.erro); }
+                
+                if (res.sucesso) { 
+                    alert(res.msg); 
+                    // MUDANÇA: Apenas fecha o modal. O usuário continua no diagrama.
+                    document.getElementById('modal-overlay').classList.add('hidden'); 
+                    // Se quiser ver a mudança, o usuário clica de novo na tarefa e a lista recarrega.
+                } else { 
+                    alert('Erro: ' + res.erro); 
+                }
             } catch (err) { alert('Falha: ' + err.message); } 
             finally { btnGerar.disabled = false; btnGerar.innerText = "Gerar Processos"; }
         });
     }
 
-    // LÓGICA DO BOTÃO VERMELHO "DELETAR PROCESSO" (NOVO)
-    const btnDeletar = document.getElementById('btn-cancelar-geral');
+    // CANCELAR ITEM (Botão X na tabela)
+    $('#tabela-solicitacoes tbody').on('click', '.js-cancelar-btn', async function() {
+        const idProcesso = $(this).data('id');
+        if (!confirm('Cancelar Processo #' + idProcesso + '?')) return;
+
+        const formData = new FormData();
+        formData.append('acao', 'cancelar');
+        formData.append('id_processo', idProcesso);
+
+        try {
+            const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
+            const res = await req.json();
+            if (res.sucesso) {
+                alert(res.msg);
+                // Remove visualmente a linha sem reload
+                $('#tabela-solicitacoes').DataTable().row($(this).parents('tr')).remove().draw();
+            } else { alert('Erro: ' + res.erro); }
+        } catch (err) { alert('Erro: ' + err.message); }
+    });
+
+    // EXCLUIR PROCESSO (Botão Vermelho Grande)
+    const btnDeletar = document.getElementById('btn-deletar-processo');
     if (btnDeletar) {
         btnDeletar.addEventListener('click', async function() {
             const idSol = this.dataset.id;
-            if (!confirm('ATENÇÃO: Deseja excluir permanentemente o Processo da Solicitação #' + idSol + '?')) return;
+            if (!confirm('ATENÇÃO: Excluir este processo vai fechar a tela atual. Confirmar?')) return;
 
             const formData = new FormData();
             formData.append('acao', 'cancelar');
-            formData.append('id_processo', idSol); // backend espera 'id_processo'
+            formData.append('id_processo', idSol);
 
             try {
                 const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
                 const res = await req.json();
                 if (res.sucesso) {
-                    alert('Processo excluído com sucesso.');
-                    // Redireciona para o painel principal
+                    alert('Processo excluído.');
+                    // Aqui sim, PRECISAMOS sair, pois o processo que estamos vendo deixou de existir.
                     window.location.href = '/'; 
-                } else {
-                    alert('Erro ao excluir: ' + res.erro);
-                }
-            } catch (err) {
-                alert('Erro de comunicação: ' + err.message);
-            }
+                } else { alert('Erro: ' + res.erro); }
+            } catch (err) { alert('Erro: ' + err.message); }
         });
     }
 

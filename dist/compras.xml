@@ -60,7 +60,7 @@
       <bpmn:outgoing>Flow_6</bpmn:outgoing>
     </bpmn:userTask>
     
-    <bpmn:sendTask id="Activity_Enviar1doc" name="fgfgfgfEnviar para Assinatura (Via 1doc)">
+    <bpmn:sendTask id="Activity_Enviar1doc" name="Grade de Custos">
       <bpmn:incoming>Flow_6</bpmn:incoming>
       <bpmn:outgoing>Flow_Assinando</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_1doc">
