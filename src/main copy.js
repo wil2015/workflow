@@ -5,17 +5,16 @@ import './style.css';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // --- VARIÁVEL GLOBAL SIMPLES ---
+  // Aqui guardamos o ID. Se for novo, fica null.
   let currentInstanceId = null;
 
   // Seletores
   const dashboardContainer = document.getElementById('dashboard-container');
   const viewerContainer = document.getElementById('viewer-container');
   const canvas = document.querySelector('#canvas');
-  
   const listaDefinicoes = document.getElementById('lista-definicoes');
-  // Nota: Agora selecionamos a TABLE inteira, não só o tbody, para o DataTables funcionar bem
-  const tableElement = document.getElementById('tabela-instancias'); 
-  
+  const tabelaInstancias = document.getElementById('tabela-instancias').querySelector('tbody');
   const btnVoltar = document.getElementById('btn-voltar');
   const tituloFluxoAtual = document.getElementById('titulo-fluxo-atual');
   const modalOverlay = document.getElementById('modal-overlay');
@@ -24,30 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const viewer = new BpmnNavigatedViewer({ container: canvas });
 
-  // Roteamento URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const idUrl = urlParams.get('id');
-  const novoXml = urlParams.get('novo');
-
-  if (idUrl) {
-    currentInstanceId = idUrl;
-    abrirDiagrama('compras.xml', `Processo #${idUrl}`);
-  } else if (novoXml) {
-    currentInstanceId = null;
-    abrirDiagrama(novoXml, 'Novo Processo', null);
-  } else {
-    currentInstanceId = null;
-    carregarDashboard();
-  }
-
-  // --- 1. DASHBOARD COM DATATABLES ---
+  // --- 1. DASHBOARD ---
   async function carregarDashboard() {
     viewerContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
-    currentInstanceId = null; 
+    currentInstanceId = null; // Reseta o ID sempre que voltar ao início
 
     try {
-      // 1. Definições (Cards)
+      // Carrega Definições (Novo)
       const respDef = await fetch('/backend/api_dashboard.php?acao=definicoes');
       const definicoes = await respDef.json();
       listaDefinicoes.innerHTML = '';
@@ -56,59 +39,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'card-fluxo';
         card.innerHTML = `<h3>${fluxo.nome_do_fluxo}</h3><p>Iniciar novo</p>`;
-        card.onclick = () => { window.location.href = `?novo=${fluxo.arquivo_xml}`; };
+        // Clicou em Novo -> ID é null
+        card.onclick = () => abrirDiagrama(fluxo.arquivo_xml, fluxo.nome_do_fluxo, null);
         listaDefinicoes.appendChild(card);
       });
 
-      // 2. Histórico (Tabela com DataTables)
+      // Carrega Histórico (Existente)
       const respInst = await fetch('/backend/api_dashboard.php?acao=instancias');
       const instancias = await respInst.json();
-      
-      // Se já existe DataTable, destrói para recriar (evita erro de reinit)
-      if ($.fn.DataTable.isDataTable('#tabela-instancias')) {
-          $('#tabela-instancias').DataTable().destroy();
-      }
-
-      const tbody = tableElement.querySelector('tbody');
-      tbody.innerHTML = '';
+      tabelaInstancias.innerHTML = '';
       
       instancias.forEach(inst => {
         const tr = document.createElement('tr');
-        
-        // Coluna ID Senior com destaque
-        const idSenior = inst.id_processo_senior ? `<span style="font-weight:bold; color:#0056b3">#${inst.id_processo_senior}</span>` : '<span style="color:#999">-</span>';
-        
-        tr.innerHTML = `
-            <td>${inst.id}</td>
-            <td>${inst.nome_do_fluxo}</td>
-            <td>${idSenior}</td> <td data-order="${inst.data_order}">${inst.data_formatada}</td>
-            <td>${inst.estatus_atual}</td>
-            <td><button class="btn-small">Abrir</button></td>
-        `;
-        
-        tr.querySelector('button').onclick = () => { window.location.href = `?id=${inst.id}`; };
-        tbody.appendChild(tr);
+        tr.innerHTML = `<td>#${inst.id}</td><td>${inst.nome_do_fluxo}</td><td>${inst.data_formatada}</td><td>${inst.estatus_atual}</td><td><button class="btn-small">Abrir</button></td>`;
+        // Clicou no Histórico -> Passa o ID da instância
+        tr.querySelector('button').onclick = () => abrirDiagrama(inst.arquivo_xml, `Proc. #${inst.id}`, inst.id);
+        tabelaInstancias.appendChild(tr);
       });
-
-      // Inicializa DataTables
-      $('#tabela-instancias').DataTable({
-          "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
-          "pageLength": 10,
-          "order": [[ 3, "desc" ]], // Ordena pela Data (Coluna 3 - índice começa em 0)
-          "columnDefs": [
-              { "width": "50px", "targets": 0 },  // ID Workflow
-              { "width": "100px", "targets": 2 }, // ID Senior
-              { "width": "80px", "targets": 5 }   // Botão
-          ]
-      });
-
     } catch (err) { console.error(err); }
   }
 
-  // --- 2. RESTO DO CÓDIGO (Visualizador, Modal, etc) ---
-  // (Mantenha o restante das funções abrirDiagrama, eventBus.on, openPhpModal iguais ao que já funcionava)
-  
-  async function abrirDiagrama(xmlFilename, titulo) {
+  // --- 2. ABRIR DIAGRAMA ---
+  async function abrirDiagrama(xmlFilename, titulo, idInstancia) {
+    // 1. Guarda o ID na variável global
+    currentInstanceId = idInstancia; 
+    console.log("ID Definido como:", currentInstanceId);
+
+    // 2. Mostra a tela
     dashboardContainer.classList.add('hidden');
     viewerContainer.classList.remove('hidden');
     tituloFluxoAtual.textContent = titulo;
@@ -121,40 +78,56 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
           const canvas = viewer.get('canvas');
           canvas.zoom('fit-viewport');
+          const viewbox = canvas.viewbox();
+          canvas.zoom(1, { x: viewbox.x + viewbox.width / 2, y: viewbox.y + viewbox.height / 2 });
       }, 100);
-    } catch (err) { alert('Erro: ' + err.message); window.location.href = '/'; }
+    } catch (err) { alert('Erro: ' + err.message); voltarAoDashboard(); }
   }
 
+  function voltarAoDashboard() {
+    viewer.clear();
+    carregarDashboard();
+  }
+
+  // --- 3. CLIQUE NA TAREFA ---
   const eventBus = viewer.get('eventBus');
+
   eventBus.on('element.click', async (e) => {
     const element = e.element;
     const id = element.id; 
-    const type = element.type;
-
-    if (!type || (!type.toLowerCase().includes('task') && !type.toLowerCase().includes('event'))) return;
+    
+    if (!element.type || !element.type.toLowerCase().includes('task')) return;
+    // Permite Tasks OU Eventos (Events)
+    //if (!type || (!type.toLowerCase().includes('task') && !type.toLowerCase().includes('event'))) return;
 
     try {
+      // Pergunta ao router qual arquivo PHP abrir
       const rotaResponse = await fetch(`/backend/router.php?task_id=${id}`);
       if (rotaResponse.status === 404) return;
       const config = await rotaResponse.json();
 
       if (config.sucesso && config.url) {
         const separator = config.url.includes('?') ? '&' : '?';
+        
+        // AQUI: Pegamos a variável global e montamos a URL com instance_id
         const idParaEnviar = currentInstanceId ? currentInstanceId : '';
         const finalUrl = `${config.url}${separator}instance_id=${idParaEnviar}`;
+        
         openPhpModal(finalUrl);
       }
     } catch (err) { console.error(err); }
   });
 
+  // --- 4. MODAL ---
   async function openPhpModal(url) {
-    modalBody.innerHTML = '<div style="text-align:center;padding:20px">Carregando...</div>';
+    modalBody.innerHTML = 'Carregando...';
     modalOverlay.classList.remove('hidden');
     try {
       const response = await fetch(url);
       const html = await response.text();
       modalBody.innerHTML = html;
       
+      // Executa scripts do PHP
       modalBody.querySelectorAll('script').forEach(oldScript => {
         const newScript = document.createElement('script');
         newScript.textContent = oldScript.textContent;
@@ -164,10 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) { modalBody.innerHTML = 'Erro: ' + err.message; }
   }
 
-  if (btnVoltar) btnVoltar.addEventListener('click', (e) => { e.preventDefault(); window.location.href = '/'; });
+  if (btnVoltar) btnVoltar.addEventListener('click', (e) => { e.preventDefault(); voltarAoDashboard(); });
   if (modalClose) modalClose.addEventListener('click', () => { 
       modalOverlay.classList.add('hidden'); 
       modalBody.innerHTML = '';
   });
 
+  // Inicia
+  carregarDashboard();
 });

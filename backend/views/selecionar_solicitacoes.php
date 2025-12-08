@@ -1,117 +1,148 @@
 <?php
-// backend/views/selecionar_solicitacoes.php
-
 require  '../db_conexao.php';
 require  '../db_senior.php';
 
-// 1. Recebe o ID do Processo (ID interno do MySQL)
-$idProcessoMySQL = $_GET['instance_id'] ?? null;
-if ($idProcessoMySQL === 'null' || $idProcessoMySQL === '') $idProcessoMySQL = null;
+$filtroInstancia = $_GET['instance_id'] ?? null;
+if ($filtroInstancia === 'null' || $filtroInstancia === '') $filtroInstancia = null;
 
-$numSolSenior = null;
+$numSolTitulo = null;
 
-// 2. Se tem ID, descobre qual é a solicitação do Senior
-if ($idProcessoMySQL) {
-    try {
-        $stmt = $pdo->prepare("SELECT id_processo_senior FROM processos_instancia WHERE id = ?");
-        $stmt->execute([$idProcessoMySQL]);
-        $res = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($res) $numSolSenior = $res['id_processo_senior'];
-    } catch (Exception $e) { }
-}
-
-// 3. Mapeia processos existentes
-$processosVinculados = [];
+// Mapeamento
+$itensVinculados = [];
 try {
-    $stmt = $pdo->query("SELECT id_processo_senior FROM processos_instancia WHERE id_fluxo_definicao = 1");
-    $processosVinculados = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-    $processosVinculados = array_flip($processosVinculados);
+    $stmt = $pdo->query("SELECT id_processo_instancia, num_solicitacao, seq_solicitacao FROM processos_itens");
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $chave = $row['num_solicitacao'] . '-' . $row['seq_solicitacao'];
+        $itensVinculados[$chave] = $row['id_processo_instancia'];
+    }
+    
+    if ($filtroInstancia) {
+        $stmt = $pdo->prepare("SELECT id_processo_senior FROM processos_instancia WHERE id = ?");
+        $stmt->execute([$filtroInstancia]);
+        $res = $stmt->fetch();
+        if ($res) $numSolTitulo = $res['id_processo_senior'];
+    }
 } catch (Exception $e) { }
 
-// 4. Busca no Senior
+// Busca Senior
 $listaSolicitacoes = [];
 if ($connSenior) {
-    if ($idProcessoMySQL) {
-        // Visualizar UM
-        $sql = "SELECT codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed FROM Sapiens.sapiens.e405sol WHERE numsol = ?";
-        $params = [$numSolSenior];
+    if ($filtroInstancia && $numSolTitulo) {
+        $sql = "SELECT codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed, numprj, datsol 
+                FROM Sapiens.sapiens.e405sol WHERE numsol = ? ORDER BY seqsol ASC"; 
+        $params = [$numSolTitulo];
     } else {
-        // Visualizar TODOS
-        $sql = "SELECT TOP 1000 codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed FROM Sapiens.sapiens.e405sol WHERE sitsol IN (1, 2) ORDER BY datsol DESC";
+        $sql = "SELECT TOP 1000 codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed, numprj, datsol 
+                FROM Sapiens.sapiens.e405sol 
+                WHERE sitsol IN (1, 2) 
+                ORDER BY numprj ASC, datsol DESC, numsol DESC, seqsol ASC";
         $params = [];
     }
-    if (!empty($sql)) {
-        $stmtSenior = sqlsrv_query($connSenior, $sql, $params);
-        if ($stmtSenior) {
-            while ($row = sqlsrv_fetch_array($stmtSenior, SQLSRV_FETCH_ASSOC)) $listaSolicitacoes[] = $row;
+    $stmtSenior = sqlsrv_query($connSenior, $sql, $params);
+    if ($stmtSenior) {
+        while ($row = sqlsrv_fetch_array($stmtSenior, SQLSRV_FETCH_ASSOC)) {
+            $listaSolicitacoes[] = $row;
         }
     }
 } else {
     // Simulação
-    $ns = $numSolSenior ? $numSolSenior : 1050;
-    $listaSolicitacoes = [['codemp'=>1, 'numsol'=>$ns, 'seqsol'=>1, 'cplpro'=>'Item '.$ns, 'qtdsol'=>1, 'presol'=>100, 'unimed'=>'UN']];
+    $date1 = new DateTime('2025-11-14');
+    $numSimulado = $numSolTitulo ? $numSolTitulo : 1060;
+    if ($filtroInstancia) {
+         $listaSolicitacoes = [['codemp'=>1, 'numsol'=>$numSimulado, 'seqsol'=>1, 'cplpro'=>'Item 1', 'qtdsol'=>1, 'presol'=>100, 'unimed'=>'UN', 'numprj'=>'PROJ-001', 'datsol'=>$date1]];
+    } else {
+         $listaSolicitacoes = [['codemp'=>1, 'numsol'=>1060, 'seqsol'=>1, 'cplpro'=>'Item Teste', 'qtdsol'=>1, 'presol'=>25000, 'unimed'=>'UN', 'numprj'=>'INFRA-25', 'datsol'=>$date1]];
+    }
 }
 ?>
 
-<!-- APENAS O HTML E SCRIPT ATUALIZADOS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <style>
-    .dataTables_wrapper { font-size: 13px; margin-top: 10px; }
+    .dataTables_wrapper { font-size: 12px; margin-top: 10px; }
     #tabela-solicitacoes { width: 100% !important; }
-    .badge-info { background: #17a2b8; color: white; }
-    .row-disabled { background-color: #f9f9f9; color: #999; }
-    .btn-danger { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    .btn-rm-item { background: #fff; border: 1px solid #dc3545; color: #dc3545; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-rm-item:hover { background: #dc3545; color: white; }
+    .btn-danger-big { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    .proj-tag { background: #e9ecef; color: #495057; padding: 2px 5px; border-radius: 3px; font-weight: bold; font-size: 11px; }
+    .status-ok { color: #28a745; font-weight: bold; font-size: 11px; }
+    .status-new { color: #007bff; font-weight: bold; font-size: 11px; }
 </style>
 
-<!-- HEADER IGUAL -->
 <div class="modal-header">
-    <?php if ($idProcessoMySQL): ?>
-        <h2>Gerenciar Processo #<?= $idProcessoMySQL ?></h2>
-        <p>Solicitação Senior: <strong>#<?= $numSolReal ?? 'N/A' ?></strong></p>
+    <?php if ($filtroInstancia): ?>
+        <h2>Gerenciar Processo #<?= $filtroInstancia ?></h2>
+        <p>Marque novos itens para adicionar ou clique no X para remover.</p>
     <?php else: ?>
         <h2>Iniciar Novo Processo</h2>
-        <p>Selecione as solicitações disponíveis no ERP.</p>
+        <p>Selecione as solicitações.</p>
     <?php endif; ?>
 </div>
 
-<!-- TABELA IGUAL -->
 <div style="padding: 0 10px;">
     <table id="tabela-solicitacoes" class="display" style="width:100%">
         <thead>
             <tr>
                 <th width="30">
-                    <?php if (!$idProcessoMySQL): ?><input type="checkbox" id="chk-todos-erp"><?php endif; ?>
+                    <?php if (!$filtroInstancia): ?><input type="checkbox" id="chk-todos-erp"><?php endif; ?>
                 </th>
-                <th>Solicitação</th>
+                <th width="100">Projeto</th>
+                <th width="80">Data</th>
+                <th width="80">Solicitação</th>
                 <th>Produto / Descrição</th>
-                <th>Qtd.</th>
-                <th>Preço Unit.</th>
+                <th width="100">Preço Unit.</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($listaSolicitacoes as $sol): 
                 $numsol = $sol['numsol'];
-                $estaVinculado = isset($processosVinculados[$numsol]);
-                $chaveEnvio = $sol['codemp'] . '-' . $numsol;
+                $seqsol = $sol['seqsol'];
+                $chaveCheck = $numsol . '-' . $seqsol;
+                
+                $idDono = $itensVinculados[$chaveCheck] ?? null;
+                $vinculadoAqui = ($filtroInstancia && $idDono == $filtroInstancia);
+                $vinculadoOutro = ($idDono && $idDono != $filtroInstancia);
+                
+                $chaveEnvio = $sol['codemp'] . '-' . $numsol . '-' . $seqsol;
+                
+                $dataFmt = ''; $dataOrder = '';
+                if (isset($sol['datsol']) && $sol['datsol'] instanceof DateTime) {
+                    $dataFmt = $sol['datsol']->format('d/m/Y');
+                    $dataOrder = $sol['datsol']->format('YmdHis');
+                }
+                $precoFmt = number_format($sol['presol'] ?? 0, 2, ',', '.');
             ?>
-            <tr class="<?= $estaVinculado ? 'row-disabled' : '' ?>">
+            <tr class="<?= ($vinculadoAqui || $vinculadoOutro) ? 'row-disabled' : '' ?>">
                 <td class="text-center">
-                    <?php if ($estaVinculado): ?>
-                        <button type="button" class="btn-cancel-mini js-cancelar-btn" data-id="<?= $numsol ?>" title="Cancelar">&times;</button>
+                    <?php if ($vinculadoAqui): ?>
+                        <button type="button" 
+                                class="btn-rm-item js-rm-item" 
+                                data-num="<?= $numsol ?>" 
+                                data-seq="<?= $seqsol ?>" 
+                                data-chave="<?= $chaveEnvio ?>"
+                                title="Remover item">
+                            &times;
+                        </button>
+                    <?php elseif ($vinculadoOutro): ?>
+                        <span style="color:#ccc">🔒</span>
                     <?php else: ?>
                         <input type="checkbox" name="selecionados[]" value="<?= $chaveEnvio ?>" class="chk-item-erp">
                     <?php endif; ?>
                 </td>
-                <td><b><?= $numsol ?></b>-<?= $sol['seqsol'] ?></td>
-                <td><?= $sol['cplpro'] ?></td>
-                <td><?= number_format($sol['qtdsol'], 2, ',', '.') ?> <?= $sol['unimed'] ?></td>
-                <td>R$ <?= number_format($sol['presol'], 2, ',', '.') ?></td>
-                <td>
-                    <?php if ($estaVinculado): ?>
-                        <span class="badge badge-info">Vinculado</span>
+                
+                <td><span class="proj-tag"><?= $sol['numprj'] ?></span></td>
+                <td data-order="<?= $dataOrder ?>"><?= $dataFmt ?></td>
+                <td><b><?= $numsol ?></b>-<?= $seqsol ?></td>
+                <td><?= $sol['cplpro'] ?><br><small>Qtd: <?= number_format($sol['qtdsol'], 2, ',', '.') ?> <?= $sol['unimed'] ?></small></td>
+                <td>R$ <?= $precoFmt ?></td>
+                
+                <td class="col-status">
+                    <?php if ($vinculadoAqui): ?>
+                        <span class="status-ok">Vinculado</span>
+                    <?php elseif ($vinculadoOutro): ?>
+                        <span style="color:#999; font-size:10px">Em Proc. #<?= $idDono ?></span>
                     <?php else: ?>
-                        <span class="badge badge-success">Disponível</span>
+                        <span class="status-new">Disponível</span>
                     <?php endif; ?>
                 </td>
             </tr>
@@ -120,40 +151,33 @@ if ($connSenior) {
     </table>
 </div>
 
-<!-- RODAPÉ -->
 <div class="modal-footer" style="display: flex; justify-content: space-between;">
     <div>
-        <?php if ($idProcessoMySQL): ?>
-            <button class="btn-danger" id="btn-deletar-processo" data-id="<?= $numSolReal ?>">Excluir Processo</button>
+        <?php if ($filtroInstancia): ?>
+            <button class="btn-danger-big" id="btn-cancelar-tudo" data-id="<?= $filtroInstancia ?>">Excluir Processo Inteiro</button>
         <?php endif; ?>
     </div>
     <div>
         <button class="btn-cancel" id="btn-fechar-modal-erp">Fechar</button>
-        <?php if (!$idProcessoMySQL): ?>
-            <button class="btn-save" id="btn-gerar-processo-erp">Gerar Processos</button>
-        <?php endif; ?>
+        <button class="btn-save" id="btn-gerar-processo-erp">
+            <?= $filtroInstancia ? 'Salvar Novos Itens' : 'Gerar Processos' ?>
+        </button>
     </div>
 </div>
 
-<!-- SCRIPT CORRIGIDO (SEM RELOAD) -->
 <script>
 (function() {
     function initDataTable() {
         $('#tabela-solicitacoes').DataTable({
             "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
             "pageLength": 10,
-            "searching": <?= $idProcessoMySQL ? 'false' : 'true' ?>,
-            "paging": <?= $idProcessoMySQL ? 'false' : 'true' ?>,
-            "info": <?= $idProcessoMySQL ? 'false' : 'true' ?>,
+            "order": [[ 1, "asc" ], [ 2, "desc" ]], 
             "columnDefs": [ { "orderable": false, "targets": 0 } ]
         });
-        const chkMaster = document.getElementById('chk-todos-erp');
-        if (chkMaster) {
-            chkMaster.addEventListener('click', function(){
-                var rows = $('#tabela-solicitacoes').DataTable().rows({ 'search': 'applied' }).nodes();
-                $('input[type="checkbox"]', rows).prop('checked', this.checked);
-            });
-        }
+        $('#chk-todos-erp').on('click', function(){
+            var rows = $('#tabela-solicitacoes').DataTable().rows({ 'search': 'applied' }).nodes();
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+        });
     }
 
     if (typeof jQuery == 'undefined') {
@@ -164,22 +188,20 @@ if ($connSenior) {
         }; document.head.appendChild(s);
     } else { initDataTable(); }
 
-    // FECHAR: Apenas esconde o modal
     document.getElementById('btn-fechar-modal-erp').addEventListener('click', function() {
         document.getElementById('modal-overlay').classList.add('hidden');
         document.getElementById('modal-body').innerHTML = '';
     });
 
-    // GERAR PROCESSOS
     const btnGerar = document.getElementById('btn-gerar-processo-erp');
     if (btnGerar) {
         btnGerar.addEventListener('click', async function() {
             var tabela = $('#tabela-solicitacoes').DataTable();
             var checkedInputs = tabela.$('input.chk-item-erp:checked');
 
-            if (checkedInputs.length === 0) { alert('Selecione um item.'); return; }
+            if (checkedInputs.length === 0) { alert('Selecione ao menos um item novo.'); return; }
 
-            btnGerar.disabled = true; btnGerar.innerText = "Processando...";
+            btnGerar.disabled = true; btnGerar.innerText = "Salvando...";
             const formData = new FormData();
             formData.append('acao', 'vincular');
             checkedInputs.each(function() { formData.append('selecionados[]', this.value); });
@@ -187,62 +209,71 @@ if ($connSenior) {
             try {
                 const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
                 const res = await req.json();
-                
                 if (res.sucesso) { 
                     alert(res.msg); 
-                    // MUDANÇA: Apenas fecha o modal. O usuário continua no diagrama.
                     document.getElementById('modal-overlay').classList.add('hidden'); 
-                    // Se quiser ver a mudança, o usuário clica de novo na tarefa e a lista recarrega.
-                } else { 
-                    alert('Erro: ' + res.erro); 
-                }
+                } else { alert('Erro: ' + res.erro); }
             } catch (err) { alert('Falha: ' + err.message); } 
-            finally { btnGerar.disabled = false; btnGerar.innerText = "Gerar Processos"; }
+            finally { btnGerar.disabled = false; btnGerar.innerText = "Salvar / Gerar"; }
         });
     }
 
-    // CANCELAR ITEM (Botão X na tabela)
-    $('#tabela-solicitacoes tbody').on('click', '.js-cancelar-btn', async function() {
-        const idProcesso = $(this).data('id');
-        if (!confirm('Cancelar Processo #' + idProcesso + '?')) return;
+    // A CORREÇÃO VISUAL + LÓGICA ESTÁ AQUI
+    $('#tabela-solicitacoes tbody').on('click', '.js-rm-item', async function() {
+        const btn = $(this);
+        const numSol = btn.data('num'); // Agora pega o NUMSOL corretamente
+        const seqSol = btn.data('seq');
+        const chaveEnvio = btn.data('chave');
+        const idProc = '<?= $filtroInstancia ?>'; 
+
+        if (!confirm('Remover o item ' + seqSol + ' da Sol. ' + numSol + '?')) return;
 
         const formData = new FormData();
-        formData.append('acao', 'cancelar');
-        formData.append('id_processo', idProcesso);
+        formData.append('acao', 'remover_item');
+        formData.append('id_processo', idProc);
+        formData.append('num_solicitacao', numSol);
+        formData.append('seq_solicitacao', seqSol);
 
         try {
             const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
-            const res = await req.json();
+            
+            // Tratamento de erro 500
+            let res;
+            const text = await req.text();
+            try { res = JSON.parse(text); } 
+            catch(e) { alert("Erro fatal no servidor:\n" + text); return; }
+
             if (res.sucesso) {
-                alert(res.msg);
-                // Remove visualmente a linha sem reload
-                $('#tabela-solicitacoes').DataTable().row($(this).parents('tr')).remove().draw();
+                // Atualização Visual Imediata (Sem reload)
+                var row = btn.closest('tr');
+                row.removeClass('row-disabled'); 
+                
+                var cellAcao = btn.parent();
+                cellAcao.html('<input type="checkbox" name="selecionados[]" value="' + chaveEnvio + '" class="chk-item-erp">');
+
+                var cellStatus = row.find('.col-status');
+                if(cellStatus.length === 0) cellStatus = row.find('td:last');
+                cellStatus.html('<span class="status-new">Disponível</span>');
+
             } else { alert('Erro: ' + res.erro); }
         } catch (err) { alert('Erro: ' + err.message); }
     });
 
-    // EXCLUIR PROCESSO (Botão Vermelho Grande)
-    const btnDeletar = document.getElementById('btn-deletar-processo');
-    if (btnDeletar) {
-        btnDeletar.addEventListener('click', async function() {
-            const idSol = this.dataset.id;
-            if (!confirm('ATENÇÃO: Excluir este processo vai fechar a tela atual. Confirmar?')) return;
-
+    const btnDeletarTudo = document.getElementById('btn-cancelar-tudo');
+    if (btnDeletarTudo) {
+        btnDeletarTudo.addEventListener('click', async function() {
+            const idProc = this.dataset.id;
+            if (!confirm('ATENÇÃO: Deseja excluir o PROCESSO INTEIRO?')) return;
             const formData = new FormData();
-            formData.append('acao', 'cancelar');
-            formData.append('id_processo', idSol);
-
+            formData.append('acao', 'cancelar_processo');
+            formData.append('id_processo', idProc);
             try {
                 const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
                 const res = await req.json();
-                if (res.sucesso) {
-                    alert('Processo excluído.');
-                    // Aqui sim, PRECISAMOS sair, pois o processo que estamos vendo deixou de existir.
-                    window.location.href = '/'; 
-                } else { alert('Erro: ' + res.erro); }
+                if (res.sucesso) { alert('Processo excluído.'); window.location.href = '/'; } 
+                else { alert('Erro: ' + res.erro); }
             } catch (err) { alert('Erro: ' + err.message); }
         });
     }
-
 })();
 </script>
