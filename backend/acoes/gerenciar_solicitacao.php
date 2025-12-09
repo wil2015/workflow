@@ -1,7 +1,6 @@
 <?php
 // backend/acoes/gerenciar_solicitacao.php
 
-// 1. Inicia buffer para evitar "vazamento" de HTML de erro
 ob_start();
 ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
@@ -11,7 +10,7 @@ require '../db_conexao.php';
 $acao = $_POST['acao'] ?? '';
 
 try {
-    // --- AÇÃO 1: VINCULAR (ADICIONAR) ---
+    // --- 1. ADICIONAR (VINCULAR) ITENS ---
     if ($acao === 'vincular') {
         $selecionados = $_POST['selecionados'] ?? [];
         
@@ -21,9 +20,7 @@ try {
         $itensProcessados = 0;
         $mapaSolicitacoes = [];
         
-        // Agrupa por Solicitação
         foreach ($selecionados as $itemKey) {
-            // value="CODEMP-NUMSOL-SEQSOL"
             $parts = explode('-', $itemKey);
             if (count($parts) < 3) continue;
             $numsol = $parts[1];
@@ -32,7 +29,7 @@ try {
         }
 
         foreach ($mapaSolicitacoes as $numsol => $listaSeqs) {
-            // Busca ou Cria Processo Pai
+            // Busca ID do Processo
             $stmt = $pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
             $stmt->execute([$numsol]);
             $proc = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -48,44 +45,68 @@ try {
                 $idProcesso = $pdo->lastInsertId();
             }
 
-            // Insere Itens
+            // Insere Item
             $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao) VALUES (?, ?, ?)";
             $stmtItem = $pdo->prepare($sqlItem);
 
+            // GERA MATRIZ DE COTAÇÃO PARA ITENS NOVOS
+            // Se já existirem fornecedores no processo, criamos as linhas vazias na cotação para esse novo item
+            $sqlGeraCota = "INSERT IGNORE INTO licitacao_itens_ofertados 
+                            (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario)
+                            SELECT ?, ?, ?, id_fornecedor_senior, NULL 
+                            FROM licitacao_participantes 
+                            WHERE id_processo_instancia = ?";
+            $stmtGeraCota = $pdo->prepare($sqlGeraCota);
+
             foreach ($listaSeqs as $seq) {
                 $stmtItem->execute([$idProcesso, $numsol, $seq]);
-                if ($stmtItem->rowCount() > 0) $itensProcessados++;
+                if ($stmtItem->rowCount() > 0) {
+                    $itensProcessados++;
+                    // Cria linhas de cotação vazias para os fornecedores que já estão no processo
+                    $stmtGeraCota->execute([$idProcesso, $numsol, $seq, $idProcesso]);
+                }
             }
         }
 
         $pdo->commit();
         ob_clean();
-        echo json_encode(['sucesso' => true, 'msg' => "$itensProcessados item(ns) salvo(s)!"]);
+        echo json_encode(['sucesso' => true, 'msg' => "$itensProcessados item(ns) adicionado(s)!"]);
 
-    // --- AÇÃO 2: REMOVER ITEM (Correção Aqui) ---
+    // --- 2. REMOVER ITEM (COM LIMPEZA EM CASCATA) ---
     } elseif ($acao === 'remover_item') {
-        // Validação estrita para evitar erro 500
         $idProcesso = $_POST['id_processo'] ?? null;
         $numSol     = $_POST['num_solicitacao'] ?? null;
         $seqSol     = $_POST['seq_solicitacao'] ?? null;
 
         if (!$idProcesso || !$numSol || !$seqSol) {
-            throw new Exception("Dados incompletos para exclusão (ID: $idProcesso, Sol: $numSol, Seq: $seqSol).");
+            throw new Exception("Dados incompletos.");
         }
 
-        $stmt = $pdo->prepare("DELETE FROM processos_itens 
-                               WHERE id_processo_instancia = ? 
-                               AND num_solicitacao = ? 
-                               AND seq_solicitacao = ?");
-        $stmt->execute([$idProcesso, $numSol, $seqSol]);
+        $pdo->beginTransaction();
 
+        // A. LIMPEZA: Remove qualquer cotação/valor atrelado a este item
+        // Isso garante que não sobre "lixo" na tabela de valores
+        $stmtClean = $pdo->prepare("DELETE FROM licitacao_itens_ofertados 
+                                    WHERE id_processo_instancia = ? 
+                                    AND num_solicitacao = ? 
+                                    AND seq_solicitacao = ?");
+        $stmtClean->execute([$idProcesso, $numSol, $seqSol]);
+
+        // B. REMOÇÃO: Remove o item do processo
+        $stmtDelete = $pdo->prepare("DELETE FROM processos_itens 
+                                     WHERE id_processo_instancia = ? 
+                                     AND num_solicitacao = ? 
+                                     AND seq_solicitacao = ?");
+        $stmtDelete->execute([$idProcesso, $numSol, $seqSol]);
+
+        $pdo->commit();
         ob_clean();
-        echo json_encode(['sucesso' => true, 'msg' => "Item removido com sucesso."]);
+        echo json_encode(['sucesso' => true, 'msg' => "Item e suas cotações foram removidos."]);
 
-    // --- AÇÃO 3: EXCLUIR PROCESSO ---
+    // --- 3. EXCLUIR PROCESSO ---
     } elseif ($acao === 'cancelar_processo') {
         $idProcessoMySQL = $_POST['id_processo'] ?? null;
-        if (!$idProcessoMySQL) throw new Exception("ID do processo inválido.");
+        if (!$idProcessoMySQL) throw new Exception("ID inválido.");
 
         $stmt = $pdo->prepare("DELETE FROM processos_instancia WHERE id = ?");
         $stmt->execute([$idProcessoMySQL]);
@@ -94,13 +115,11 @@ try {
         echo json_encode(['sucesso' => true, 'msg' => "Processo excluído."]);
 
     } else {
-        throw new Exception("Ação inválida ou não informada.");
+        throw new Exception("Ação inválida.");
     }
 
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-    
-    // Captura o erro real e manda para o JS
     ob_clean();
     http_response_code(500);
     echo json_encode(['sucesso' => false, 'erro' => $e->getMessage()]);

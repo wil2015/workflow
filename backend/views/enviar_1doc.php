@@ -1,119 +1,187 @@
 <?php
-// backend/views/enviar_1doc.php
+require  '../db_conexao.php';
+require  '../db_senior.php';
 
-// --- 1. DADOS DE DEMONSTRAÇÃO (MOCK) ---
-// Simulamos 5 Fornecedores e 5 Itens
-$fornecedores = [
-    'Kalunga Comércio', 
-    'Dell Computadores', 
-    'Amazon Business', 
-    'Kabum Informatica', 
-    'Magazine Luiza Corp'
-];
+$idProcesso = $_GET['instance_id'] ?? null;
+if (!$idProcesso) { echo "<div class='error-msg'>Processo não informado.</div>"; exit; }
 
-$itens = [
-    'Notebook Dell Latitude 5420 (Core i7, 16GB)',
-    'Monitor 27" 4K Ultra HD',
-    'Mouse Sem Fio Logitech MX Master 3',
-    'Teclado Mecânico Keychron K2',
-    'Suporte Articulado para Monitor a Gás'
-];
+// 1. BUSCA PARTICIPANTES (COLUNAS)
+// Correção: id_fornecedor_senior
+$stmtF = $pdo->prepare("SELECT id_fornecedor_senior, nome_do_fornecedor, cnpj_cpf 
+                        FROM licitacao_participantes 
+                        WHERE id_processo_instancia = ? 
+                        ORDER BY id_fornecedor_senior"); 
+$stmtF->execute([$idProcesso]);
+$fornecedores = $stmtF->fetchAll(PDO::FETCH_ASSOC);
 
-// Gera matriz de preços simulada
+if (empty($fornecedores)) {
+    echo "<div style='padding:20px'>⚠️ Nenhum fornecedor participando.</div>";
+    exit;
+}
+
+// 2. BUSCA ITENS (LINHAS)
+$stmtI = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
+$stmtI->execute([$idProcesso]);
+$listaItens = $stmtI->fetchAll(PDO::FETCH_ASSOC);
+
+// 3. BUSCA VALORES (CRUZAMENTO)
+// Correção: id_fornecedor_senior
+$precos = [];
+$stmtP = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario 
+                        FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?");
+$stmtP->execute([$idProcesso]);
+while ($row = $stmtP->fetch(PDO::FETCH_ASSOC)) {
+    $chave = $row['num_solicitacao'] . '-' . $row['seq_solicitacao'];
+    // Mapeia usando o ID correto
+    $precos[$chave][$row['id_fornecedor_senior']] = $row['valor_unitario'];
+}
+
+// 4. PREPARA GRADE
 $grade = [];
 $totalGeral = 0;
 
-foreach ($itens as $item) {
-    $menorPreco = null;
-    $vencedor = null;
-    $precosItem = [];
-
-    // Gera preço para cada fornecedor
-    foreach ($fornecedores as $forn) {
-        // Preço aleatório entre 100 e 5000 para simular variação
-        // Usamos hash do nome para manter o mesmo valor se der F5 (pseudo-aleatório fixo)
-        $seed = crc32($item . $forn);
-        srand($seed);
-        $preco = rand(15000, 800000) / 100; // Entre R$ 150,00 e R$ 8.000,00
-        
-        $precosItem[$forn] = $preco;
-
-        // Lógica de Menor Preço
-        if ($menorPreco === null || $preco < $menorPreco) {
-            $menorPreco = $preco;
-            $vencedor = $forn;
+foreach ($listaItens as $i) {
+    $num = $i['num_solicitacao'];
+    $seq = $i['seq_solicitacao'];
+    $chave = "$num-$seq";
+    
+    // Dados do Senior
+    $nomeProduto = "Item $num-$seq";
+    $qtd = 0;
+    if ($connSenior) {
+        $sqlS = "SELECT cplpro, qtdsol, unimed FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
+        $qS = sqlsrv_query($connSenior, $sqlS, [$num, $seq]);
+        if ($qS && $rS = sqlsrv_fetch_array($qS, SQLSRV_FETCH_ASSOC)) {
+            $nomeProduto = utf8_encode($rS['cplpro']);
+            $qtd = $rS['qtdsol'];
         }
     }
 
+    // Calcula Vencedor
+    $menorPreco = null;
+    $vencedores = []; 
+
+    foreach ($fornecedores as $f) {
+        $cod = $f['id_fornecedor_senior']; // ID Correto
+        $valor = $precos[$chave][$cod] ?? 0;
+        
+        if ($valor > 0) {
+            if ($menorPreco === null || $valor < $menorPreco) {
+                $menorPreco = $valor;
+            }
+        }
+    }
+
+    if ($menorPreco !== null) {
+        foreach ($fornecedores as $f) {
+            $cod = $f['id_fornecedor_senior']; // ID Correto
+            $valor = $precos[$chave][$cod] ?? 0;
+            // Comparação segura de float
+            if ($valor > 0 && abs($valor - $menorPreco) < 0.001) {
+                $vencedores[] = $cod;
+            }
+        }
+        $totalGeral += ($menorPreco * $qtd);
+    }
+
     $grade[] = [
-        'produto' => $item,
-        'precos' => $precosItem,
-        'melhor_preco' => $menorPreco,
-        'ganhador' => $vencedor
+        'chave' => $chave,
+        'produto' => $nomeProduto,
+        'qtd' => $qtd,
+        'menor_preco' => $menorPreco,
+        'lista_vencedores' => $vencedores
     ];
-    
-    $totalGeral += $menorPreco;
 }
 ?>
 
 <style>
-    .grade-wrapper { overflow-x: auto; margin-top: 15px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .table-grade { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
-    .table-grade th, .table-grade td { padding: 10px; border: 1px solid #eee; text-align: center; }
+    .grade-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ddd; }
+    .table-grade { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1000px; }
+    .table-grade th, .table-grade td { padding: 8px; border: 1px solid #eee; text-align: center; vertical-align: middle; }
     
-    /* Cabeçalho */
-    .table-grade thead th { background-color: #f8f9fa; color: #333; font-weight: 600; position: sticky; top: 0; }
-    .col-prod { text-align: left !important; width: 250px; background: #fff; position: sticky; left: 0; z-index: 2; border-right: 2px solid #ddd !important; }
+    .table-grade th { background-color: #f8f9fa; color: #333; font-weight: 600; font-size: 11px; }
+    .col-prod { text-align: left !important; width: 300px; min-width: 250px; background: #fff; position: sticky; left: 0; z-index: 2; border-right: 2px solid #ddd !important; }
     
-    /* Célula Vencedora (Verde) */
-    .winner { background-color: #d4edda; color: #155724; font-weight: bold; border: 2px solid #c3e6cb !important; }
-    
-    /* Célula Perdedora (Texto mais claro) */
-    .loser { color: #666; }
+    .winner { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb !important; font-weight: bold; }
+    .tie { background-color: #fff3cd; color: #856404; border: 2px solid #ffeeba !important; font-weight: bold; }
+    .loser { color: #999; }
+    .empty { background-color: #f9f9f9; color: #ccc; }
 
-    .total-box { margin-top: 20px; padding: 15px; background: #e9ecef; text-align: right; font-size: 16px; border-radius: 4px;}
-    .badge-1doc { background: #009688; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; }
+    .total-box { margin-top: 20px; padding: 15px; background: #e9ecef; text-align: right; font-size: 16px; border-radius: 4px; border-left: 5px solid #28a745; }
 </style>
 
 <div class="modal-header">
-    <h2>Grade Comparativa de Preços <span class="badge-1doc">Integração 1Doc</span></h2>
-    <p>O sistema classificou automaticamente as melhores ofertas por item.</p>
+    <h2>Grade Comparativa</h2>
+    <p>Os itens marcados representam o menor preço encontrado.</p>
 </div>
 
 <div style="padding: 10px;">
-    
     <div class="grade-wrapper">
         <table class="table-grade">
             <thead>
                 <tr>
                     <th class="col-prod">Item / Produto</th>
-                    <th style="width: 80px;">Melhor Oferta</th>
-                    <?php foreach ($fornecedores as $f): ?>
-                        <th><?= $f ?></th>
+                    <th style="width: 90px; background:#e2e6ea;">Melhor Preço</th>
+                    
+                    <?php foreach ($fornecedores as $f): 
+                        $nomeExibicao = $f['nome_do_fornecedor'] ?? '';
+                        if (empty(trim($nomeExibicao))) {
+                            $nomeExibicao = "Fornecedor " . $f['id_fornecedor_senior'];
+                        }
+                    ?>
+                        <th title="<?= htmlspecialchars($nomeExibicao) ?>">
+                            <?= mb_strimwidth($nomeExibicao, 0, 20, "...") ?>
+                            <br><small style="font-weight:normal; color:#666">Cód: <?= $f['id_fornecedor_senior'] ?></small>
+                        </th>
                     <?php endforeach; ?>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($grade as $linha): ?>
+                <?php foreach ($grade as $linha): 
+                    $chave = $linha['chave'];
+                    $isTie = count($linha['lista_vencedores']) > 1; 
+                ?>
                 <tr>
                     <td class="col-prod">
-                        <?= $linha['produto'] ?><br>
-                        <small style="color: #28a745;">Venceu: <?= $linha['ganhador'] ?></small>
+                        <span style="font-weight:bold; color:#555; font-size:10px"><?= $chave ?></span><br>
+                        <?= mb_strimwidth($linha['produto'], 0, 50, "...") ?>
+                        <br><small>Qtd: <?= number_format($linha['qtd'], 2, ',', '.') ?></small>
                     </td>
                     
-                    <td style="background:#f1f1f1; font-weight:bold;">
-                        R$ <?= number_format($linha['melhor_preco'], 2, ',', '.') ?>
+                    <td style="background:#f1f3f5; font-weight:bold;">
+                        <?php if ($linha['menor_preco']): ?>
+                            R$ <?= number_format($linha['menor_preco'], 2, ',', '.') ?>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
                     </td>
 
                     <?php foreach ($fornecedores as $f): 
-                        $preco = $linha['precos'][$f];
-                        $isWinner = ($preco === $linha['melhor_preco']);
+                        $cod = $f['id_fornecedor_senior']; // ID Correto
+                        $valor = $precos[$chave][$cod] ?? 0;
+                        
+                        $classe = 'empty';
+                        $texto = '-';
+                        
+                        if ($valor > 0) {
+                            $valorFmt = number_format($valor, 2, ',', '.');
+                            
+                            if (in_array($cod, $linha['lista_vencedores'])) {
+                                if ($isTie) {
+                                    $classe = 'tie';
+                                    $texto = "R$ $valorFmt<br><span style='font-size:9px'>EMPATE</span>";
+                                } else {
+                                    $classe = 'winner';
+                                    $texto = "R$ $valorFmt<br><span style='font-size:9px'>★ VENCEU</span>";
+                                }
+                            } else {
+                                $classe = 'loser';
+                                $texto = "R$ $valorFmt";
+                            }
+                        }
                     ?>
-                        <td class="<?= $isWinner ? 'winner' : 'loser' ?>">
-                            R$ <?= number_format($preco, 2, ',', '.') ?>
-                            <?php if ($isWinner): ?>
-                                <br><span style="font-size:10px">★ MENOR</span>
-                            <?php endif; ?>
+                        <td class="<?= $classe ?>">
+                            <?= $texto ?>
                         </td>
                     <?php endforeach; ?>
                 </tr>
@@ -123,41 +191,24 @@ foreach ($itens as $item) {
     </div>
 
     <div class="total-box">
-        <b>Total Previsto da Compra (Melhores Preços):</b> 
-        R$ <?= number_format($totalGeral, 2, ',', '.') ?>
+        <b>Total Estimado:</b> R$ <?= number_format($totalGeral, 2, ',', '.') ?>
     </div>
-
 </div>
 
 <div class="modal-footer">
     <button class="btn-cancel" id="btn-fechar-grade">Voltar</button>
-    <button class="btn-save" id="btn-enviar-1doc" style="background-color: #009688;">
-        Gerar Minuta e Enviar para 1Doc
-    </button>
+    <button class="btn-save" id="btn-enviar-1doc">Gerar Documento</button>
 </div>
 
 <script>
 (function() {
-    // Botão Fechar
     document.getElementById('btn-fechar-grade').addEventListener('click', function() {
         document.getElementById('modal-overlay').classList.add('hidden');
         document.getElementById('modal-body').innerHTML = '';
     });
-
-    // Botão de Ação (Simulação)
+    
     document.getElementById('btn-enviar-1doc').addEventListener('click', function() {
-        if (!confirm('Confirma a escolha destes fornecedores e o envio para assinatura digital na 1Doc?')) return;
-        
-        const btn = this;
-        btn.disabled = true;
-        btn.innerText = "Enviando para 1Doc...";
-
-        // Simula delay de rede
-        setTimeout(() => {
-            alert('Sucesso! \n\nO documento de homologação foi gerado e enviado para a plataforma 1Doc.\nID do Protocolo: 1DOC-2025-9988');
-            document.getElementById('modal-overlay').classList.add('hidden');
-            // Opcional: window.location.reload();
-        }, 2000);
+        alert('Funcionalidade de integração com 1Doc seria acionada aqui.');
     });
 })();
 </script>

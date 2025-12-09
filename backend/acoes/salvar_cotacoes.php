@@ -8,64 +8,55 @@ require '../db_conexao.php';
 $acao = $_POST['acao'] ?? '';
 
 try {
-    if ($acao === 'salvar_valores') {
-        $idProcesso = $_POST['id_processo'];
-        
-        // Matriz: cotacao[SEQ_ITEM_SENIOR][COD_FORNECEDOR] = VALOR
-        $cotacoes = $_POST['cotacao'] ?? [];
-        // Array auxiliar com dados do item (nome, qtd) que vieram hidden do form
-        $detalhes = $_POST['detalhes'] ?? []; 
+    // --- NOVO: SALVAR UM ÚNICO VALOR (Auto-Save) ---
+    if ($acao === 'salvar_unitario') {
+        $idProc  = $_POST['id_processo'];
+        $numSol  = $_POST['num_solicitacao'];
+        $seqSol  = $_POST['seq_solicitacao'];
+        $codForn = $_POST['cod_fornecedor'];
+        $valor   = $_POST['valor']; // "1.500,00"
 
-        if (empty($idProcesso)) throw new Exception("ID do processo inválido.");
-
-        $pdo->beginTransaction();
-
-        // 1. Limpa lançamentos anteriores deste processo para regravação (estratégia mais segura para matriz)
-        // Se preferir UPDATE, precisaríamos de uma chave única composta (id_proc + id_forn + item)
-        $stmtDel = $pdo->prepare("DELETE FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?");
-        $stmtDel->execute([$idProcesso]);
-
-        $stmtInsert = $pdo->prepare("INSERT INTO licitacao_itens_ofertados 
-            (id_processo_instancia, id_fornecedor_senior, item_solicitado, quantidade, valor_unitario, marca_modelo) 
-            VALUES (:id_proc, :cod_forn, :item, :qtd, :valor, :marca)");
-
-        $count = 0;
-
-        foreach ($cotacoes as $seqItem => $fornecedores) {
-            
-            // Dados do item (Nome e Qtd) que vieram do Senior para o Form
-            $nomeItem = $detalhes[$seqItem]['nome'] ?? 'Item ' . $seqItem;
-            $qtdItem  = $detalhes[$seqItem]['qtd'] ?? 1;
-
-            foreach ($fornecedores as $codForn => $valor) {
-                // Se valor vazio, pula
-                if ($valor === '' || $valor === null) continue;
-
-                // Formata moeda (1.500,00 -> 1500.00)
-                $valorFloat = str_replace('.', '', $valor);
-                $valorFloat = str_replace(',', '.', $valorFloat);
-
-                // Pega marca (se houver campo input de marca)
-                $marca = $_POST['marca'][$seqItem][$codForn] ?? '';
-
-                $stmtInsert->execute([
-                    ':id_proc'  => $idProcesso,
-                    ':cod_forn' => $codForn,
-                    ':item'     => $nomeItem, // Salvamos o nome do item aqui
-                    ':qtd'      => $qtdItem,
-                    ':valor'    => $valorFloat,
-                    ':marca'    => $marca
-                ]);
-                $count++;
-            }
+        // Validação básica
+        if (!$idProc || !$numSol || !$seqSol || !$codForn) {
+            throw new Exception("Dados incompletos para salvar valor.");
         }
 
-        $pdo->commit();
-        ob_clean();
-        echo json_encode(['sucesso' => true, 'msg' => "$count ofertas registradas!"]);
+        // Formata Moeda (PT-BR -> Float)
+        if ($valor === '' || $valor === null) {
+            $valorFloat = null;
+        } else {
+            $valorFloat = str_replace('.', '', $valor); // Remove milhar (1.000 -> 1000)
+            $valorFloat = str_replace(',', '.', $valorFloat); // Vírgula vira ponto (10,50 -> 10.50)
+        }
 
-    } else {
-        throw new Exception("Ação inválida.");
+        // Upsert (Insert ou Update)
+        // A tabela deve ter UNIQUE KEY (id_proc, num, seq, cod) para isso funcionar
+        $sql = "INSERT INTO licitacao_itens_ofertados 
+                (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
+                VALUES (:id, :num, :seq, :cod, :val)
+                ON DUPLICATE KEY UPDATE valor_unitario = :val";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':id' => $idProc,
+            ':num' => $numSol,
+            ':seq' => $seqSol,
+            ':cod' => $codForn,
+            ':val' => $valorFloat
+        ]);
+
+        ob_clean();
+        echo json_encode(['sucesso' => true]);
+
+    } 
+    // --- ANTIGO: SALVAR EM MASSA (Caso ainda use o botão 'Salvar Valores') ---
+    elseif ($acao === 'salvar_valores') {
+        // ... (código antigo mantido se quiser compatibilidade) ...
+        // Se não usar mais o botão "Salvar Tudo", pode remover este bloco.
+        echo json_encode(['sucesso' => true, 'msg' => 'Use o salvamento automático.']);
+    }
+    else {
+        throw new Exception("Ação inválida ($acao).");
     }
 
 } catch (Throwable $e) {

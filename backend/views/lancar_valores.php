@@ -1,208 +1,163 @@
 <?php
-require  '../db_conexao.php';
-require  '../db_senior.php';
+require '../db_conexao.php';
+require '../db_senior.php';
 
 $idProcesso = $_GET['instance_id'] ?? null;
-
 if (!$idProcesso) { echo "<div style='color:red;padding:20px'>Erro: Processo não informado.</div>"; exit; }
 
-// 1. Busca FORNECEDORES Participantes (Do MySQL)
-// Tabela: licitacao_participantes
-$participantes = [];
-$stmt = $pdo->prepare("SELECT id_fornecedor_senior, nome_do_fornecedor FROM licitacao_participantes WHERE id_processo_instancia = ? ORDER BY nome_do_fornecedor");
+// 1. Busca Itens do Processo (Lado Esquerdo)
+$itens = [];
+$stmt = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
 $stmt->execute([$idProcesso]);
-$participantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$vinculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-if (empty($participantes)) {
-    echo "<div style='padding:20px'>⚠️ Nenhum fornecedor selecionado na etapa anterior.</div>";
-    exit;
-}
-
-// 2. Busca ITENS da Solicitação (Do Senior - Apenas Leitura)
-// Usamos isso para saber QUAIS linhas desenhar na tabela
-$itensSolicitacao = [];
 if ($connSenior) {
-    // Busca pelo numsol (que é igual ao idProcesso)
-    $sql = "SELECT seqsol, cplpro, qtdsol, unimed FROM Sapiens.sapiens.e405sol WHERE numsol = ? ORDER BY seqsol ASC";
-    $stmtSenior = sqlsrv_query($connSenior, $sql, [$idProcesso]);
-    if ($stmtSenior) {
-        while ($row = sqlsrv_fetch_array($stmtSenior, SQLSRV_FETCH_ASSOC)) {
-            $itensSolicitacao[] = $row;
+    foreach ($vinculos as $v) {
+        $sql = "SELECT codemp, numsol, seqsol, cplpro, qtdsol, unimed FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
+        $stmtS = sqlsrv_query($connSenior, $sql, [$v['num_solicitacao'], $v['seq_solicitacao']]);
+        if ($stmtS && $row = sqlsrv_fetch_array($stmtS, SQLSRV_FETCH_ASSOC)) {
+            // Conta quantos fornecedores já têm preço lançado para este item
+            $chave = $row['numsol'].'-'.$row['seqsol'];
+            $itens[] = $row;
         }
     }
 } else {
     // Simulação
-    $itensSolicitacao = [
-        ['seqsol'=>1, 'cplpro'=>'Notebook Dell (Simulado)', 'qtdsol'=>2, 'unimed'=>'UN'],
-        ['seqsol'=>2, 'cplpro'=>'Mouse USB (Simulado)', 'qtdsol'=>5, 'unimed'=>'UN'],
+    $itens = [
+        ['numsol'=>1060, 'seqsol'=>1, 'cplpro'=>'Item Simulado 1', 'qtdsol'=>2, 'unimed'=>'UN'],
+        ['numsol'=>1060, 'seqsol'=>2, 'cplpro'=>'Item Simulado 2', 'qtdsol'=>5, 'unimed'=>'UN']
     ];
-}
-
-// 3. Busca VALORES JÁ LANÇADOS (Do MySQL)
-// Tabela: licitacao_itens_ofertados
-// Precisamos cruzar pelo Item (item_solicitado) ou melhor, pela sequência se tivéssemos salvo.
-// Como salvamos o Nome, vamos tentar bater o nome ou usar um array simples se a ordem for garantida.
-// O ideal seria ter salvo 'seq_senior' na tabela ofertados, mas vamos usar o nome do item.
-$valoresSalvos = [];
-$stmt = $pdo->prepare("SELECT item_solicitado, id_fornecedor_senior, valor_unitario FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?");
-$stmt->execute([$idProcesso]);
-while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    // Chave: [NomeItem][CodFornecedor]
-    $valoresSalvos[$row['item_solicitado']][$row['cod_fornecedor_senior']] = $row['valor_unitario'];
 }
 ?>
 
 <style>
-    .matriz-container { overflow-x: auto; max-width: 100%; border: 1px solid #ddd; }
-    .matriz-cotacao { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 800px; }
-    .matriz-cotacao th, .matriz-cotacao td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
-    .matriz-cotacao th { background: #f8f9fa; color: #333; font-weight: 600; }
+    .layout-cotacao { display: flex; height: 500px; border: 1px solid #ccc; }
+    .lista-itens { width: 40%; border-right: 1px solid #ccc; overflow-y: auto; background: #f8f9fa; }
+    .detalhe-item { width: 60%; padding: 20px; overflow-y: auto; background: #fff; }
     
-    /* Coluna Fixa do Produto */
-    .col-produto { text-align: left !important; background-color: #fff; position: sticky; left: 0; z-index: 2; width: 250px; min-width: 250px; }
-    .col-qtd { width: 80px; }
+    .item-row { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
+    .item-row:hover { background: #e9ecef; }
+    .item-row.active { background: #007bff; color: white; }
+    .item-row.active small { color: #dcdcdc; }
     
-    /* Inputs */
-    .input-money { 
-        width: 100%; min-width: 80px;
-        padding: 6px; 
-        border: 1px solid #ccc; 
-        border-radius: 4px; 
-        text-align: right; 
-        font-family: monospace;
-    }
-    .input-money:focus { border-color: #007bff; outline: none; box-shadow: 0 0 3px rgba(0,123,255,0.2); }
+    .input-money { width: 150px; padding: 8px; text-align: right; border: 1px solid #ccc; border-radius: 4px; }
+    .form-group { margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
     
-    .forn-header { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin: 0 auto; }
+    .badge-qtd { background: #6c757d; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 </style>
 
 <div class="modal-header">
-    <h2>Lançamento de Propostas</h2>
-    <p>Informe os valores unitários por fornecedor.</p>
+    <h2>Lançamento de Valores</h2>
+    <p>Selecione um item à esquerda para informar os preços dos fornecedores.</p>
 </div>
 
-<div style="padding: 10px;">
-    <form id="form-cotacao">
-        <input type="hidden" name="id_processo" value="<?= $idProcesso ?>">
-        <input type="hidden" name="acao" value="salvar_valores">
-
-        <div class="matriz-container">
-            <table class="matriz-cotacao">
-                <thead>
-                    <tr>
-                        <th class="col-produto">Item / Produto</th>
-                        <th class="col-qtd">Qtd</th>
-                        
-                        <?php foreach ($participantes as $f): ?>
-                            <th>
-                                <span class="forn-header" title="<?= $f['nome_fornecedor'] ?>">
-                                    <?= $f['nome_fornecedor'] ?>
-                                </span>
-                                <small style="color:#888; font-weight:normal">#<?= $f['cod_fornecedor_senior'] ?></small>
-                            </th>
-                        <?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($itensSolicitacao as $item): 
-                        $seq = $item['seqsol'];
-                        $nomeItem = $item['cplpro']; // Usaremos o nome como chave de vínculo
-                        $qtd = $item['qtdsol'];
-                    ?>
-                    <tr>
-                        <td class="col-produto">
-                            <input type="hidden" name="detalhes[<?= $seq ?>][nome]" value="<?= htmlspecialchars($nomeItem) ?>">
-                            <input type="hidden" name="detalhes[<?= $seq ?>][qtd]" value="<?= $qtd ?>">
-                            
-                            <b>Item <?= $seq ?></b><br>
-                            <?= mb_strimwidth($nomeItem, 0, 40, "...") ?>
-                        </td>
-                        
-                        <td><?= number_format($qtd, 2, ',', '.') ?> <?= $item['unimed'] ?></td>
-
-                        <?php foreach ($participantes as $f): 
-                            $codForn = $f['cod_fornecedor_senior'];
-                            
-                            // Tenta encontrar valor salvo (usando o nome do item como chave)
-                            $valorDB = $valoresSalvos[$nomeItem][$codForn] ?? '';
-                            if ($valorDB) $valorDB = number_format($valorDB, 2, ',', '.');
-                        ?>
-                            <td>
-                                <input type="text" 
-                                       class="input-money mask-money" 
-                                       name="cotacao[<?= $seq ?>][<?= $codForn ?>]" 
-                                       value="<?= $valorDB ?>"
-                                       placeholder="0,00"
-                                       autocomplete="off">
-                            </td>
-                        <?php endforeach; ?>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+<div class="layout-cotacao">
+    <div class="lista-itens">
+        <?php foreach ($itens as $i): 
+            $chave = $i['numsol'] . '-' . $i['seqsol'];
+        ?>
+        <div class="item-row" onclick="carregarCotacaoItem('<?= $idProcesso ?>', '<?= $i['numsol'] ?>', '<?= $i['seqsol'] ?>', this)">
+            <div style="font-weight:bold; font-size:13px; margin-bottom:5px;">
+                Sol: <?= $i['numsol'] ?>-<?= $i['seqsol'] ?>
+            </div>
+            <div style="font-size:12px; line-height:1.4;">
+                <?= mb_strimwidth($i['cplpro'], 0, 60, "...") ?>
+            </div>
+            <div style="margin-top:5px;">
+                <span class="badge-qtd"><?= number_format($i['qtdsol'], 2, ',', '.') ?> <?= $i['unimed'] ?></span>
+            </div>
         </div>
-    </form>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="detalhe-item" id="area-form-precos">
+        <div style="text-align:center; color:#999; margin-top:150px;">
+            <p>← Clique em um item para lançar valores.</p>
+        </div>
+    </div>
 </div>
 
 <div class="modal-footer">
     <button class="btn-cancel" id="btn-fechar-cotacao">Fechar</button>
-    <button class="btn-save" id="btn-salvar-cotacao">Salvar Valores</button>
 </div>
 
 <script>
-(function() {
-    // 1. Fechar
-    document.getElementById('btn-fechar-cotacao').addEventListener('click', function() {
-        document.getElementById('modal-overlay').classList.add('hidden');
-        document.getElementById('modal-body').innerHTML = '';
-    });
+// Função Global para carregar via AJAX
+window.carregarCotacaoItem = async function(idProc, numSol, seqSol, el) {
+    // 1. Visual Ativo
+    document.querySelectorAll('.item-row').forEach(r => r.classList.remove('active'));
+    el.classList.add('active');
 
-    // 2. Máscara de Moeda Simples (Ao digitar)
-    const inputs = document.querySelectorAll('.mask-money');
+    // 2. Carrega HTML do Formulário
+    const container = document.getElementById('area-form-precos');
+    container.innerHTML = '<div style="text-align:center; margin-top:50px">Carregando fornecedores...</div>';
+
+    try {
+        const url = `/backend/api_cotacao_item.php?id_proc=${idProc}&num=${numSol}&seq=${seqSol}`;
+        const resp = await fetch(url);
+        const html = await resp.text();
+        container.innerHTML = html;
+        
+        // Ativa máscaras e eventos no novo HTML carregado
+        initFormCotacao(); 
+    } catch (err) {
+        container.innerHTML = '<div style="color:red">Erro ao carregar.</div>';
+    }
+};
+
+function initFormCotacao() {
+    // Máscara de Moeda
+    const inputs = document.querySelectorAll('.mask-money-ajax');
     inputs.forEach(el => {
         el.addEventListener('input', function(e) {
-            let v = e.target.value.replace(/\D/g, ""); // Remove tudo que não é dígito
-            v = (v / 100).toFixed(2) + ""; // Divide por 100 e fixa 2 decimais
-            v = v.replace(".", ",");       // Troca ponto por vírgula
-            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Coloca ponto de milhar
+            let v = e.target.value.replace(/\D/g, "");
+            v = (v / 100).toFixed(2) + "";
+            v = v.replace(".", ",");
+            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
             e.target.value = v;
         });
+        
+        // Auto-Save ao perder o foco (blur)
+        el.addEventListener('blur', function() {
+            salvarValorIndividual(this);
+        });
     });
+}
 
-    // 3. Salvar
-    const btnSave = document.getElementById('btn-salvar-cotacao');
-    btnSave.addEventListener('click', async function() {
-        btnSave.disabled = true;
-        btnSave.innerText = "Salvando...";
+async function salvarValorIndividual(input) {
+    const codForn = input.dataset.forn;
+    const numSol = input.dataset.num;
+    const seqSol = input.dataset.seq;
+    const idProc = input.dataset.proc;
+    const valor = input.value;
 
-        const form = document.getElementById('form-cotacao');
-        const formData = new FormData(form);
+    // Feedback visual
+    input.style.borderColor = '#ffc107'; // Amarelo = Salvando
 
-        try {
-            const req = await fetch('/backend/acoes/salvar_cotacoes.php', { method: 'POST', body: formData });
-            const texto = await req.text(); // Lê como texto para debug
-            let res;
-            try {
-                res = JSON.parse(texto);
-            } catch(e) {
-                throw new Error("Resposta inválida: " + texto);
-            }
+    const fd = new FormData();
+    fd.append('acao', 'salvar_unitario');
+    fd.append('id_processo', idProc);
+    fd.append('num_solicitacao', numSol);
+    fd.append('seq_solicitacao', seqSol);
+    fd.append('cod_fornecedor', codForn);
+    fd.append('valor', valor);
 
-            if (res.sucesso) {
-                alert(res.msg);
-                // Fecha o modal após sucesso
-                document.getElementById('modal-overlay').classList.add('hidden');
-                document.getElementById('modal-body').innerHTML = '';
-            } else {
-                alert('Erro: ' + res.erro);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Falha: ' + err.message);
-        } finally {
-            btnSave.disabled = false;
-            btnSave.innerText = "Salvar Valores";
+    try {
+        const req = await fetch('/backend/acoes/salvar_cotacoes.php', { method: 'POST', body: fd });
+        const res = await req.json();
+        if (res.sucesso) {
+            input.style.borderColor = '#28a745'; // Verde = Salvo
+        } else {
+            input.style.borderColor = '#dc3545'; // Vermelho = Erro
+            alert(res.erro);
         }
-    });
-})();
+    } catch (err) {
+        input.style.borderColor = '#dc3545';
+    }
+}
+
+document.getElementById('btn-fechar-cotacao').addEventListener('click', function() {
+    document.getElementById('modal-overlay').classList.add('hidden');
+    document.getElementById('modal-body').innerHTML = '';
+});
 </script>
