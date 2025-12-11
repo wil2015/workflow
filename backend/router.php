@@ -1,58 +1,40 @@
 <?php
-// backend/router.php
-require 'db_conexao.php'; 
-// 1. Recebe o ID da tarefa vindo do JS
-$taskId = $_GET['task_id'] ?? '';
-$processKey = $_GET['process_key'] ?? 1; // Padrão 'compras' por enquanto
+header('Content-Type: application/json; charset=utf-8');
+require 'db_conexao.php';
 
-if (empty($taskId)) {
+$taskId = $_GET['task_id'] ?? '';
+$processKey = $_GET['process_key'] ?? ''; // Ex: 'compra_direta.xml'
+
+if (!$taskId || !$processKey) {
     http_response_code(400);
-    echo json_encode(['erro' => 'ID da tarefa não informado']);
+    echo json_encode(['sucesso' => false, 'erro' => 'Parâmetros incompletos (Task ID ou XML)']);
     exit;
 }
 
-// 2. Conecta ao Banco (Exemplo PDO)
-// $pdo = new PDO('mysql:host=db;dbname=seu_banco', 'user', 'pass');
- $stmt = $pdo->prepare("SELECT caminho_view, titulo_modal FROM etapas_do_fluxo WHERE id_etapa_bpmn = ? AND id_fluxo_definicao = ?");
- $stmt->execute([$taskId, $processKey]);
- $config = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    // Sua abordagem: Query direta com AND. Simples e eficiente.
+    // Ajustei apenas os nomes das colunas para bater com o que criamos
+    $sql = "SELECT titulo_modal, caminho_view 
+            FROM etapas_do_fluxo 
+            WHERE id_etapa_bpmn = ? AND id_fluxo_definicao = ?";
 
-// --- SIMULAÇÃO (Enquanto você não cria a tabela real) ---
-$bancoDeDadosSimulado = [
-    'Activity_SelecionarSolicitacao' => [
-        'url' => '/backend/views/selecionar_solicitacoes.php',
-        'titulo' => 'Seleção de Solicitações'
-    ],
-    'Activity_SelecionarFornecedores' => [
-        'url' => '/backend/views/selecionar_fornecedores.php',
-        'titulo' => 'Seleção de Fornecedores'
-    ],
-    'Activity_ClassificarValores' => [
-        'url' => '/backend/views/lancar_valores.php',
-        'titulo' => 'Classificação de Propostas'
-    ],
-     'Activity_Enviar1doc' => [
-        'url' => '/backend/views/enviar_1doc.php',
-        'titulo' => 'Mapa comparativo (Grade)'
-    ]
-];
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$taskId, $processKey]);
+    $etapa = $stmt->fetch(PDO::FETCH_ASSOC);
 
-//$config = $bancoDeDadosSimulado[$taskId] ?? null;
-$config[$taskId] ?? null;
-// --------------------------------------------------------
+    if ($etapa) {
+        echo json_encode([
+            'sucesso' => true,
+            'titulo' => $etapa['titulo_modal'],
+            'url' => $etapa['caminho_view']
+        ]);
+    } else {
+        http_response_code(404);
+        echo json_encode(['sucesso' => false, 'erro' => 'Rota não encontrada para este fluxo']);
+    }
 
-// 3. Retorna o resultado
-if ($config) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'sucesso' => true,
-        'url' => $config['caminho_view'],
-        'titulo' => $config['titulo_modal']
-    ]);
-} else {
-    // Se não achou no banco, retorna erro 404 (Não encontrado)
-    // Isso é útil para tarefas que não têm tela (apenas manuais)
-    http_response_code(404);
-    echo json_encode(['erro' => 'Nenhuma tela configurada para esta etapa']);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['sucesso' => false, 'erro' => $e->getMessage()]);
 }
 ?>
