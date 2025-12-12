@@ -117,7 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (config.sucesso && config.url) {
         const separator = config.url.includes('?') ? '&' : '?';
         const idParaEnviar = currentInstanceId ? currentInstanceId : '';
-        const finalUrl = `${config.url}${separator}instance_id=${idParaEnviar}`;
+       // CORREÇÃO: Adicionamos &fluxo_id=... na URL do modal
+        const finalUrl = `${config.url}${separator}instance_id=${idParaEnviar}&fluxo_id=${currentFluxoId}`;
         openPhpModal(finalUrl);
       } else {
           if (config.erro) alert(config.erro);

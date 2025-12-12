@@ -1,5 +1,6 @@
 <?php
 require  '../db_conexao.php';
+$idFluxo = $_GET['fluxo_id'] ?? 1; // Pega da URL ou usa 1 se falhar
 
 $filtroInstancia = $_GET['instance_id'] ?? null;
 if ($filtroInstancia === 'null' || $filtroInstancia === '') $filtroInstancia = null;
@@ -29,7 +30,7 @@ if ($filtroInstancia) {
     /* Cursor de mão nos cabeçalhos ordenáveis */
     th.sorting, th.sorting_asc, th.sorting_desc { cursor: pointer; }
 </style>
-
+<input type="hidden" name="id_fluxo_definicao" value="<?= $idFluxo ?>">
 <div class="modal-header">
     <?php if ($filtroInstancia): ?>
         <h2>Gerenciar Processo #<?= $filtroInstancia ?></h2>

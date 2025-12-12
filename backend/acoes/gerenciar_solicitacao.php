@@ -9,6 +9,8 @@ require '../db_conexao.php';
 
 $acao = $_POST['acao'] ?? '';
 
+$idFluxo = $_POST['id_fluxo_definicao'] ?? 1; // Lê do input hidden
+
 try {
     // --- 1. ADICIONAR (VINCULAR) ITENS ---
     if ($acao === 'vincular') {
@@ -38,8 +40,8 @@ try {
                 $idProcesso = $proc['id'];
             } else {
                 $sqlInsert = "INSERT INTO processos_instancia 
-                    (id_processo_instancia, id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
-                    VALUES (:numsol, :numsol, 1, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
+                    ( id_processo_instancia, id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
+                    VALUES ( :numsol, :numsol, :idFluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
                 $stmtInsert = $pdo->prepare($sqlInsert);
                 $stmtInsert->execute([':numsol' => $numsol]);
                 $idProcesso = $pdo->lastInsertId();
