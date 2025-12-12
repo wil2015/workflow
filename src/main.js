@@ -4,11 +4,10 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 import './style.css';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- VARIÁVEIS GLOBAIS DE CONTEXTO ---
   let currentInstanceId = null;
   let currentXmlFilename = ''; 
+  let currentFluxoId = null; // Variável global do ID
 
-  // Elementos do DOM
   const dashboardContainer = document.getElementById('dashboard-container');
   const viewerContainer = document.getElementById('viewer-container');
   const canvas = document.querySelector('#canvas');
@@ -22,57 +21,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const viewer = new BpmnNavigatedViewer({ container: canvas });
 
-  // 1. ROTEAMENTO INICIAL (Check de URL)
+  // 1. LÓGICA DE INICIALIZAÇÃO (CORRIGIDA)
   const urlParams = new URLSearchParams(window.location.search);
   const idUrl = urlParams.get('id');
   const novoXml = urlParams.get('novo');
+  const novoId = urlParams.get('fluxo_id'); // <--- Lê o parâmetro correto
+
+  console.log('Start Params:', { idUrl, novoXml, novoId }); // Debug
 
   if (idUrl) {
-    // MODO EDIÇÃO: Carrega processo existente
+    // Processo Existente
     carregarInstancia(idUrl);
-  } else if (novoXml) {
-    // MODO NOVO: XML vem na URL
+  } else if (novoXml && novoId) {
+    // Novo Processo
     currentInstanceId = null;
-    currentXmlFilename = novoXml; // Define contexto imediatamente
-    console.log('Novo Processo. XML:', currentXmlFilename);
+    currentXmlFilename = novoXml;
+    currentFluxoId = novoId;
     abrirDiagrama(novoXml, 'Novo Processo');
   } else {
-    // MODO DASHBOARD
+    // Dashboard
     currentInstanceId = null;
     carregarDashboard();
   }
 
-  // 2. FUNÇÃO PARA CARREGAR PROCESSO EXISTENTE
+  // 2. CARREGAR INSTÂNCIA EXISTENTE
   async function carregarInstancia(id) {
       try {
           const resp = await fetch('/backend/api_dashboard.php?acao=instancias'); 
           const dados = await resp.json();
-          
-          // Busca o processo na lista retornada pela API
           const proc = dados.find(p => p.id == id);
           
           if (proc) {
               currentInstanceId = id;
+              currentXmlFilename = proc.arquivo_xml;
+              currentFluxoId = proc.fluxo_id; // Pega o valor padronizado da API
               
-              if (proc.arquivo_xml) {
-                  currentXmlFilename = proc.arquivo_xml; // <--- AQUI ESTÁ A CORREÇÃO
-                  console.log('Processo Carregado. Contexto XML:', currentXmlFilename);
-                  abrirDiagrama(proc.arquivo_xml, `Proc. #${id} - ${proc.nome_do_fluxo}`);
+              if (currentXmlFilename && currentFluxoId) {
+                  abrirDiagrama(currentXmlFilename, `Proc. #${id} - ${proc.nome_do_fluxo}`);
               } else {
-                  alert('ERRO DE DADOS: Este processo não tem arquivo XML vinculado no banco.');
+                  alert('Dados inconsistentes no banco para este processo.');
                   window.location.href = '/';
               }
           } else {
-              alert('Processo não encontrado.');
+              alert('Processo não encontrado'); 
               window.location.href = '/';
           }
       } catch (e) { 
           console.error(e); 
-          alert('Erro de conexão ao carregar processo.'); 
+          alert('Erro ao carregar instância.');
       }
   }
 
-  // 3. ABRIR DIAGRAMA VISUAL
+  // 3. ABRIR DIAGRAMA
   async function abrirDiagrama(xmlFilename, titulo) {
     dashboardContainer.classList.add('hidden');
     viewerContainer.classList.remove('hidden');
@@ -80,46 +80,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const response = await fetch('/public/' + xmlFilename);
-      if (!response.ok) throw new Error(`Arquivo ${xmlFilename} não encontrado.`);
-      
+      if (!response.ok) throw new Error('XML não encontrado: ' + xmlFilename);
       const xml = await response.text();
       await viewer.importXML(xml);
-      
-      setTimeout(() => {
-          const cv = viewer.get('canvas');
-          cv.zoom('fit-viewport');
-      }, 100);
-    } catch (err) { 
-        alert('Erro ao abrir XML: ' + err.message); 
-    }
+      setTimeout(() => viewer.get('canvas').zoom('fit-viewport'), 100);
+    } catch (err) { alert('Erro XML: ' + err.message); }
   }
 
-  // 4. INTERAÇÃO DE CLIQUE (ROUTER)
+  // 4. ROUTER (CLIQUE)
   const eventBus = viewer.get('eventBus');
   eventBus.on('element.click', async (e) => {
     const element = e.element;
     const idTask = element.id; 
     const type = element.type;
 
-    // Só reage a Tarefas e Eventos
     if (!type || (!type.toLowerCase().includes('task') && !type.toLowerCase().includes('event'))) return;
 
-    // TRAVA DE SEGURANÇA
-    if (!currentXmlFilename) {
-        alert("Erro Crítico: O sistema não sabe qual XML está aberto. Dê F5.");
+    if (!currentFluxoId) {
+        alert("Erro: ID do fluxo perdido. Atualize a página.");
         return;
     }
 
     try {
-      // Chama o Router enviando ID DA TAREFA + NOME DO XML
-      const urlFetch = `/backend/router.php?task_id=${idTask}&process_key=${currentXmlFilename}`;
-      console.log('Chamando rota:', urlFetch);
+      // Envia fluxo_id corretamente para o PHP
+      const urlFetch = `/backend/router.php?task_id=${idTask}&fluxo_id=${currentFluxoId}`;
+      console.log('Router Fetch:', urlFetch);
 
       const rotaResponse = await fetch(urlFetch);
-      
       if (rotaResponse.status === 404) {
-          console.warn(`Nenhuma rota configurada no banco para a tarefa "${idTask}" no fluxo "${currentXmlFilename}"`);
-          return; 
+          console.warn('Rota não encontrada (404)');
+          return;
       }
       
       const config = await rotaResponse.json();
@@ -132,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
           if (config.erro) alert(config.erro);
       }
-    } catch (err) { console.error('Erro no clique:', err); }
+    } catch (err) { console.error('Erro Router:', err); }
   });
 
   // 5. CARREGAR DASHBOARD
@@ -140,9 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
     viewerContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
     currentXmlFilename = '';
+    currentFluxoId = null;
 
     try {
-      // Botões de Novo Processo
+      // Botões "Iniciar Novo"
       const respDef = await fetch('/backend/api_dashboard.php?acao=definicoes');
       const definicoes = await respDef.json();
       listaDefinicoes.innerHTML = '';
@@ -151,11 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'card-fluxo';
         card.innerHTML = `<h3>${fluxo.nome_do_fluxo}</h3><p>+ Iniciar Novo</p>`;
-        card.onclick = () => { window.location.href = `?novo=${fluxo.arquivo_xml}`; };
+        // CORREÇÃO: Gera a URL com 'fluxo_id' para ser lido no passo 1
+        card.onclick = () => { 
+            window.location.href = `?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.fluxo_id}`; 
+        };
         listaDefinicoes.appendChild(card);
       });
 
-      // Tabela de Instâncias
+      // Tabela de Processos
       const respInst = await fetch('/backend/api_dashboard.php?acao=instancias');
       const instancias = await respInst.json();
       
@@ -184,10 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
           "pageLength": 10,
           "order": [[ 0, "desc" ]]
       });
+
     } catch (err) { console.error(err); }
   }
 
-  // Modal e Utils
+  // Modal Utils
   async function openPhpModal(url) {
     modalBody.innerHTML = '<div style="text-align:center;padding:20px">Carregando...</div>';
     modalOverlay.classList.remove('hidden');
@@ -195,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(url);
       const html = await response.text();
       modalBody.innerHTML = html;
-      // Re-executa scripts dentro do HTML carregado
       modalBody.querySelectorAll('script').forEach(oldScript => {
         const newScript = document.createElement('script');
         newScript.textContent = oldScript.textContent;
