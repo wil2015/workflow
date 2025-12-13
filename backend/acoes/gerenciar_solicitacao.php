@@ -43,7 +43,10 @@ try {
                     ( id_processo_instancia, id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
                     VALUES ( :numsol, :numsol, :idFluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
                 $stmtInsert = $pdo->prepare($sqlInsert);
-                $stmtInsert->execute([':numsol' => $numsol]);
+                $stmtInsert->execute([
+                    ':numsol' => $numsol,
+                    ':idFluxo' => $idFluxo
+                ]);
                 $idProcesso = $pdo->lastInsertId();
             }
 

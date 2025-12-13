@@ -117,6 +117,8 @@ if ($filtroInstancia) {
         document.getElementById('modal-body').innerHTML = '';
     });
 
+    // ... (dentro de selecionar_solicitacoes.php) ...
+
     const btnGerar = document.getElementById('btn-gerar-processo-erp');
     if (btnGerar) {
         btnGerar.addEventListener('click', async function() {
@@ -124,14 +126,26 @@ if ($filtroInstancia) {
             if (checked.length === 0) { alert('Selecione ao menos um item.'); return; }
 
             btnGerar.disabled = true; btnGerar.innerText = "Salvando...";
+            
             const formData = new FormData();
             formData.append('acao', 'vincular');
+            
+            // --- AQUI ESTAVA FALTANDO! ---
+            // Pega o valor do input hidden e adiciona ao envio
+            const idFluxo = document.querySelector('input[name="id_fluxo_definicao"]').value;
+            formData.append('id_fluxo_definicao', idFluxo);
+            // -----------------------------
+
             checked.each(function() { formData.append('selecionados[]', $(this).val()); });
 
             try {
                 const req = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
                 const res = await req.json();
-                if (res.sucesso) { alert(res.msg); table.ajax.reload(null, false); } 
+                if (res.sucesso) { 
+                    alert(res.msg); 
+                    table.ajax.reload(null, false); 
+                    // Opcional: Redirecionar ou fechar para ver o novo processo
+                } 
                 else { alert('Erro: ' + res.erro); }
             } catch (err) { alert('Falha: ' + err.message); } 
             finally { btnGerar.disabled = false; btnGerar.innerText = "Salvar / Gerar"; }
