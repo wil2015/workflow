@@ -3,7 +3,9 @@
 ob_start();
 header('Content-Type: application/json; charset=utf-8');
 require '../db_conexao.php';
-require '../db_senior.php'; // Se tiver conexão externa
+
+// NÃO precisamos mais do Senior aqui. O sistema fica autônomo (Offline-first).
+// require '../db_senior.php'; 
 
 $acao = $_POST['acao'] ?? '';
 
@@ -12,17 +14,20 @@ try {
         $idProcesso = $_POST['id_processo'];
         if (!$idProcesso) throw new Exception("ID inválido.");
 
-        // 1. REFAZ O CÁLCULO (Para garantir segurança no Backend)
+        // 1. REFAZ O CÁLCULO (Usando apenas dados LOCAIS)
         // -------------------------------------------------------
-        // Busca Itens
-        $stmtI = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao FROM processos_itens WHERE id_processo_instancia = ?");
+        
+        // Busca Itens e suas Quantidades gravadas localmente
+        // OBS: Assume que a coluna 'quantidade' existe em processos_itens
+        $stmtI = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao, quantidade FROM processos_itens WHERE id_processo_instancia = ?");
         $stmtI->execute([$idProcesso]);
         $listaItens = $stmtI->fetchAll(PDO::FETCH_ASSOC);
 
-        // Busca Preços
+        // Busca Preços Ofertados
         $precos = [];
         $stmtP = $pdo->prepare("SELECT num_solicitacao, seq_solicitacao, valor_unitario FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?");
         $stmtP->execute([$idProcesso]);
+        
         while ($r = $stmtP->fetch(PDO::FETCH_ASSOC)) {
             $chave = $r['num_solicitacao'].'-'.$r['seq_solicitacao'];
             $precos[$chave][] = (float)$r['valor_unitario'];
@@ -33,14 +38,11 @@ try {
         foreach ($listaItens as $item) {
             $chave = $item['num_solicitacao'].'-'.$item['seq_solicitacao'];
             
-            // Busca Qtd (Senior ou Padrão)
-            $qtd = 1;
-            if ($connSenior) {
-                $qS = sqlsrv_query($connSenior, "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?", [$item['num_solicitacao'], $item['seq_solicitacao']]);
-                if ($qS && $rowS = sqlsrv_fetch_array($qS)) $qtd = (float)$rowS['qtdsol'];
-            }
+            // Pega a quantidade local. Se estiver zerada/nula, assume 1 para não zerar o cálculo
+            $qtd = (float)($item['quantidade'] ?? 1);
+            if ($qtd <= 0) $qtd = 1;
 
-            // Acha o Menor Preço
+            // Acha o Menor Preço para este item
             $valoresItem = $precos[$chave] ?? [];
             $validos = array_filter($valoresItem, function($v) { return $v > 0; });
             
@@ -50,7 +52,7 @@ try {
             }
         }
 
-        // 2. GRAVA O VALOR NO PROCESSO (A "FOTOGRAFIA")
+        // 2. GRAVA A FOTOGRAFIA DO VALOR
         // -------------------------------------------------------
         $stmtUp = $pdo->prepare("UPDATE processos_instancia SET valor_final_processo = ? WHERE id = ?");
         $stmtUp->execute([$totalGeral, $idProcesso]);
@@ -58,7 +60,7 @@ try {
         ob_clean();
         echo json_encode([
             'sucesso' => true, 
-            'msg' => 'Valores consolidados com sucesso!', 
+            'msg' => 'Valores consolidados (Offline) com sucesso!', 
             'valor_gravado' => number_format($totalGeral, 2, ',', '.')
         ]);
     }
