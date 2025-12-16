@@ -136,23 +136,20 @@ $idProcesso = $_GET['instance_id'] ?? null;
         document.getElementById('modal-body').innerHTML = '';
     });
     
-    btnEnviar.addEventListener('click', function() {
-        alert('Aqui chamaria a integração com 1Doc...');
-    });
-// ... código anterior ...
-
-    document.getElementById('btn-enviar-1doc').addEventListener('click', async function() {
+    // --- LÓGICA REAL DO BOTÃO (Apague o alert e use só isso) ---
+    btnEnviar.addEventListener('click', async function() {
         if (!confirm('Deseja consolidar os vencedores e gerar o documento?')) return;
         
-        // Botão Feedback
-        this.disabled = true; this.innerText = "Salvando...";
+        // Feedback visual
+        this.disabled = true; 
+        this.innerText = "Salvando...";
 
         const fd = new FormData();
         fd.append('acao', 'consolidar_vencedores');
         fd.append('id_processo', '<?= $idProcesso ?>');
 
         try {
-            // CHAMA A AÇÃO DE SALVAR
+            // CHAMA A AÇÃO DE SALVAR REAL
             const req = await fetch('/backend/acoes/consolidar_grade.php', { method: 'POST', body: fd });
             const res = await req.json();
 
@@ -160,13 +157,17 @@ $idProcesso = $_GET['instance_id'] ?? null;
                 alert('Valores salvos! O processo seguirá para Reserva de Recursos.\nValor Final: R$ ' + res.valor_gravado);
                 document.getElementById('modal-overlay').classList.add('hidden');
                 document.getElementById('modal-body').innerHTML = '';
+                // Opcional: Recarregar página pai
+                // location.reload();
             } else {
                 alert('Erro ao salvar: ' + res.erro);
                 this.disabled = false;
+                this.innerText = "Gerar Documento";
             }
         } catch (e) {
-            alert('Erro de conexão.');
+            alert('Erro de conexão: ' + e.message);
             this.disabled = false;
+            this.innerText = "Gerar Documento";
         }
     });
 })();

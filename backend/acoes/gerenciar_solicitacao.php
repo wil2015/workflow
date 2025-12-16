@@ -6,6 +6,7 @@ ini_set('display_errors', 0);
 header('Content-Type: application/json; charset=utf-8');
 
 require '../db_conexao.php'; 
+require '../db_senior.php'; 
 
 $acao = $_POST['acao'] ?? '';
 
@@ -51,7 +52,7 @@ try {
             }
 
             // Insere Item
-            $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao) VALUES (?, ?, ?)";
+            $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) VALUES (?, ?, ?)";
             $stmtItem = $pdo->prepare($sqlItem);
 
             // GERA MATRIZ DE COTAÇÃO PARA ITENS NOVOS
@@ -64,7 +65,18 @@ try {
             $stmtGeraCota = $pdo->prepare($sqlGeraCota);
 
             foreach ($listaSeqs as $seq) {
-                $stmtItem->execute([$idProcesso, $numsol, $seq]);
+
+                // --- NOVA LÓGICA DE BUSCA NO SENIOR ---
+                $qtdSenior = 1.0;
+                if (isset($connSenior)) {
+                    // Busca a quantidade exata deste item na tabela do Senior
+                    $qQtd = sqlsrv_query($connSenior, "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?", [$numsol, $seq]);
+                    if ($qQtd && $rowQ = sqlsrv_fetch_array($qQtd, SQLSRV_FETCH_ASSOC)) {
+                        $qtdSenior = (float)$rowQ['qtdsol'];
+                    }
+                }
+                // --------------------------------------
+                $stmtItem->execute([$idProcesso, $numsol, $seq, $qtdSenior]);
                 if ($stmtItem->rowCount() > 0) {
                     $itensProcessados++;
                     // Cria linhas de cotação vazias para os fornecedores que já estão no processo
