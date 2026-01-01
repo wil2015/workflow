@@ -1,24 +1,25 @@
 <?php
 // backend/views/lancar_valores.php
-require_once  'vite_loader.php'; 
+require_once 'vite_loader.php';
+$id = $_GET['instance_id'] ?? '';
+$fluxo = $_GET['fluxo_id'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lançar Valores</title>
+    <title>Gerenciar Processo</title>
     <?= carregar_cabecalho_vue() ?>
 </head>
 <body>
     <div id="app"></div>
-
     <script>
-        // A chave mágica para o App.vue saber o que renderizar
-        window.AREA_ATUAL = 'lancamento'; 
-        
-        window.INSTANCE_ID = "<?= $_GET['instance_id'] ?? '' ?>";
-        window.FLUXO_ID = "<?= $_GET['fluxo_id'] ?? '' ?>";
+        // CORREÇÃO: Apontamos para o arquivo físico
+        window.VIEW_DATA = {
+            componente: 'CotacaoValores.vue',
+            instance_id: "<?= $id ?>",
+            fluxo_id: "<?= $fluxo ?>"
+        };
     </script>
 </body>
 </html>

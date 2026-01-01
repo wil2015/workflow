@@ -10,6 +10,7 @@
 
     <div class="tabela-container">
       <DataTable 
+        v-if="instanceId"
         class="display"
         :columns="columns" 
         :options="dtOptions"
@@ -98,15 +99,23 @@ const dtOptions = {
     }
 };
 
+
 onMounted(() => {
-    // 1. Pega variáveis injetadas pelo PHP (Jeito mais seguro no Iframe)
-    if (window.INSTANCE_ID) {
+    // 1. Tenta pegar do padrão NOVO (VIEW_DATA)
+    if (window.VIEW_DATA && window.VIEW_DATA.instance_id) {
+        instanceId.value = window.VIEW_DATA.instance_id;
+    } 
+    // 2. Fallback para o padrão ANTIGO (window.INSTANCE_ID)
+    else if (window.INSTANCE_ID) {
         instanceId.value = window.INSTANCE_ID;
-    } else {
-        // Fallback para URL se o window falhar
+    }
+    // 3. Fallback final para a URL (Segurança)
+    else {
         const params = new URLSearchParams(window.location.search);
         instanceId.value = params.get('instance_id');
     }
+
+    console.log("ID Carregado:", instanceId.value); // Para conferir no F12
 });
 
 function fechar() {

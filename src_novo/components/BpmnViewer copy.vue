@@ -121,20 +121,6 @@ async function carregarDiagrama(xmlFilename) {
 }
 
 async function clicarTarefa(taskId) {
-    // --- NOVO BLOQUEIO DE SEGURANÇA ---
-    if (!instanceId.value) {
-        // DICA: Se a tarefa de "Solicitação" tiver um ID fixo (ex: 'Activity_Solicitacao'),
-        // você pode liberar ela adicionando: && taskId !== 'ID_DA_SUA_TAREFA'
-        
-        // Aqui verificamos se o nome da tarefa (ou ID) sugere que é a etapa inicial
-        // Se NÃO for a etapa inicial, bloqueamos:
-        if (!taskId.toLowerCase().includes('solicitacao')) {
-             alert("⚠️ O processo ainda não foi criado.\n\nPor favor, preencha a 'Solicitação' e salve o fluxo antes de acessar fornecedores ou grades.");
-             return; // <--- O PULO DO GATO: Para tudo aqui e não deixa dar erro!
-        }
-    }
-    // ----------------------------------
-
     // Consulta o Router PHP para saber qual tela abrir
     const urlFetch = `/backend/router.php?task_id=${taskId}&fluxo_id=${fluxoId.value}`;
     
@@ -148,10 +134,11 @@ async function clicarTarefa(taskId) {
         const config = await res.json();
         
         if (config.sucesso && config.url) {
+            // Monta URL mantendo os parâmetros de contexto
             const separator = config.url.includes('?') ? '&' : '?';
-            // Se for novo, instanceId é vazio string ''
             const idParaUrl = instanceId.value ? instanceId.value : '';
             
+            // Define a URL do Iframe
             iframeUrl.value = `${config.url}${separator}instance_id=${idParaUrl}&fluxo_id=${fluxoId.value}`;
             modalAberto.value = true;
         } else if (config.erro) {
@@ -162,6 +149,7 @@ async function clicarTarefa(taskId) {
         alert("Erro de comunicação ao buscar rota.");
     }
 }
+
 function fecharModal() {
     modalAberto.value = false;
     iframeUrl.value = '';

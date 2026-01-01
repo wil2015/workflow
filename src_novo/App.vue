@@ -1,99 +1,66 @@
 <template>
   <div class="app-container">
+    <div v-if="erro" class="tela-erro">
+        <h3>⚠️ Erro de Carregamento</h3>
+        <p>{{ erro }}</p>
+        <small>Verifique se o arquivo existe na pasta components e se o PHP enviou o nome correto.</small>
+    </div>
     
-    <template v-if="areaAtual">
-       <FornecedoresList v-if="areaAtual === 'fornecedores'" />
-       <SolicitacoesList v-else-if="areaAtual === 'solicitacoes'" />
-       <CotacaoValores v-else-if="areaAtual === 'lancamento'" />
-       <GradeComparativa v-else-if="areaAtual === 'grade'" />
-       <div v-else class="erro-modulo">Módulo não encontrado: {{ areaAtual }}</div>
-    </template>
-
-
-    <template v-else>
-      
-      <div v-if="modoAtual === 'viewer'" class="viewer-mode">
-        <div class="toolbar">
-          <button @click="voltarAoDashboard" class="btn-voltar">← Voltar ao Painel</button>
-          <span class="titulo-fluxo">{{ tituloAtual }}</span>
-        </div>
-        
-        <BpmnViewer 
-          v-if="componenteCarregado"
-          :xmlUrl="urlXmlAtual" 
-          :fluxoId="fluxoIdAtual"
-          :instanceId="instanceIdAtual"
-        />
-        <div v-else>Carregando componente BPMN...</div>
-      </div>
-
-      <Dashboard v-else @abrir-processo="abrirProcesso" @iniciar-novo="iniciarNovo" />
-      
-    </template>
-
+    <component :is="componenteAtual" v-else-if="componenteAtual" />
+    
+    <div v-else class="tela-loading">
+        <div class="spinner"></div>
+        <p>Carregando módulo...</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, defineAsyncComponent } from 'vue';
+import { ref, shallowRef, onMounted, defineAsyncComponent } from 'vue';
 
-// --- IMPORTAÇÃO DOS MÓDULOS (Componentes que abrem nos Iframes) ---
-// Use defineAsyncComponent para não pesar o carregamento inicial do Dashboard
-const SolicitacoesList = defineAsyncComponent(() => import('./components/SolicitacoesList.vue'));
-const FornecedoresList = defineAsyncComponent(() => import('./components/FornecedoresList.vue'));
-const CotacaoValores = defineAsyncComponent(() => import('./components/CotacaoValores.vue'));
-const GradeComparativa = defineAsyncComponent(() => import('./components/GradeComparativa.vue'));
+// "shallowRef" é melhor que "ref" para guardar componentes (performance)
+const componenteAtual = shallowRef(null);
+const erro = ref(null);
 
-const Dashboard = defineAsyncComponent(() => import('./components/Dashboard.vue'));
-const BpmnViewer = defineAsyncComponent(() => import('./components/BpmnViewer.vue'));
+onMounted(() => {
+    // 1. O PHP injetou isso no window (Lembra do visualizar_fluxo.php?)
+    const data = window.VIEW_DATA || {};
+    const nomeArquivo = data.componente; // Ex: 'BpmnViewer.vue'
 
-// --- LÓGICA DE DETECÇÃO (A Chave do Sucesso) ---
-// Lê a variável que injetamos no PHP (selecionar_fornecedores.php)
-// Se for null/undefined, significa que estamos no Dashboard principal
-const areaAtual = ref(window.AREA_ATUAL || null);
+    if (!nomeArquivo) {
+        erro.value = "O Backend não informou qual componente carregar (window.VIEW_DATA.componente vazio).";
+        return;
+    }
 
-
-// --- SUAS VARIÁVEIS ORIGINAIS (Mantidas) ---
-const modoAtual = ref('dashboard');
-const urlXmlAtual = ref('');
-const tituloAtual = ref('');
-const fluxoIdAtual = ref(null);
-const instanceIdAtual = ref(null);
-const componenteCarregado = ref(true);
-
-// --- SUAS FUNÇÕES ORIGINAIS (Mantidas) ---
-function iniciarNovo(fluxo) {
-  console.log("Iniciando NOVO fluxo:", fluxo);
-  modoAtual.value = 'viewer';
-  urlXmlAtual.value = '/public/' + fluxo.arquivo_xml;
-  tituloAtual.value = fluxo.nome_do_fluxo;
-  fluxoIdAtual.value = fluxo.fluxo_id; 
-  instanceIdAtual.value = null; 
-  window.history.pushState({}, '', `?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.fluxo_id}`);
-}
-
-function abrirProcesso(proc) {
-  console.log("Abrindo processo existente:", proc);
-  modoAtual.value = 'viewer';
-  urlXmlAtual.value = '/public/' + proc.arquivo_xml;
-  tituloAtual.value = `Proc. #${proc.id}`;
-  fluxoIdAtual.value = proc.fluxo_id; 
-  instanceIdAtual.value = proc.id;    
-  window.history.pushState({}, '', `?id=${proc.id}`);
-}
-
-function voltarAoDashboard() {
-  modoAtual.value = 'dashboard';
-  instanceIdAtual.value = null;
-  fluxoIdAtual.value = null;
-  urlXmlAtual.value = '';
-  window.history.pushState({}, '', '/');
-}
+    // 2. O Pulo do Gato: Importação Dinâmica
+    // O Vite é inteligente: ele vê `./components/${nomeArquivo}` e prepara todos os arquivos
+    // da pasta components para serem carregados sob demanda.
+    componenteAtual.value = defineAsyncComponent(() => 
+        import(`./components/${nomeArquivo}`)
+            .catch(err => {
+                console.error("Erro no import dinâmico:", err);
+                erro.value = `Não foi possível carregar o arquivo: src_novo/components/${nomeArquivo}`;
+            })
+    );
+});
 </script>
 
-<style>
-body { margin: 0; font-family: sans-serif; background: #f4f6f9; }
-.toolbar { background: #333; color: white; padding: 10px; display: flex; gap: 20px; }
-.btn-voltar { cursor: pointer; }
-.erro-modulo { padding: 20px; color: red; font-weight: bold; }
+<style scoped>
+/* Estilos globais do container */
+.app-container { min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+
+.tela-erro { 
+    padding: 40px; text-align: center; color: #721c24; 
+    background-color: #f8d7da; border: 1px solid #f5c6cb; margin: 20px; border-radius: 8px; 
+}
+
+.tela-loading { 
+    display: flex; flex-direction: column; align-items: center; 
+    justify-content: center; height: 100vh; color: #666; 
+}
+.spinner {
+    border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+    width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>

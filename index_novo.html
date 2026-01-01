@@ -1,19 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Workflow (VUE)</title>
-  
-  <style>
-    body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script type="module" src="http://localhost:5174/@vite/client"></script>
+    <script type="module" src="http://localhost:5174/src/main.js"></script>
 </head>
 <body>
-
-  <div id="app"></div>
-
-  <script type="module" src="/src/vue-entry.js"></script>
-
+    <div id="app"></div>
+    <script>
+        // CORREÇÃO: Mudamos de 'area' para 'componente'
+        window.VIEW_DATA = {
+            componente: 'Dashboard.vue' 
+        };
+    </script>
 </body>
 </html>

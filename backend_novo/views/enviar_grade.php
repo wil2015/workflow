@@ -1,5 +1,6 @@
 <?php
 // backend/views/enviar_grade.php
+require_once 'vite_loader.php'; // Usa o carregador padrão
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -8,15 +9,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grade Comparativa</title>
     
-    <script type="module" src="http://localhost:5174/@vite/client"></script>
-    <script type="module" src="http://localhost:5174/src/main.js"></script>
+    <?= carregar_cabecalho_vue() ?>
 </head>
 <body>
     <div id="app"></div>
 
     <script>
-        window.AREA_ATUAL = 'grade'; 
-        window.INSTANCE_ID = "<?= $_GET['instance_id'] ?? '' ?>";
+        // CONFIGURAÇÃO NOVA
+        window.VIEW_DATA = {
+            // Aponta para o arquivo Vue da Grade
+            componente: 'GradeComparativa.vue', 
+            
+            // Passa o ID do processo
+            instance_id: "<?= $_GET['instance_id'] ?? '' ?>"
+        };
     </script>
 </body>
 </html>

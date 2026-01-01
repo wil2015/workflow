@@ -1,3 +1,7 @@
+<?php
+// backend/views/selecionar_fornecedores.php
+require_once 'vite_loader.php'; // Usa o carregador inteligente que criamos
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -5,22 +9,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Selecionar Fornecedores</title>
     
-      
-    <script type="module" src="http://localhost:5174/src_novo/main.js"></script>
-
-    
-    <script type="module" src="http://localhost:5174/@vite/client"></script>
-    </head>
+    <?= carregar_cabecalho_vue() ?>
+</head>
 <body>
     <div id="app"></div>
 
     <script>
-        // Esta variável diz para o App.vue qual tela desenhar
-        window.AREA_ATUAL = 'fornecedores'; 
-        
-        // Passamos os IDs da URL (que vieram do router.php) para o JS global
-        window.INSTANCE_ID = "<?= $_GET['instance_id'] ?? '' ?>";
-        window.FLUXO_ID = "<?= $_GET['fluxo_id'] ?? '' ?>";
+        // CONFIGURAÇÃO NOVA (Para a Arquitetura Limpa)
+        window.VIEW_DATA = {
+            // O Vue lê isso e carrega o arquivo 'FornecedoresList.vue' automaticamente
+            componente: 'FornecedoresList.vue', 
+            
+            // Parâmetros mantidos
+            instance_id: "<?= $_GET['instance_id'] ?? '' ?>",
+            fluxo_id: "<?= $_GET['fluxo_id'] ?? '' ?>"
+        };
     </script>
 </body>
 </html>
