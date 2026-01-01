@@ -31,32 +31,58 @@ try {
             $mapaSolicitacoes[$numsol][] = $seqsol;
         }
 
+        // ... (código anterior) ...
+        
+        // 1. Captura o ID do processo se estivermos editando (Vem do Vue)
+        $idProcessoEditando = $_POST['id_processo_instancia'] ?? null;
+        // Se vier string "null" ou vazio, transforma em null real
+        if ($idProcessoEditando === 'null' || empty($idProcessoEditando)) $idProcessoEditando = null;
+
         foreach ($mapaSolicitacoes as $numsol => $listaSeqs) {
-            // Busca ID do Processo
-            $stmt = $pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
-            $stmt->execute([$numsol]);
-            $proc = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($proc) {
-                $idProcesso = $proc['id'];
+            // LÓGICA CORRIGIDA:
+            if ($idProcessoEditando) {
+                // CENÁRIO A: Estamos editando um processo existente.
+                // Forçamos todos os itens a entrarem neste processo.
+                $idProcesso = $idProcessoEditando;
             } else {
-                $sqlInsert = "INSERT INTO processos_instancia 
-                    ( id_processo_instancia, id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
-                    VALUES ( :numsol, :numsol, :idFluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
-                $stmtInsert = $pdo->prepare($sqlInsert);
-                $stmtInsert->execute([
-                    ':numsol' => $numsol,
-                    ':idFluxo' => $idFluxo
-                ]);
-                $idProcesso = $pdo->lastInsertId();
+                // CENÁRIO B: Estamos criando do zero (Dashboard).
+                // Tenta achar um processo existente para esta solicitação ou cria novo.
+                
+                $stmt = $pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
+                $stmt->execute([$numsol]);
+                $proc = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($proc) {
+                    $idProcesso = $proc['id'];
+                } else {
+                    $sqlInsert = "INSERT INTO processos_instancia 
+                        ( id_processo_senior, id_fluxo_definicao, data_inicio, estatus_atual, etapa_bpmn_atual) 
+                        VALUES ( :numsol, :idFluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
+                    $stmtInsert = $pdo->prepare($sqlInsert);
+                    $stmtInsert->execute([
+                        ':numsol' => $numsol,
+                        ':idFluxo' => $idFluxo
+                    ]);
+                    $idProcesso = $pdo->lastInsertId();
+                }
             }
 
-            // Insere Item
+            // Insere Item (COM A CORREÇÃO DOS 4 PARÂMETROS QUE FIZEMOS ANTES)
             $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) VALUES (?, ?, ?, ?)";
             $stmtItem = $pdo->prepare($sqlItem);
 
-            // GERA MATRIZ DE COTAÇÃO PARA ITENS NOVOS
-            // Se já existirem fornecedores no processo, criamos as linhas vazias na cotação para esse novo item
+            // ... (resto da lógica de buscar quantidade no senior e insert cotação) ...
+            
+            // --- NOVA LÓGICA DE BUSCA NO SENIOR (Mantida do seu código) ---
+            $qtdSenior = 1.0;
+            if (isset($connSenior)) {
+                $qQtd = sqlsrv_query($connSenior, "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?", [$numsol, $listaSeqs[0]]); // Usei listaSeqs[0] apenas como exemplo, o ideal é estar dentro do loop interno se seq variar
+                 // PERA! O loop de $listaSeqs está LOGO ABAIXO. Vamos corrigir o escopo.
+            }
+            // -------------------------------------------------------------
+
+            // GERA MATRIZ DE COTAÇÃO (Mantido)
             $sqlGeraCota = "INSERT IGNORE INTO licitacao_itens_ofertados 
                             (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario)
                             SELECT ?, ?, ?, id_fornecedor_senior, NULL 
@@ -65,21 +91,20 @@ try {
             $stmtGeraCota = $pdo->prepare($sqlGeraCota);
 
             foreach ($listaSeqs as $seq) {
+                 // BUSCA QTD REAL (Movemos para cá para pegar a seq correta)
+                 $qtdSenior = 1.0;
+                 if (isset($connSenior)) {
+                     $qQtd = sqlsrv_query($connSenior, "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?", [$numsol, $seq]);
+                     if ($qQtd && $rowQ = sqlsrv_fetch_array($qQtd, SQLSRV_FETCH_ASSOC)) {
+                         $qtdSenior = (float)$rowQ['qtdsol'];
+                     }
+                 }
 
-                // --- NOVA LÓGICA DE BUSCA NO SENIOR ---
-                $qtdSenior = 1.0;
-                if (isset($connSenior)) {
-                    // Busca a quantidade exata deste item na tabela do Senior
-                    $qQtd = sqlsrv_query($connSenior, "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?", [$numsol, $seq]);
-                    if ($qQtd && $rowQ = sqlsrv_fetch_array($qQtd, SQLSRV_FETCH_ASSOC)) {
-                        $qtdSenior = (float)$rowQ['qtdsol'];
-                    }
-                }
-                // --------------------------------------
+                // EXECUTA O INSERT COM 4 PARÂMETROS
                 $stmtItem->execute([$idProcesso, $numsol, $seq, $qtdSenior]);
+                
                 if ($stmtItem->rowCount() > 0) {
                     $itensProcessados++;
-                    // Cria linhas de cotação vazias para os fornecedores que já estão no processo
                     $stmtGeraCota->execute([$idProcesso, $numsol, $seq, $idProcesso]);
                 }
             }
