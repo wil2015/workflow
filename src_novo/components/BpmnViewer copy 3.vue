@@ -48,14 +48,17 @@ const instanceId = ref(null);
 const fluxoId = ref(null);
 const novoXml = ref(null);
 
+
+// src_novo/components/BpmnViewer.vue
+
 onMounted(async () => {
-    // 1. LEITURA LIMPA DA CONFIGURAÇÃO (Sem Props)
+    // 1. LEITURA LIMPA DA CONFIGURAÇÃO
     const data = window.VIEW_DATA || {};
     instanceId.value = data.instance_id || null;
     fluxoId.value = data.fluxo_id || null;
     novoXml.value = data.novo_xml || null;
 
-    // 2. INICIALIZAÇÃO DO VIEWER
+    // 2. INICIALIZAÇÃO DO VIEWER (Isso é o que desenha a tela branca)
     viewer = new BpmnNavigatedViewer({ container: canvasRef.value });
     
     // Configura eventos de clique
@@ -68,14 +71,27 @@ onMounted(async () => {
         }
     });
 
-    // 3. CARREGAMENTO INTELIGENTE
+    // 3. CARREGAMENTO INTELIGENTE + AUTO-START
     if (instanceId.value) {
-        // Modo Edição: Busca dados do processo
+        // --- MODO EDIÇÃO (Processo já existe) ---
         await carregarProcessoExistente(instanceId.value);
+    
     } else if (novoXml.value) {
-        // Modo Novo: Usa o XML passado
+        // --- MODO NOVO (Aqui entra a mágica) ---
         titulo.value = "Iniciando Novo Processo";
+        
+        // A. Primeiro desenha o diagrama
         await carregarDiagrama(novoXml.value);
+
+        // B. Depois que desenhou, tenta clicar sozinho na Solicitação
+        console.log("Fluxo Novo detectado. Tentando abrir solicitação...");
+        
+        setTimeout(() => {
+            // ATENÇÃO: Verifique se o ID da sua tarefa no XML é este mesmo ('Activity_Solicitacao')
+            // Se não abrir, olhe no console qual o ID correto ou use o inspetor.
+            clicarTarefa('Activity_SelecionarSolicitacao'); 
+        }, 500); // Pequeno delay para garantir que o diagrama "acordou"
+
     } else {
         titulo.value = "Erro: Nenhum dado fornecido.";
     }
@@ -103,23 +119,43 @@ async function carregarProcessoExistente(id) {
     }
 }
 
+
 async function carregarDiagrama(xmlFilename) {
     try {
-        // Ajuste o caminho '/public/' conforme a sua estrutura real de pastas
         const res = await fetch('/public/' + xmlFilename); 
-        if(!res.ok) throw new Error("Arquivo XML não encontrado: " + xmlFilename);
+        if(!res.ok) throw new Error("XML não encontrado");
         
         const xml = await res.text();
         await viewer.importXML(xml);
         
-        // Centraliza o diagrama
+        // --- LÓGICA DE PINTURA (NOVA) ---
+        // Só aplicamos a cor se for um NOVO fluxo (para não pintar fluxos antigos em consulta)
+        if (novoXml.value) {
+            const elementRegistry = viewer.get('elementRegistry');
+            const canvas = viewer.get('canvas');
+
+            // Filtra tudo que é "Shape" (Formas) e ignora "Connection" (Setas)
+            // Também ignoramos o 'bpmn:Process' (que é o container invisível)
+            const elementosParaPintar = elementRegistry.filter(element => {
+                return element.type !== 'bpmn:SequenceFlow' && // Ignora setas
+                       element.type !== 'bpmn:Process' &&      // Ignora o canvas
+                       element.type !== 'bpmn:Collaboration' && 
+                       element.type !== 'label';               // Ignora etiquetas de texto soltas
+            });
+
+            elementosParaPintar.forEach(el => {
+                canvas.addMarker(el.id, 'tema-novo-fluxo');
+            });
+        }
+        // --------------------------------
+
         viewer.get('canvas').zoom('fit-viewport');
+        
     } catch (err) {
         console.error(err);
-        alert("Erro ao desenhar diagrama: " + err.message);
+        alert("Erro ao desenhar: " + err.message);
     }
 }
-
 async function clicarTarefa(taskId) {
     // --- NOVO BLOQUEIO DE SEGURANÇA ---
     if (!instanceId.value) {
@@ -220,4 +256,20 @@ function voltar() {
 .modal-close:hover { background: #dc2626; transform: scale(1.1); }
 .modal-body { flex: 1; overflow: hidden; border-radius: 8px; background: #fff; }
 .iframe-legado { width: 100%; height: 100%; border: none; display: block; }
+/* src_novo/components/BpmnViewer.vue */
+
+/* ... outros estilos ... */
+
+/* ESTILO PARA FLUXO NOVO (Aplica em tudo: Tarefas, Eventos, Gateways) */
+:deep(.tema-novo-fluxo .djs-visual > :first-child) {
+    fill: #e8f5e9 !important;   /* Fundo Verde Muito Claro (Mint) */
+    stroke: #2e7d32 !important; /* Borda Verde Floresta */
+    stroke-width: 2px !important;
+}
+
+/* Opcional: Quando passar o mouse, fica mais escuro */
+:deep(.tema-novo-fluxo:hover .djs-visual > :first-child) {
+    fill: #c8e6c9 !important;
+    stroke: #1b5e20 !important;
+}
 </style>

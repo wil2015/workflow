@@ -48,14 +48,17 @@ const instanceId = ref(null);
 const fluxoId = ref(null);
 const novoXml = ref(null);
 
+
+// src_novo/components/BpmnViewer.vue
+
 onMounted(async () => {
-    // 1. LEITURA LIMPA DA CONFIGURAÇÃO (Sem Props)
+    // 1. LEITURA LIMPA DA CONFIGURAÇÃO
     const data = window.VIEW_DATA || {};
     instanceId.value = data.instance_id || null;
     fluxoId.value = data.fluxo_id || null;
     novoXml.value = data.novo_xml || null;
 
-    // 2. INICIALIZAÇÃO DO VIEWER
+    // 2. INICIALIZAÇÃO DO VIEWER (Isso é o que desenha a tela branca)
     viewer = new BpmnNavigatedViewer({ container: canvasRef.value });
     
     // Configura eventos de clique
@@ -68,14 +71,27 @@ onMounted(async () => {
         }
     });
 
-    // 3. CARREGAMENTO INTELIGENTE
+    // 3. CARREGAMENTO INTELIGENTE + AUTO-START
     if (instanceId.value) {
-        // Modo Edição: Busca dados do processo
+        // --- MODO EDIÇÃO (Processo já existe) ---
         await carregarProcessoExistente(instanceId.value);
+    
     } else if (novoXml.value) {
-        // Modo Novo: Usa o XML passado
+        // --- MODO NOVO (Aqui entra a mágica) ---
         titulo.value = "Iniciando Novo Processo";
+        
+        // A. Primeiro desenha o diagrama
         await carregarDiagrama(novoXml.value);
+
+        // B. Depois que desenhou, tenta clicar sozinho na Solicitação
+        console.log("Fluxo Novo detectado. Tentando abrir solicitação...");
+        
+        setTimeout(() => {
+            // ATENÇÃO: Verifique se o ID da sua tarefa no XML é este mesmo ('Activity_Solicitacao')
+            // Se não abrir, olhe no console qual o ID correto ou use o inspetor.
+            clicarTarefa('Activity_SelecionarSolicitacao'); 
+        }, 500); // Pequeno delay para garantir que o diagrama "acordou"
+
     } else {
         titulo.value = "Erro: Nenhum dado fornecido.";
     }
