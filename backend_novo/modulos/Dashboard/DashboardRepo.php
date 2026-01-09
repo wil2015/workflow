@@ -7,26 +7,36 @@ class DashboardRepo {
     }
 
     public function buscarFluxosAtivos() {
-        $sql = "SELECT id, nome_do_fluxo, arquivo_xml 
-                FROM licitacao_fluxos 
+        // MANTENDO A COMPATIBILIDADE COM O VUE LEGADO
+        // O Vue pede: fluxo.fluxo_id, fluxo.nome_do_fluxo, fluxo.arquivo_xml
+        $sql = "SELECT 
+                    id_fluxo_definicao AS id,        -- Para o :key do Vue
+                    id_fluxo_definicao AS fluxo_id,  -- Para o link (fluxo_id=...)
+                    nome_do_fluxo, 
+                    arquivo_xml 
+                FROM nome_do_fluxo 
                 WHERE ativo = 1 
+                  AND id_fluxo_definicao IS NOT NULL
                 ORDER BY nome_do_fluxo ASC";
-        return $this->pdo->query($sql)->fetchAll();
+        
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
     }
 
     public function buscarInstanciasRecentes() {
-        // ADICIONADO: id_processo_senior na query
+        // MANTENDO A COMPATIBILIDADE COM O VUE LEGADO
+        // O Vue pede: estatus_atual (com 'e'), id_processo_senior
         $sql = "SELECT 
-                    i.id, 
-                    i.data_inicio, 
-                    i.id_processo_senior, 
-                    f.nome_do_fluxo, 
-                    i.status_atual
-                FROM licitacao_instancias i
-                JOIN licitacao_fluxos f ON i.fluxo_id = f.id
-                WHERE i.status_atual != 'Finalizado'
-                ORDER BY i.data_inicio DESC"; 
+                    p.id, 
+                    p.data_inicio, 
+                    p.id_processo_senior, 
+                    d.nome_do_fluxo, 
+                    p.estatus_atual -- Mantemos com 'e' pois é assim que o Vue espera
+                FROM processos_instancia p
+                INNER JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao
+                ORDER BY p.id DESC"; 
         
-        return $this->pdo->query($sql)->fetchAll();
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
     }
 }
