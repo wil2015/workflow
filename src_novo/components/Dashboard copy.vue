@@ -1,19 +1,18 @@
 <template>
   <div class="dashboard-container">
     
-    <div class="section-title">Iniciar Novo Fluxo (Módulo Novo)</div>
-    <div v-if="loading" class="loading-msg">Carregando painel...</div>
+    <div class="section-title">Iniciar Novo Fluxo</div>
+    <div v-if="loadingDefinicoes" class="loading-msg">Carregando fluxos...</div>
     
     <div class="cards-container">
       <div 
         v-for="fluxo in definicoes" 
         :key="fluxo.id" 
         class="card-fluxo"
-        :style="{ borderLeftColor: fluxo.cor_ui || '#007bff' }"
         @click="iniciarFluxo(fluxo)"
       >
         <h3>{{ fluxo.nome_do_fluxo }}</h3>
-        <p :style="{ color: fluxo.cor_ui || '#007bff' }">+ Iniciar Novo</p>
+        <p>+ Iniciar Novo</p>
       </div>
     </div>
 
@@ -45,32 +44,38 @@ import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 DataTable.use(DataTablesCore);
 
+// NÃO PRECISAMOS MAIS DE EMITS
+// defineEmits(['iniciar-novo', 'abrir-processo']);
+
 const definicoes = ref([]);
 const instancias = ref([]);
-const loading = ref(true);
+const loadingDefinicoes = ref(true);
 
-// --- NAVEGAÇÃO ---
+// --- AÇÕES DE NAVEGAÇÃO (O QUE FALTAVA) ---
+
 function iniciarFluxo(fluxo) {
-    // Mantém a lógica de redirecionamento existente
-    window.location.href = `/backend/views/visualizar_fluxo.php?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.id}`;
+    // Redireciona para o visualizador criando um novo
+    window.location.href = `/backend/views/visualizar_fluxo.php?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.fluxo_id}`;
 }
 
 function abrirProcesso(proc) {
+    // Redireciona para o visualizador abrindo um existente
     window.location.href = `/backend/views/visualizar_fluxo.php?id=${proc.id}`;
 }
 
-// --- DEFINIÇÃO DAS COLUNAS (Ajustada para o novo Backend) ---
+// -------------------------------------------
+
 const columns = [
-  { data: 'id', title: 'ID' },
+  { data: 'id', title: 'ID (Wf)' },
   { data: 'nome_do_fluxo', title: 'Fluxo' },
   { 
-    data: 'id_processo_senior', // Agora vem do Repo atualizado
+    data: 'id_processo_senior', 
     title: 'Solicitação (Senior)',
     render: (data) => `<span style="color:#0056b3; font-weight:bold">${data || '-'}</span>`
   },
-  { data: 'data_formatada', title: 'Data Início' }, // O Service já formata isso
+  { data: 'data_formatada', title: 'Data Início' },
   { 
-    data: 'status_atual', // CORRIGIDO: Banco usa 'status', antigo usava 'estatus'
+    data: 'estatus_atual', 
     title: 'Status',
     render: (data) => {
         let cor = '#666'; 
@@ -92,40 +97,41 @@ const columns = [
 const dtOptions = {
     language: {
         search: "Pesquisar:",
-        lengthMenu: "Mostrar _MENU_ registros",
-        zeroRecords: "Nenhum processo encontrado",
-        info: "Página _PAGE_ de _PAGES_",
-        paginate: { first: "First", last: "Last", next: ">", previous: "<" }
+        lengthMenu: "Mostrar _MENU_ registros por página",
+        zeroRecords: "Nenhum registro encontrado",
+        info: "Mostrando página _PAGE_ de _PAGES_",
+        infoEmpty: "Nenhum registro disponível",
+        infoFiltered: "(filtrado de _MAX_ registros no total)",
+        paginate: { first: "Primeiro", last: "Último", next: "Próximo", previous: "Anterior" }
     },
     pageLength: 10,
     order: [[0, 'desc']], 
+    lengthMenu: [5, 10, 25, 50],
     responsive: true
 };
 
-// --- CARREGAMENTO UNIFICADO (NOVA ARQUITETURA) ---
 onMounted(async () => {
-  try {
-    // 1. Chama o Controller Novo
-    const res = await fetch('/backend/modulos/Dashboard/DashboardController.php?acao=home');
-    const json = await res.json();
-
-    if (json.erro) throw new Error(json.erro);
-
-    // 2. Distribui os dados (O Controller já manda tudo separado)
-    definicoes.value = json.fluxos;
-    instancias.value = json.tarefas;
-
-  } catch (e) { 
-    console.error("Erro ao carregar dashboard:", e);
-    alert(e.message);
-  } finally { 
-    loading.value = false; 
-  }
+  carregarDefinicoes();
+  carregarInstancias();
 });
+
+async function carregarDefinicoes() {
+  try {
+    const res = await fetch('/backend/api_dashboard.php?acao=definicoes');
+    definicoes.value = await res.json();
+  } catch (e) { console.error(e); } 
+  finally { loadingDefinicoes.value = false; }
+}
+
+async function carregarInstancias() {
+  try {
+    const res = await fetch('/backend/api_dashboard.php?acao=instancias');
+    instancias.value = await res.json();
+  } catch (e) { console.error(e); }
+}
 </script>
 
 <style scoped>
-/* Mantive seus estilos originais */
 .dashboard-container { padding: 20px; font-family: 'Segoe UI', sans-serif; background: #f4f6f9; min-height: 100vh; display: flex; flex-direction: column; }
 .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
 .section-title.no-border { border: none; margin: 0; padding: 0; }
@@ -138,7 +144,10 @@ onMounted(async () => {
 .card-fluxo p { margin: 0; color: #007bff; font-weight: 600; font-size: 13px; text-transform: uppercase; }
 .btn-abrir { background: #007bff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
 .btn-abrir:hover { background: #0056b3; }
-:deep(table.dataTable) { border-collapse: collapse !important; width: 100% !important; background: white; border-radius: 8px; overflow: hidden; }
+:deep(.dataTables_wrapper .dataTables_length select) { padding: 4px; border-radius: 4px; border: 1px solid #ddd; }
+:deep(.dataTables_wrapper .dataTables_filter input) { padding: 6px; border-radius: 4px; border: 1px solid #ddd; margin-left: 5px; }
+:deep(table.dataTable) { border-collapse: collapse !important; width: 100% !important; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 :deep(table.dataTable thead th) { background: #f8f9fa; border-bottom: 2px solid #dee2e6; color: #495057; padding: 12px 10px; }
 :deep(table.dataTable tbody td) { padding: 10px; border-bottom: 1px solid #eee; }
+:deep(.dataTables_wrapper) { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 </style>
