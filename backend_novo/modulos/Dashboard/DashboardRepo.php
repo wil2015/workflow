@@ -31,7 +31,7 @@ class DashboardRepo {
                     p.data_inicio, 
                     p.id_processo_senior, 
                     d.nome_do_fluxo, 
-                    p.estatus_atual -- Mantemos com 'e' pois é assim que o Vue espera
+                    p.status_atual 
                 FROM processos_instancia p
                 INNER JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao
                 ORDER BY p.id DESC"; 

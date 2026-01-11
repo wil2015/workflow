@@ -27,10 +27,11 @@
           ← Clique em um item para lançar valores.
         </div>
 
-        <div v-else>
-          <h3 class="titulo-item">
-            Item {{ itemAtual.num }}-{{ itemAtual.seq }}
-          </h3>
+        <div v-else class="form-container">
+          <div class="form-header">
+             <h3 class="titulo-item">Item {{ itemAtual.num }}-{{ itemAtual.seq }}</h3>
+             <span class="badge-status" v-if="modificado">⚠️ Alterações não salvas</span>
+          </div>
           
           <div v-if="loadingCotacao" class="loading-msg">Carregando fornecedores...</div>
           
@@ -42,17 +43,27 @@
               </div>
               <div class="input-wrapper">
                 <span>R$</span>
+                
                 <input 
                   type="text" 
                   class="input-money"
-                  :value="formatMoney(forn.valor)"
+                  :value="forn.valor_temp !== undefined ? forn.valor_temp : formatMoney(forn.valor)"
                   @input="aplicarMascara($event, forn)"
-                  @blur="salvarValor(forn)"
-                  :class="getStatusClass(forn)"
                   placeholder="0,00"
                 />
               </div>
             </div>
+          </div>
+
+          <div class="form-footer" v-if="!loadingCotacao && fornecedores.length > 0">
+              <button 
+                class="btn-salvar" 
+                :disabled="salvando" 
+                @click="salvarTudoManual"
+              >
+                <span v-if="salvando">💾 Salvando...</span>
+                <span v-else>✅ Confirmar e Salvar Valores</span>
+              </button>
           </div>
 
         </div>
@@ -70,110 +81,141 @@ const itemAtual = ref(null);
 const fornecedores = ref([]);
 const loadingItens = ref(true);
 const loadingCotacao = ref(false);
+const salvando = ref(false);
+const modificado = ref(false); // Flag para avisar usuário que tem coisa pendente
 
-// Status de salvamento para cada fornecedor (cod -> 'saving' | 'ok' | 'error')
-const statusMap = ref({});
+// Aponta para o novo Controller Modulado
+const API_URL = '/backend/modulos/Cotacao/CotacaoController.php';
 
 onMounted(() => {
-    // Pega ID do PHP
-    instanceId.value = window.INSTANCE_ID || new URLSearchParams(window.location.search).get('instance_id');
+    // Recupera ID do objeto global ou URL
+    if (window.VIEW_DATA && window.VIEW_DATA.instance_id) {
+        instanceId.value = window.VIEW_DATA.instance_id;
+    } else {
+        instanceId.value = new URLSearchParams(window.location.search).get('instance_id');
+    }
     carregarItens();
 });
 
 async function carregarItens() {
     try {
-        const req = await fetch(`/backend/api_lancamento.php?acao=itens&instance_id=${instanceId.value}`);
-        itens.value = await req.json();
+        const req = await fetch(`${API_URL}?acao=listar_itens&instance_id=${instanceId.value}`);
+        const res = await req.json();
+        
+        if (res.erro) throw new Error(res.erro);
+        itens.value = res;
     } catch (e) {
-        alert("Erro ao carregar itens");
+        alert("Erro ao carregar itens: " + e.message);
     } finally {
         loadingItens.value = false;
     }
 }
 
 async function selecionarItem(item) {
+    // Proteção se tentar trocar de item sem salvar
+    if (modificado.value) {
+        if(!confirm("Você tem alterações não salvas. Deseja descartar e trocar de item?")) return;
+    }
+
     itemAtual.value = item;
     loadingCotacao.value = true;
+    modificado.value = false; // Reseta estado de edição
     fornecedores.value = [];
-    statusMap.value = {}; // Limpa status anteriores
 
     try {
-        const url = `/backend/api_lancamento.php?acao=cotacao&instance_id=${instanceId.value}&num=${item.num}&seq=${item.seq}`;
+        const url = `${API_URL}?acao=listar_cotacoes&id_processo=${instanceId.value}&num=${item.num}&seq=${item.seq}`;
         const req = await fetch(url);
-        fornecedores.value = await req.json();
+        const res = await req.json();
+        
+        if (res.erro) throw new Error(res.erro);
+        fornecedores.value = res;
     } catch (e) {
-        alert("Erro ao carregar cotação");
+        alert("Erro ao carregar cotação: " + e.message);
     } finally {
         loadingCotacao.value = false;
     }
 }
 
-// --- LÓGICA DE MÁSCARA (Idêntica ao Legado) ---
+// --- MÁSCARA MONETÁRIA (PT-BR) ---
 function formatMoney(val) {
     if (!val && val !== 0) return '';
-    // Converte float 1234.56 para "1.234,56"
     return parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function aplicarMascara(e, forn) {
+    modificado.value = true; // Marca que houve edição na tela
+    
     let v = e.target.value.replace(/\D/g, "");
     if (!v) {
         e.target.value = "";
-        forn.valor_temp = ""; // Valor limpo
+        forn.valor_temp = ""; 
         return;
     }
     v = (v / 100).toFixed(2) + "";
     v = v.replace(".", ",");
     v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
-    e.target.value = v;
     
-    // Guarda o valor "cru" (pt-BR) para enviar ao backend
+    // Atualiza input visual e variável temporária
+    e.target.value = v;
     forn.valor_temp = v;
 }
 
-// --- AUTO SAVE ---
-async function salvarValor(forn) {
-    // Se não mexeu, não salva (usa o valor original se temp não existir)
-    const valorParaSalvar = forn.valor_temp !== undefined ? forn.valor_temp : formatMoney(forn.valor);
-    
-    statusMap.value[forn.cod] = 'saving';
+// --- SALVAMENTO MANUAL EM LOTE ---
+async function salvarTudoManual() {
+    salvando.value = true;
 
-    const formData = new FormData();
-    formData.append('acao', 'salvar_unitario');
-    formData.append('id_processo', instanceId.value);
-    formData.append('num_solicitacao', itemAtual.value.num);
-    formData.append('seq_solicitacao', itemAtual.value.seq);
-    formData.append('cod_fornecedor', forn.cod);
-    formData.append('valor', valorParaSalvar); // Backend espera formato BR "1.000,00"
+    // Prepara o array para enviar ao PHP
+    // Se tiver valor_temp (digitado), usa ele. Se não, usa o original formatado.
+    const listaParaSalvar = fornecedores.value.map(f => ({
+        cod: f.cod,
+        valor: f.valor_temp !== undefined ? f.valor_temp : formatMoney(f.valor)
+    }));
+
+    const payload = {
+        acao: 'salvar_lote',
+        id_processo: instanceId.value,
+        num_solicitacao: itemAtual.value.num,
+        seq_solicitacao: itemAtual.value.seq,
+        cotacoes: listaParaSalvar
+    };
 
     try {
-        // Usa o endpoint de ação que JÁ EXISTE no seu sistema legado
-        const req = await fetch('/backend/acoes/salvar_cotacoes.php', { method: 'POST', body: formData });
+        const req = await fetch(API_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, // JSON puro para segurança
+            body: JSON.stringify(payload) 
+        });
         const res = await req.json();
         
         if (res.sucesso) {
-            statusMap.value[forn.cod] = 'ok';
-            // Atualiza o valor oficial
-            forn.valor = parseFloat(valorParaSalvar.replace(/\./g,'').replace(',','.'));
+            // SUCESSO: Atualiza a "Memória Oficial" com o que foi digitado
+            fornecedores.value.forEach(f => {
+                if (f.valor_temp !== undefined) {
+                    // Converte "1.500,00" para float 1500.00
+                    f.valor = parseFloat(f.valor_temp.replace(/\./g,'').replace(',','.'));
+                    // Limpa o temp para o input voltar a ler de 'f.valor' (sem pular)
+                    delete f.valor_temp; 
+                }
+            });
+
+            modificado.value = false; // Tira o aviso amarelo
+            alert("✅ Valores salvos com sucesso!");
+
         } else {
-            statusMap.value[forn.cod] = 'error';
+            console.error(res);
+            alert("Erro ao salvar: " + (res.erro || res.msg));
         }
     } catch (e) {
-        statusMap.value[forn.cod] = 'error';
+        console.error(e);
+        alert("Erro de conexão ao salvar.");
+    } finally {
+        salvando.value = false;
     }
-}
-
-function getStatusClass(forn) {
-    const s = statusMap.value[forn.cod];
-    if (s === 'saving') return 'border-warning';
-    if (s === 'ok') return 'border-success';
-    if (s === 'error') return 'border-danger';
-    return '';
 }
 </script>
 
 <style scoped>
-.cotacao-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: sans-serif; overflow: hidden; }
+.cotacao-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 .header-cotacao { padding: 15px; border-bottom: 1px solid #ddd; background: #f8f9fa; }
 .layout-split { display: flex; flex: 1; overflow: hidden; }
 
@@ -187,17 +229,36 @@ function getStatusClass(forn) {
 .item-qtd { font-size: 11px; background: #6c757d; color: white; padding: 2px 6px; border-radius: 4px; display: inline-block; }
 
 /* Form Direita */
-.detalhe-item { flex: 1; padding: 30px; overflow-y: auto; background: #fff; }
-.empty-state { color: #999; text-align: center; margin-top: 100px; font-size: 18px; }
-.titulo-item { margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; }
+.detalhe-item { flex: 1; display: flex; flex-direction: column; background: #fff; position: relative; }
+.form-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-.form-group { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; }
+.form-header { 
+    padding: 20px 30px 10px 30px; 
+    display: flex; justify-content: space-between; align-items: center; 
+    border-bottom: 2px solid #f0f0f0; 
+}
+.titulo-item { margin: 0; color: #333; }
+.badge-status { font-size: 12px; background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #ffeeba; }
+
+.lista-inputs { flex: 1; overflow-y: auto; padding: 20px 30px; }
+.form-group { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f9f9f9; }
 .input-wrapper { display: flex; align-items: center; gap: 8px; }
 .input-money { padding: 8px; text-align: right; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; width: 140px; transition: border 0.3s; }
 .input-money:focus { outline: none; border-color: #80bdff; }
 
-/* Feedback Visual */
-.border-warning { border-color: #ffc107 !important; background: #fff3cd; }
-.border-success { border-color: #28a745 !important; background: #d4edda; }
-.border-danger { border-color: #dc3545 !important; background: #f8d7da; }
+/* Rodapé Fixo */
+.form-footer { 
+    padding: 15px 30px; border-top: 1px solid #ddd; background: #f8f9fa; text-align: right; 
+}
+.btn-salvar {
+    background: #28a745; color: white; border: none; padding: 12px 24px; 
+    border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; 
+    transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-salvar:hover { background: #218838; transform: translateY(-1px); }
+.btn-salvar:disabled { background: #94d3a2; cursor: not-allowed; transform: none; }
+
+.empty-state { color: #999; text-align: center; margin-top: 100px; font-size: 18px; }
+.loading-msg { text-align: center; padding: 20px; color: #666; font-style: italic; }
 </style>

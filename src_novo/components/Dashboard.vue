@@ -54,11 +54,16 @@ function iniciarFluxo(fluxo) {
     // Mantém a lógica de redirecionamento existente
     window.location.href = `/backend/views/visualizar_fluxo.php?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.id}`;
 }
-
+/*
 function abrirProcesso(proc) {
     window.location.href = `/backend/views/visualizar_fluxo.php?id=${proc.id}`;
 }
-
+    */
+function abrirProcesso(proc) {
+    // CORRETO: Aponta para a View (Interface)
+    // A View carrega o BpmnViewer -> Que chama o Controller -> Que traz os dados.
+    window.location.href = `/backend/views/visualizar_fluxo.php?id=${proc.id}`;
+}
 // --- DEFINIÇÃO DAS COLUNAS (Ajustada para o novo Backend) ---
 const columns = [
   { data: 'id', title: 'ID' },

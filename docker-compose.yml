@@ -27,6 +27,8 @@ services:
     container_name: back_legacy
     volumes:
       - ./backend:/var/www/html/backend
+      # ADICIONE ESTA LINHA ABAIXO:
+      - ./public:/var/www/html/public
     ports:
       - "8080:80"
 
@@ -65,5 +67,7 @@ services:
       # MÁGICA 3: ONDE ESTÁ A PASTA BACKEND_NOVO
       # Aqui garantimos que este container leia seus arquivos refatorados (JSON)
       - ./backend_novo:/var/www/html/backend
+      # ADICIONE ESTA LINHA ABAIXO:
+      - ./public:/var/www/html/public
     ports:
       - "8081:80"

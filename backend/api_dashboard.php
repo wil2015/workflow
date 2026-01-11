@@ -29,7 +29,7 @@ try {
                     p.id, 
                     p.id_processo_senior, 
                     p.data_inicio, 
-                    p.estatus_atual, 
+                    p.status_atual, 
                     d.nome_do_fluxo,
                     d.arquivo_xml,
                     d.id_fluxo_definicao as fluxo_id 

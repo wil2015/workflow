@@ -1,5 +1,6 @@
 <template>
   <div class="fornecedores-wrapper">
+    
     <div class="header-actions">
         <div class="titulo-box">
             <h2>Selecionar Fornecedores</h2>
@@ -38,6 +39,7 @@
     <div class="footer-actions">
         <button class="btn-fechar" @click="fechar">Fechar / Concluir</button>
     </div>
+
   </div>
 </template>
 
@@ -61,81 +63,92 @@ const columns = [
   { data: null, title: 'Status', width: '100px', render: '#status' }
 ];
 
+// --- AQUI ESTÁ A CORREÇÃO ---
+// Removemos a URL externa e colocamos a tradução "Hardcoded"
 const dtOptions = {
     language: {
+        "sEmptyTable": "Nenhum registro encontrado",
+        "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+        "sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+        "sInfoFiltered": "(Filtrados de _MAX_ registros)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "_MENU_ resultados por página",
+        "sLoadingRecords": "Carregando...",
+        "sProcessing": "Processando...",
+        "sZeroRecords": "Nenhum registro encontrado",
         "sSearch": "Pesquisar",
-        "sZeroRecords": "Nenhum fornecedor encontrado",
-        "sProcessing": "Carregando...",
-        "oPaginate": { "sNext": "Próx", "sPrevious": "Ant" }
+        "oPaginate": {
+            "sNext": "Próximo",
+            "sPrevious": "Anterior",
+            "sFirst": "Primeiro",
+            "sLast": "Último"
+        },
+        "oAria": {
+            "sSortAscending": ": Ordenar colunas de forma ascendente",
+            "sSortDescending": ": Ordenar colunas de forma descendente"
+        }
     },
     pageLength: 10,
     serverSide: true,
     processing: true,
     order: [[ 1, "asc" ]],
     ajax: {
-        url: '/backend/modulos/Fornecedores/FornecedoresController.php',
-        data: (d) => { 
-            d.acao = 'listar'; 
-            d.instance_id = instanceId.value; 
-        }
+        url: '/backend/api_fornecedores.php',
+        data: (d) => { d.instance_id = instanceId.value; }
     }
 };
 
+
 onMounted(() => {
+    // 1. Tenta pegar do padrão NOVO (VIEW_DATA)
     if (window.VIEW_DATA && window.VIEW_DATA.instance_id) {
         instanceId.value = window.VIEW_DATA.instance_id;
-    } else {
+    } 
+    // 2. Fallback para o padrão ANTIGO (window.INSTANCE_ID)
+    else if (window.INSTANCE_ID) {
+        instanceId.value = window.INSTANCE_ID;
+    }
+    // 3. Fallback final para a URL (Segurança)
+    else {
         const params = new URLSearchParams(window.location.search);
         instanceId.value = params.get('instance_id');
     }
+
+    console.log("ID Carregado:", instanceId.value); // Para conferir no F12
 });
 
 function fechar() {
     window.location.href = '/'; 
 }
 
-// --- FUNÇÃO CORRIGIDA COM ALERT DE ERRO ---
 async function toggleFornecedor(row, event) {
     const isChecked = event.target.checked;
     loadingId.value = row.cod; 
     
-    // Prepara os dados como Objeto JS (JSON)
-    const payload = {
-        id_processo: instanceId.value
-    };
+    const formData = new FormData();
+    formData.append('id_processo', instanceId.value);
 
     if (isChecked) {
-        payload.acao = 'salvar_lote';
-        payload.participantes = [row.json_full]; // Envia como array de string JSON
+        formData.append('acao', 'salvar_participantes');
+        formData.append('participantes[]', row.json_full);
     } else {
-        payload.acao = 'remover';
-        payload.cod_fornecedor = row.cod;
+        formData.append('acao', 'remover_participante');
+        formData.append('cod_fornecedor', row.cod);
     }
 
     try {
-        const req = await fetch('/backend/modulos/Fornecedores/FornecedoresController.php', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, // Avisa o PHP que é JSON
-            body: JSON.stringify(payload) 
-        });
-
-        // Tenta ler o JSON. Se o PHP devolver HTML de erro fatal, isso vai cair no catch
+        const req = await fetch('/backend/acoes/gerenciar_participantes.php', { method: 'POST', body: formData });
         const res = await req.json();
 
-        if (req.ok && res.sucesso) {
-            // Sucesso silencioso, só recarrega a tabela
+        if (res.sucesso) {
             dt.value.dt.ajax.reload(null, false);
         } else {
-            // ERRO VISÍVEL: Mostra o que veio do PHP
-            throw new Error(res.erro || res.msg || "Erro desconhecido no servidor.");
+            alert('Erro: ' + res.erro);
+            event.target.checked = !isChecked;
         }
-
     } catch (e) {
-        // O ALERT QUE VOCÊ QUERIA!
-        console.error(e);
-        alert("Ops! " + e.message); 
-        
-        // Desfaz o check visualmente já que deu erro
+        alert('Erro de conexão.');
         event.target.checked = !isChecked;
     } finally {
         loadingId.value = null; 

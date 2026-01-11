@@ -100,7 +100,7 @@ const dtOptions = {
     order: [[ 6, "desc" ]], 
 
     ajax: {
-        url: '/backend/api_solicitacoes.php',
+        url: '/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=listar_solicitacoes',
         data: (d) => { 
             // Como instanceId já foi lido lá em cima, ele vai correto na 1ª chamada
             d.instance_id = instanceId.value; 
@@ -147,7 +147,7 @@ async function salvar() {
     listaIds.forEach(id => formData.append('selecionados[]', id));
 
     try {
-        const res = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
+        const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
         const json = await res.json();
         if(json.sucesso) {
             alert(json.msg);
@@ -173,7 +173,7 @@ async function removerItem(item) {
     formData.append('seq_solicitacao', parts[2]);
 
     try {
-        const res = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
+        const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
         const json = await res.json();
         if(json.sucesso) dt.value.dt.ajax.reload(null, false);
         else alert('Erro: ' + json.erro);
@@ -187,7 +187,7 @@ async function excluirProcesso() {
     formData.append('id_processo', instanceId.value);
     
     try {
-        const res = await fetch('/backend/acoes/gerenciar_solicitacao.php', { method: 'POST', body: formData });
+        const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
         const json = await res.json();
         if(json.sucesso) { alert('Excluído'); window.location.href='/'; }
     } catch (e) { alert('Erro'); }
