@@ -9,10 +9,6 @@
       <div v-if="loading" class="msg-loading">Carregando e calculando vencedores...</div>
       <div v-else-if="erro" class="msg-erro">{{ erro }}</div>
       
-      <div v-else-if="dados.cabecalho.length === 0" class="msg-empty">
-          ⚠️ Nenhum fornecedor vinculado a este processo.
-      </div>
-
       <div v-else class="tabela-scroll">
         <table class="table-grade">
           <thead>
@@ -41,7 +37,6 @@
                 :class="getClassCelula(linha.celulas[f.id].status)"
               >
                 {{ linha.celulas[f.id].valor_fmt }}
-                
                 <div v-if="linha.celulas[f.id].status === 'winner'" class="badge-venceu">★ VENCEU</div>
                 <div v-if="linha.celulas[f.id].status === 'tie'" class="badge-empate">EMPATE</div>
               </td>
@@ -74,17 +69,10 @@ const salvando = ref(false);
 const erro = ref(null);
 const dados = ref({ cabecalho: [], linhas: [], total_fmt: '0,00' });
 
-// Aponta para o novo Módulo
-const API_URL = '/backend/modulos/GradeComparativa/GradeComparativaController.php';
-
 onMounted(() => {
-    // Pega ID da URL ou Variável Global
-    if (window.VIEW_DATA && window.VIEW_DATA.instance_id) {
-        instanceId.value = window.VIEW_DATA.instance_id;
-    } else {
-        const params = new URLSearchParams(window.location.search);
-        instanceId.value = params.get('instance_id');
-    }
+    // Pega ID da URL
+    const params = new URLSearchParams(window.location.search);
+    instanceId.value = params.get('instance_id');
     
     if(instanceId.value) carregarDados();
     else erro.value = "ID do processo não fornecido.";
@@ -92,7 +80,7 @@ onMounted(() => {
 
 async function carregarDados() {
     try {
-        const req = await fetch(`${API_URL}?acao=carregar_grade&instance_id=${instanceId.value}`);
+        const req = await fetch(`/backend/api_grade_comparativa.php?instance_id=${instanceId.value}`);
         const json = await req.json();
         
         if (json.erro) {
@@ -102,7 +90,6 @@ async function carregarDados() {
         }
     } catch (e) {
         erro.value = "Erro ao conectar com servidor.";
-        console.error(e);
     } finally {
         loading.value = false;
     }
@@ -112,37 +99,30 @@ async function consolidar() {
     if (!confirm('Deseja consolidar os vencedores e gerar o documento?')) return;
     
     salvando.value = true;
-    
-    // Payload JSON (Blindagem)
-    const payload = {
-        acao: 'consolidar_vencedores',
-        id_processo: instanceId.value
-    };
+    const fd = new FormData();
+    fd.append('acao', 'consolidar_vencedores');
+    fd.append('id_processo', instanceId.value);
 
     try {
-        const req = await fetch(API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        // Usa o seu arquivo existente consolidar_grade.php
+        const req = await fetch('/backend/acoes/consolidar_grade.php', { method: 'POST', body: fd });
         const res = await req.json();
 
         if (res.sucesso) {
-            alert('Sucesso! Valor Final Gravado: R$ ' + res.valor_gravado);
-            window.location.href = '/'; // Volta pro dashboard
+            alert('Sucesso! Valor Final: R$ ' + res.valor_gravado);
+            window.location.href = '/'; // Volta pro dashboard ou outra tela
         } else {
-            alert('Erro: ' + (res.erro || res.msg));
+            alert('Erro: ' + res.erro);
         }
     } catch (e) {
         alert('Erro de conexão.');
-        console.error(e);
     } finally {
         salvando.value = false;
     }
 }
 
 function voltar() {
-    window.location.href = '/';
+    window.history.back();
 }
 
 function getClassCelula(status) {
@@ -154,7 +134,7 @@ function getClassCelula(status) {
 </script>
 
 <style scoped>
-.grade-container { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+.grade-container { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: sans-serif; overflow: hidden; }
 .header-grade { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
 .conteudo-grade { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
 .tabela-scroll { flex: 1; overflow: auto; padding-bottom: 20px; }
@@ -195,6 +175,6 @@ function getClassCelula(status) {
 .btn-consolidar:disabled { background: #ccc; cursor: not-allowed; }
 .btn-voltar { background: transparent; border: 1px solid #ccc; padding: 10px 20px; border-radius: 4px; margin-right: 10px; cursor: pointer; }
 
-.msg-loading, .msg-erro, .msg-empty { padding: 50px; text-align: center; color: #666; font-size: 16px; }
+.msg-loading, .msg-erro { padding: 50px; text-align: center; color: #666; font-size: 16px; }
 .msg-erro { color: red; }
 </style>
