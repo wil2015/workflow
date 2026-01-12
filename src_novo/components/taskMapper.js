@@ -1,19 +1,20 @@
-// 1. Importe seus componentes Vue existentes
-import SolicitacoesList from './SolicitacoesList.vue';
-import GradeComparativa from './GradeComparativa.vue';
-// Adicione outros conforme for migrando (ex: CotacaoValores)
-// import CotacaoValores from './CotacaoValores.vue'; 
+// taskMapper.js
 
-import DefaultTask from './DefaultTask.vue'; // Vamos criar esse no próximo passo
+// Verifica se esses arquivos existem na pasta components com ESSES nomes exatos:
+import SolicitacoesList from './SolicitacoesList.vue'; 
+import FornecedoresList from './FornecedoresList.vue'; 
+import CotacaoValores   from './CotacaoValores.vue';   
+import GradeComparativa from './GradeComparativa.vue'; 
+import DefaultTask      from './DefaultTask.vue';      
 
-// 2. Mapeie: ID da Tarefa no BPMN (Camunda) => Componente Vue
 export const taskMap = {
-    'Activity_SelecionarSolicitacao': SolicitacoesList,
-    'Activity_AnalisarGrade': GradeComparativa,
-    // 'Activity_LancarValores': CotacaoValores,
+    // Verifica se os IDs aqui batem com o seu desenho no Camunda/BPMN:
+    'Activity_SelecionarSolicitacao':   SolicitacoesList,
+    'Activity_SelecionarFornecedores':  FornecedoresList,
+    'Activity_ClassificarValores':           CotacaoValores,
+    'Activity_Grade':           GradeComparativa
 };
 
-// 3. Função Helper
 export function getComponentForTask(taskId) {
     return taskMap[taskId] || DefaultTask;
 }

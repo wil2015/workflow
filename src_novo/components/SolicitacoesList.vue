@@ -38,14 +38,22 @@ import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 DataTable.use(DataTablesCore);
 
-// --- 1. LEITURA IMEDIATA DOS PARÂMETROS (Mudança Crucial) ---
-// Fazemos isso fora do onMounted para que a variável exista ANTES da tabela carregar
+// --- 1. LÓGICA HÍBRIDA (Modal vs Dashboard) ---
+
+// Recebe props (quando aberto pelo Modal do BpmnViewer)
+const props = defineProps({
+    instanceId: String 
+});
+
+// Lê URL (quando aberto pelo Dashboard para criar novo)
 const params = new URLSearchParams(window.location.search);
 const urlId = params.get('instance_id');
-
-// Garante que se vier a string "null" ou vazio, vire null real
-const instanceId = ref((urlId === 'null' || !urlId) ? null : urlId);
 const fluxoId = ref(params.get('fluxo_id'));
+
+// Decide qual ID usar: Prioridade para Props > URL
+// Se urlId for a string "null" ou vazio, vira null real
+const idCalculado = props.instanceId || ((urlId === 'null' || !urlId) ? null : urlId);
+const instanceId = ref(idCalculado);
 
 const dt = ref(null); 
 const idsSelecionados = reactive(new Set());
@@ -56,6 +64,8 @@ const columns = [
     data: null, title: '', orderable: false, searchable: false, width: '30px',
     render: (data, type, row) => {
         if (row.status === 'vinculado') {
+            // Se já está vinculado a ESTE processo, permite remover
+            // Nota: O backend deve validar se pertence mesmo a este ID
             return `<button class="btn-rm-item" data-id="${row.id_unico}" onclick="window.remItem('${row.id_unico}')">&times;</button>`;
         } else if (row.status === 'bloqueado') {
             return `🔒`;
@@ -80,7 +90,7 @@ const columns = [
   }
 ];
 
-// --- 3. OPÇÕES DA TABELA (Ordenação Corrigida) ---
+// --- 3. OPÇÕES DA TABELA ---
 const dtOptions = {
     language: {
         sEmptyTable: "Nenhum registro encontrado",
@@ -95,14 +105,11 @@ const dtOptions = {
     pageLength: 10,
     serverSide: true,
     processing: true,
-    
-    // MUDANÇA AQUI: Ordena pela coluna 6 (Status) DESCendente (Vinculados no topo)
-    order: [[ 6, "desc" ]], 
+    order: [[ 6, "desc" ]], // Ordena por Status (Vinculados primeiro)
 
     ajax: {
         url: '/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=listar_solicitacoes',
         data: (d) => { 
-            // Como instanceId já foi lido lá em cima, ele vai correto na 1ª chamada
             d.instance_id = instanceId.value; 
         }
     },
@@ -114,22 +121,22 @@ const dtOptions = {
     }
 };
 
-// --- 4. ONMOUNTED (Só para funções globais) ---
+// --- 4. FUNÇÕES GLOBAIS E LIFECYCLE ---
 onMounted(() => {
-  // Não precisamos ler URL aqui, já lemos no topo.
-  
-  // Funções para os botões HTML (onclick)
+  // Expondo funções para o HTML injetado pelo DataTables (checkboxes e botões)
   window.toggleVue = (id) => {
       if(idsSelecionados.has(id)) idsSelecionados.delete(id);
       else idsSelecionados.add(id);
   };
+  
   window.remItem = (id) => {
-     const parts = id.split('-');
+     const parts = id.split('-'); // codemp-num-seq
+     // Chama a função interna do Vue
      removerItem({id_solicitacao_senior: `${parts[1]}-${parts[2]}`, id_unico: id});
   };
 });
 
-// --- AÇÕES ---
+// --- AÇÕES DO USUÁRIO ---
 
 async function salvar() {
     const listaIds = Array.from(idsSelecionados);
@@ -139,7 +146,6 @@ async function salvar() {
     formData.append('acao', 'vincular');
     formData.append('id_fluxo_definicao', fluxoId.value || 1);
     
-    // Envia o ID se estiver editando (Evita criar processo novo duplicado)
     if (instanceId.value) {
         formData.append('id_processo_instancia', instanceId.value);
     }
@@ -149,21 +155,30 @@ async function salvar() {
     try {
         const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
         const json = await res.json();
+        
         if(json.sucesso) {
             alert(json.msg);
             idsSelecionados.clear();
             dt.value.dt.ajax.reload(null, false);
             
-            // Se foi criação (não tinha ID), recarrega a página para pegar o novo ID
-            if(!instanceId.value) window.location.reload(); 
+            // Se foi criação de processo novo (estava sem ID), recarrega a página para entrar no modo edição
+            if(!instanceId.value) {
+                 // Redireciona para o modo de visualização do novo processo
+                 // (Aqui a arquitetura SPA assumiria se tivéssemos emitido evento, 
+                 // mas como é criação inicial, reload é mais seguro para limpar estados)
+                 window.location.href = `/?instance_id=${json.id_processo}`;
+            }
         } else { 
             alert('Erro: ' + json.erro); 
         }
-    } catch (e) { alert('Erro na requisição'); }
+    } catch (e) { 
+        alert('Erro na requisição'); 
+        console.error(e);
+    }
 }
 
 async function removerItem(item) {
-    if(!confirm(`Remover item ${item.id_solicitacao_senior}?`)) return;
+    if(!confirm(`Remover item ${item.id_solicitacao_senior} deste processo?`)) return;
     const parts = item.id_unico.split('-');
     
     const formData = new FormData();
@@ -181,7 +196,8 @@ async function removerItem(item) {
 }
 
 async function excluirProcesso() {
-    if(!confirm("Excluir PROCESSO INTEIRO?")) return;
+    if(!confirm("Tem certeza que deseja EXCLUIR ESTE PROCESSO INTEIRO?\nIsso apagará todas as cotações e vínculos.")) return;
+    
     const formData = new FormData();
     formData.append('acao', 'cancelar_processo');
     formData.append('id_processo', instanceId.value);
@@ -189,18 +205,35 @@ async function excluirProcesso() {
     try {
         const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
         const json = await res.json();
-        if(json.sucesso) { alert('Excluído'); window.location.href='/'; }
-    } catch (e) { alert('Erro'); }
+        if(json.sucesso) { 
+            alert('Processo excluído com sucesso.'); 
+            window.location.href='/'; // Volta para a home
+        } else {
+            alert('Erro: ' + json.erro);
+        }
+    } catch (e) { alert('Erro de conexão'); }
 }
 </script>
 
 <style scoped>
-.solicitacoes-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: sans-serif; }
+.solicitacoes-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
 .header-actions { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
+.titulo-box h2 { margin: 0; color: #333; font-size: 18px; }
 .tabela-container { flex: 1; padding: 20px; overflow-y: auto; }
-.footer-actions { padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; }
-.btn-rm-item { border: 1px solid #dc3545; color: #dc3545; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; width: 24px; }
-.btn-salvar { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-.btn-salvar:disabled { opacity: 0.5; }
-.btn-danger { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
+.footer-actions { padding: 15px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; background: #f8f9fa; }
+
+.btn-rm-item { border: 1px solid #dc3545; color: #dc3545; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+.btn-rm-item:hover { background: #dc3545; color: white; }
+
+.btn-salvar { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
+.btn-salvar:disabled { background: #94d3a2; cursor: not-allowed; }
+.btn-salvar:hover:not(:disabled) { background: #218838; }
+
+.btn-danger { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-danger:hover { background: #c82333; }
+
+/* Ajustes finos do Datatable */
+:deep(table.dataTable) { border-collapse: collapse !important; width: 100% !important; }
+:deep(table.dataTable thead th) { background: #f1f3f5; border-bottom: 2px solid #dee2e6; color: #495057; padding: 10px; font-size: 13px; }
+:deep(table.dataTable tbody td) { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: middle; }
 </style>

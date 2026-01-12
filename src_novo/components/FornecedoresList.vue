@@ -36,7 +36,7 @@
     </div>
 
     <div class="footer-actions">
-        <button class="btn-fechar" @click="fechar">Fechar / Concluir</button>
+        <button class="btn-fechar" @click="fechar">Concluir / Voltar</button>
     </div>
   </div>
 </template>
@@ -49,7 +49,13 @@ import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 DataTable.use(DataTablesCore);
 
-const instanceId = ref(null);
+// --- MUDANÇA 1: Recebe Props e Emits ---
+const props = defineProps({ instanceId: String });
+const emit = defineEmits(['fechar']);
+
+// Usamos uma ref local inicializada com o prop
+const instanceId = ref(props.instanceId);
+
 const dt = ref(null);
 const loadingId = ref(null);
 
@@ -62,12 +68,7 @@ const columns = [
 ];
 
 const dtOptions = {
-    language: {
-        "sSearch": "Pesquisar",
-        "sZeroRecords": "Nenhum fornecedor encontrado",
-        "sProcessing": "Carregando...",
-        "oPaginate": { "sNext": "Próx", "sPrevious": "Ant" }
-    },
+    language: { sSearch: "Pesquisar", sZeroRecords: "Nada encontrado", sProcessing: "Carregando..." },
     pageLength: 10,
     serverSide: true,
     processing: true,
@@ -81,61 +82,38 @@ const dtOptions = {
     }
 };
 
-onMounted(() => {
-    if (window.VIEW_DATA && window.VIEW_DATA.instance_id) {
-        instanceId.value = window.VIEW_DATA.instance_id;
-    } else {
-        const params = new URLSearchParams(window.location.search);
-        instanceId.value = params.get('instance_id');
-    }
-});
-
 function fechar() {
-    window.location.href = '/'; 
+    // --- MUDANÇA 2: Emite evento para o pai fechar o modal ---
+    emit('fechar');
 }
 
-// --- FUNÇÃO CORRIGIDA COM ALERT DE ERRO ---
 async function toggleFornecedor(row, event) {
     const isChecked = event.target.checked;
     loadingId.value = row.cod; 
     
-    // Prepara os dados como Objeto JS (JSON)
     const payload = {
-        id_processo: instanceId.value
+        id_processo: instanceId.value,
+        acao: isChecked ? 'salvar_lote' : 'remover'
     };
 
-    if (isChecked) {
-        payload.acao = 'salvar_lote';
-        payload.participantes = [row.json_full]; // Envia como array de string JSON
-    } else {
-        payload.acao = 'remover';
-        payload.cod_fornecedor = row.cod;
-    }
+    if (isChecked) payload.participantes = [row.json_full];
+    else payload.cod_fornecedor = row.cod;
 
     try {
         const req = await fetch('/backend/modulos/Fornecedores/FornecedoresController.php', { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, // Avisa o PHP que é JSON
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload) 
         });
-
-        // Tenta ler o JSON. Se o PHP devolver HTML de erro fatal, isso vai cair no catch
         const res = await req.json();
 
-        if (req.ok && res.sucesso) {
-            // Sucesso silencioso, só recarrega a tabela
+        if (res.sucesso) {
             dt.value.dt.ajax.reload(null, false);
         } else {
-            // ERRO VISÍVEL: Mostra o que veio do PHP
-            throw new Error(res.erro || res.msg || "Erro desconhecido no servidor.");
+            throw new Error(res.erro || "Erro desconhecido.");
         }
-
     } catch (e) {
-        // O ALERT QUE VOCÊ QUERIA!
-        console.error(e);
         alert("Ops! " + e.message); 
-        
-        // Desfaz o check visualmente já que deu erro
         event.target.checked = !isChecked;
     } finally {
         loadingId.value = null; 
@@ -144,7 +122,7 @@ async function toggleFornecedor(row, event) {
 </script>
 
 <style scoped>
-.fornecedores-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
+.fornecedores-wrapper { height: 100%; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
 .header-actions { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
 .tabela-container { flex: 1; padding: 20px; overflow-y: auto; }
 .footer-actions { padding: 15px; border-top: 1px solid #ddd; text-align: right; }
