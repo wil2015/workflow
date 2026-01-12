@@ -3,17 +3,15 @@
     
     <div class="top-bar">
       <div class="left">
-        <button class="btn-voltar" @click="voltar">← Voltar</button>
+        <button class="btn-voltar" @click="voltar">
+           ← Voltar
+        </button>
       </div>
       <div class="center">
         <span class="titulo">{{ titulo }}</span>
         <span v-if="fluxoId" class="badge-id">Fluxo ID: {{ fluxoId }}</span>
       </div>
-      <div class="right">
-          <button v-if="instanceId" class="btn-cancelar" @click="confirmarCancelamento">
-             🗑️ Cancelar Processo
-          </button>
-      </div> 
+      <div class="right"></div> 
     </div>
 
     <div ref="canvasRef" class="canvas-container"></div>
@@ -43,13 +41,13 @@ import BpmnNavigatedViewer from 'bpmn-js/lib/NavigatedViewer';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 
-// Importa o nosso mapa novo
+// Importa o mapa de tarefas
 import { getComponentForTask } from './taskMapper.js';
 
 const canvasRef = ref(null);
 const modalAberto = ref(false);
 
-// 'shallowRef' é melhor para guardar componentes inteiros
+// 'shallowRef' é ideal para componentes dinâmicos
 const componenteAtual = shallowRef(null);
 const taskIdAtual = ref('');
 
@@ -67,7 +65,7 @@ onMounted(async () => {
     novoXml.value = params.get('novo');
     fluxoId.value = params.get('fluxo_id');
 
-    // 2. Fallback para dados injetados (se houver)
+    // 2. Fallback para dados legados (se houver)
     if (!instanceId.value && window.VIEW_DATA) {
         instanceId.value = window.VIEW_DATA.instance_id;
     }
@@ -90,15 +88,14 @@ onMounted(async () => {
     } else if (novoXml.value) {
         titulo.value = "Iniciando Novo Processo";
         await carregarDiagrama(novoXml.value);
-        // Abre a primeira tarefa automaticamente
+        // Abre a primeira tarefa automaticamente para facilitar
         setTimeout(() => { clicarTarefa('Activity_SelecionarSolicitacao'); }, 500); 
     } else {
-        // Se não tem ID nem XML, volta pro Dashboard
         window.location.href = '/';
     }
 });
 
-// --- LÓGICA DE ABERTURA (SEM IFRAME) ---
+// --- LÓGICA DE ABERTURA ---
 function clicarTarefa(taskId) {
     if (!instanceId.value && !taskId.includes('Solicitacao')) {
          alert("Salve o processo primeiro.");
@@ -118,7 +115,7 @@ async function fecharModal() {
     modalAberto.value = false;
     componenteAtual.value = null; // Limpa memória
     
-    // Atualiza status do diagrama (pinta de verde, etc)
+    // Atualiza status do diagrama (pinta de verde, etc) ao voltar
     if(instanceId.value) {
         await carregarProcessoExistente(instanceId.value);
     }
@@ -145,6 +142,7 @@ async function carregarProcessoExistente(id) {
         // Pinta tarefa atual
         if (viewer && json.tarefa && json.tarefa.id_xml) {
             const canvas = viewer.get('canvas');
+            // Remove marcadores anteriores se necessário (opcional)
             canvas.addMarker(json.tarefa.id_xml, 'highlight-current');
         }
     } catch (e) {
@@ -154,7 +152,6 @@ async function carregarProcessoExistente(id) {
 
 async function carregarDiagrama(xmlName) {
     try {
-        // Assume que o XML está na pasta public
         const res = await fetch('/public/' + xmlName); 
         const xml = await res.text();
         await viewer.importXML(xml);
@@ -162,34 +159,56 @@ async function carregarDiagrama(xmlName) {
     } catch (err) { console.error(err); }
 }
 
-async function confirmarCancelamento() {
-    if (!confirm("Tem certeza que deseja EXCLUIR este processo?")) return;
-    try {
-        const fd = new FormData();
-        fd.append('acao', 'cancelar_processo');
-        fd.append('id_processo', instanceId.value);
-        await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: fd });
-        window.location.href = '/'; 
-    } catch (e) { alert(e.message); }
-}
-
 function voltar() {
-    // Volta para o Dashboard limpando a URL
-    window.location.href = window.location.pathname; 
+    window.location.href = '/'; 
 }
 </script>
 
 <style scoped>
-/* REAPROVEITE O SEU CSS EXISTENTE DO BPMNVIEWER */
 .bpmn-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-.top-bar { height: 50px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; }
-.btn-voltar { cursor: pointer; border: 1px solid #d1d5db; background: #f9fafb; padding: 6px 12px; border-radius: 6px; font-weight: 600; color: #374151; }
-.btn-cancelar { cursor: pointer; border: 1px solid #fca5a5; background: #fef2f2; color: #dc2626; padding: 6px 12px; border-radius: 6px; font-weight: 600; }
+
+/* Barra Superior */
+.top-bar { 
+    height: 50px; background: #fff; border-bottom: 1px solid #e0e0e0; 
+    display: flex; align-items: center; justify-content: space-between; 
+    padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; 
+}
+
+.btn-voltar { 
+    cursor: pointer; border: 1px solid #d1d5db; background: #f9fafb; 
+    padding: 6px 12px; border-radius: 6px; font-weight: 600; color: #374151; 
+}
+.btn-voltar:hover { background: #e5e7eb; }
+
+.titulo { font-weight: 700; font-size: 15px; color: #111827; }
+.badge-id { font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px; font-weight: 600; margin-left: 8px; }
+
+/* Canvas do Diagrama */
 .canvas-container { flex: 1; background: #f3f4f6; position: relative; }
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; }
-.modal-content { background: white; width: 95%; height: 95%; max-width: 1400px; border-radius: 8px; position: relative; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-.modal-close { position: absolute; top: -12px; right: -12px; width: 32px; height: 32px; border-radius: 50%; background: #ef4444; color: white; border: 2px solid #fff; font-size: 20px; cursor: pointer; z-index: 1001; display: flex; align-items: center; justify-content: center; }
-.modal-body { flex: 1; overflow: hidden; border-radius: 8px; background: #fff; display: flex; flex-direction: column; }
+
+/* Modal */
+.modal-overlay { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(2px); 
+    display: flex; justify-content: center; align-items: center; 
+}
+.modal-content { 
+    background: white; width: 95%; height: 95%; max-width: 1400px; 
+    border-radius: 8px; position: relative; display: flex; flex-direction: column; 
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
+}
+.modal-close { 
+    position: absolute; top: -12px; right: -12px; width: 32px; height: 32px; 
+    border-radius: 50%; background: #ef4444; color: white; border: 2px solid #fff; 
+    font-size: 20px; cursor: pointer; z-index: 1001; display: flex; 
+    align-items: center; justify-content: center; 
+}
+.modal-body { 
+    flex: 1; overflow: hidden; border-radius: 8px; background: #fff; 
+    display: flex; flex-direction: column; 
+}
+
+/* Destaque Verde na Tarefa Atual */
 :deep(.highlight-current:not(.djs-connection) .djs-visual > :nth-child(1)) {
     stroke: #10b981 !important; stroke-width: 3px !important; fill: #ecfdf5 !important;
 }

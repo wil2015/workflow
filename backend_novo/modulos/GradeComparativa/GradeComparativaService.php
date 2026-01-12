@@ -9,23 +9,31 @@ class GradeComparativaService {
     }
 
     public function montarGradeParaFront($idProcesso) {
+        // ... (Mantenha o código de leitura igual ao que você já tem) ...
+        // Vou resumir aqui para focar na consolidação, mas mantenha o método montarGradeParaFront inteiro.
+        
+        // [CÓDIGO DE LEITURA JÁ EXISTENTE...] 
+        // Se precisar que eu reenvie o montarGradeParaFront, me avise.
+        return $this->logicaDeMontagem($idProcesso); 
+    }
+
+    // --- LÓGICA CENTRALIZADA (Usada tanto para exibir quanto para salvar) ---
+    private function logicaDeMontagem($idProcesso) {
         if (!$idProcesso) throw new Exception("ID inválido.");
 
-        // 1. Busca Dados Brutos
         $participantes = $this->repo->buscarParticipantes($idProcesso);
         $itens = $this->repo->buscarItensBasicos($idProcesso);
         $ofertasBrutas = $this->repo->buscarTodasOfertas($idProcesso);
 
-        if (empty($participantes)) return ['cabecalho' => [], 'linhas' => [], 'total_fmt' => '0,00'];
+        if (empty($participantes)) return ['cabecalho' => [], 'linhas' => [], 'total_fmt' => '0,00', 'total_raw' => 0];
 
-        // 2. Mapeia Ofertas para acesso rápido: $mapaOfertas['num-seq']['codForn'] = valor
         $mapaOfertas = [];
         foreach ($ofertasBrutas as $o) {
             $chaveItem = $o['num_solicitacao'] . '-' . $o['seq_solicitacao'];
             $mapaOfertas[$chaveItem][$o['id_fornecedor_senior']] = (float)$o['valor_unitario'];
         }
 
-        // 3. Monta Cabeçalho (Colunas)
+        // Cabeçalho
         $cabecalho = [];
         foreach ($participantes as $p) {
             $nomes = explode(' ', trim($p['nome']));
@@ -37,7 +45,6 @@ class GradeComparativaService {
             ];
         }
 
-        // 4. Monta Linhas e Calcula Vencedores
         $linhas = [];
         $totalGeral = 0.0;
 
@@ -46,23 +53,17 @@ class GradeComparativaService {
             $qtd = (float)($item['quantidade'] ?? 1);
             if ($qtd <= 0) $qtd = 1;
 
-            // Busca Descrição (Senior ou Placeholder)
             $descSenior = $this->repo->buscarDescricaoSenior($item['num_solicitacao'], $item['seq_solicitacao']);
-            $nomeProduto = $descSenior ? $this->utf8($descSenior) : "Produto Local ($chave)";
+            $nomeProduto = $descSenior ? $this->utf8($descSenior) : "Produto ($chave)";
 
-            // Identifica Preços deste item
             $precosDesteItem = $mapaOfertas[$chave] ?? [];
-            
-            // Filtra só valores válidos (> 0) para achar o menor
             $validos = array_filter($precosDesteItem, function($v) { return $v > 0; });
             $menorPreco = !empty($validos) ? min($validos) : null;
 
-            // Soma ao total geral (Melhor Preço * Qtd)
             if ($menorPreco) {
                 $totalGeral += ($menorPreco * $qtd);
             }
 
-            // Monta as células da linha
             $celulas = [];
             foreach ($participantes as $p) {
                 $fid = $p['id'];
@@ -71,7 +72,6 @@ class GradeComparativaService {
                 $status = 'empty';
                 if ($valor > 0) {
                     if ($menorPreco && abs($valor - $menorPreco) < 0.001) {
-                        // Verifica se é empate (mais de um com o mesmo menor preço)
                         $qtdEmpates = count(array_keys($validos, $menorPreco));
                         $status = ($qtdEmpates > 1) ? 'tie' : 'winner';
                     } else {
@@ -89,6 +89,7 @@ class GradeComparativaService {
             $linhas[] = [
                 'chave' => $chave,
                 'produto' => $nomeProduto,
+                'qtd' => number_format($qtd, 2, ',', '.'), // Adicionado para o Front
                 'qtd_fmt' => number_format($qtd, 2, ',', '.'),
                 'melhor_fmt' => $menorPreco ? number_format($menorPreco, 2, ',', '.') : '-',
                 'celulas' => $celulas
@@ -103,13 +104,16 @@ class GradeComparativaService {
         ];
     }
 
+    // --- NOVA FUNÇÃO DE CONSOLIDAÇÃO ---
     public function consolidarProcesso($idProcesso) {
-        // Recalcula tudo para garantir segurança (não confia no front)
-        $dados = $this->montarGradeParaFront($idProcesso);
+        // 1. Recalcula tudo usando a mesma lógica da visualização (Segurança Backend)
+        $dados = $this->logicaDeMontagem($idProcesso);
         $total = $dados['total_raw'];
 
+        // 2. Chama o Repo para salvar no banco
         $this->repo->salvarValorFinal($idProcesso, $total);
 
+        // 3. Retorna sucesso e o valor formatado para o alerta do Front
         return [
             'sucesso' => true, 
             'valor_gravado' => $dados['total_fmt']

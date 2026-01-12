@@ -1,12 +1,88 @@
 <?php
 class FluxoRepo {
-    private $pdo;
+    private $pdo;        // Conexão MySQL (PDO)
+    private $connSenior; // Conexão SQL Server (Native Driver)
 
-    public function __construct($pdo) {
+    public function __construct($pdo, $connSenior = null) {
         $this->pdo = $pdo;
+        $this->connSenior = $connSenior;
     }
 
-    // Leitura do processo
+    // =========================================================================
+    //  MÉTODOS SQL SERVER (Senior Sapiens) - NOVOS
+    // =========================================================================
+
+    public function buscarQuantidadeSenior($numSol, $seqSol) {
+        if (!$this->connSenior) return 1.0;
+
+        $sql = "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
+        $stmt = sqlsrv_query($this->connSenior, $sql, [$numSol, $seqSol]);
+        
+        if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            return (float)$row['qtdsol'];
+        }
+        return 1.0;
+    }
+
+    public function buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados) {
+        if (!$this->connSenior) throw new Exception("Conexão com Senior não configurada.");
+
+        // Monta a lógica de PESO para ordenação (Case When)
+        $caseParts = [];
+        if (!empty($meusItens))  $caseParts[] = "WHEN (" . implode(" OR ", $meusItens) . ") THEN 2";
+        if (!empty($bloqueados)) $caseParts[] = "WHEN (" . implode(" OR ", $bloqueados) . ") THEN 1";
+        
+        $colunaPeso = empty($caseParts) ? "0" : "CASE " . implode(" ", $caseParts) . " ELSE 0 END";
+        
+        $tabela = "Sapiens.sapiens.e405sol";
+        $filtroStatus = "sitsol IN (1, 2)"; // Abertas ou em Cotação
+        
+        // Filtro complexo (Status OR (Bloqueados))
+        $todosEmUso = array_merge($meusItens, $bloqueados);
+        if (!empty($todosEmUso)) {
+            $filtroStatus = "($filtroStatus OR (" . implode(" OR ", $todosEmUso) . "))";
+        }
+
+        $where = "WHERE $filtroStatus";
+        $sqlParams = [];
+
+        if ($search) {
+            $where .= " AND (cplpro LIKE ? OR CAST(numsol AS VARCHAR(20)) LIKE ? OR numprj LIKE ?)";
+            $termo = "%$search%";
+            $sqlParams = [$termo, $termo, $termo];
+        }
+
+        // --- Query Principal (Paginação SQL Server 2012+) ---
+        $sql = "SELECT codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed, numprj, datsol, 
+                $colunaPeso as peso_ordenacao
+                FROM $tabela $where 
+                ORDER BY $campoOrdenacao $dirSQL
+                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        
+        // Parâmetros para o OFFSET/FETCH
+        $paramsQuery = array_merge($sqlParams, [$start, $length]);
+
+        $stmt = sqlsrv_query($this->connSenior, $sql, $paramsQuery);
+        if ($stmt === false) throw new Exception("Erro SQL Senior: " . print_r(sqlsrv_errors(), true));
+
+        $dados = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $dados[] = $row;
+        }
+
+        // --- Query Total (Count) ---
+        $sqlTotal = "SELECT COUNT(*) as T FROM $tabela WHERE $filtroStatus";
+        // Usa os parâmetros do WHERE (sem offset)
+        $stmtTotal = sqlsrv_query($this->connSenior, $sqlTotal, $sqlParams); 
+        $total = sqlsrv_fetch_array($stmtTotal, SQLSRV_FETCH_ASSOC)['T'];
+
+        return ['dados' => $dados, 'total' => $total];
+    }
+
+    // =========================================================================
+    //  MÉTODOS MYSQL (Processo Interno) - MANTIDOS
+    // =========================================================================
+
     public function getInstanciaCompleta($id) {
         $sql = "SELECT p.*, d.arquivo_xml, d.nome_do_fluxo, d.id_fluxo_definicao 
                 FROM processos_instancia p
@@ -24,19 +100,15 @@ class FluxoRepo {
         return $stmt->fetchColumn();
     }
     
-    // Lista itens para bloquear na tabela
     public function buscarItensOcupados() {
         $sql = "SELECT id_processo_instancia, num_solicitacao, seq_solicitacao FROM processos_itens";
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // --- ESCRITA ---
-
     public function criarProcesso($numSol, $idFluxo) {
         $sql = "INSERT INTO processos_instancia 
                 (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
                 VALUES (:numsol, :numsol, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
-        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':numsol' => $numSol, ':fluxo' => $idFluxo]);
         return $this->pdo->lastInsertId();
@@ -62,17 +134,28 @@ class FluxoRepo {
     }
 
     public function removerItemCompleto($idProcesso, $numSol, $seqSol) {
-        // Remove cotações primeiro
         $this->pdo->prepare("DELETE FROM licitacao_itens_ofertados WHERE id_processo_instancia = ? AND num_solicitacao = ? AND seq_solicitacao = ?")->execute([$idProcesso, $numSol, $seqSol]);
-        
-        // Remove o item depois
         $this->pdo->prepare("DELETE FROM processos_itens WHERE id_processo_instancia = ? AND num_solicitacao = ? AND seq_solicitacao = ?")->execute([$idProcesso, $numSol, $seqSol]);
     }
 
     public function excluirProcesso($idProcesso) {
-        // Exclusão em cascata (Ordem importa para evitar erro de FK se não tiver ON DELETE CASCADE)
         $this->pdo->prepare("DELETE FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?")->execute([$idProcesso]);
         $this->pdo->prepare("DELETE FROM processos_itens WHERE id_processo_instancia = ?")->execute([$idProcesso]);
         $this->pdo->prepare("DELETE FROM processos_instancia WHERE id = ?")->execute([$idProcesso]);
+    }
+
+    // --- DASHBOARD ---
+    public function listarFluxosDisponiveis() {
+        $sql = "SELECT id_fluxo_definicao as id, nome_do_fluxo, 'blue' as cor_ui FROM nome_do_fluxo";
+        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function listarTodosProcessos() {
+        $sql = "SELECT 
+                    p.id, p.data_inicio, p.status_atual, p.id_processo_senior, d.nome_do_fluxo
+                FROM processos_instancia p
+                LEFT JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao
+                ORDER BY p.id DESC LIMIT 50";
+        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 }
