@@ -50,19 +50,30 @@ const instancias = ref([]);
 const loading = ref(true);
 
 // --- NAVEGAÇÃO ---
+// --- NAVEGAÇÃO SPA (SEM ARQUIVOS PHP) ---
+
 function iniciarFluxo(fluxo) {
-    // Mantém a lógica de redirecionamento existente
-    window.location.href = `/backend/views/visualizar_fluxo.php?novo=${fluxo.arquivo_xml}&fluxo_id=${fluxo.id}`;
+    // Pega a URL atual do navegador
+    const url = new URL(window.location.href);
+    // Limpa parâmetros antigos
+    url.searchParams.delete('instance_id');
+    // Define o novo parâmetro (Isso faz o App.vue trocar para o BpmnViewer)
+    url.searchParams.set('novo', fluxo.arquivo_xml); // Passa o XML ou ID do fluxo
+    url.searchParams.set('fluxo_id', fluxo.id);
+    
+    // Atualiza a URL (O App.vue vai detectar e recarregar a tela certa)
+    window.location.href = url.toString();
 }
-/*
+
 function abrirProcesso(proc) {
-    window.location.href = `/backend/views/visualizar_fluxo.php?id=${proc.id}`;
-}
-    */
-function abrirProcesso(proc) {
-    // CORRETO: Aponta para a View (Interface)
-    // A View carrega o BpmnViewer -> Que chama o Controller -> Que traz os dados.
-    window.location.href = `/backend/views/visualizar_fluxo.php?id=${proc.id}`;
+    const url = new URL(window.location.href);
+    // Limpa parâmetros de "novo"
+    url.searchParams.delete('novo');
+    url.searchParams.delete('fluxo_id');
+    // Define o ID do processo existente
+    url.searchParams.set('instance_id', proc.id);
+    
+    window.location.href = url.toString();
 }
 // --- DEFINIÇÃO DAS COLUNAS (Ajustada para o novo Backend) ---
 const columns = [
