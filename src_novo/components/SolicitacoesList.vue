@@ -98,12 +98,38 @@ const dtOptions = {
     serverSide: true,
     processing: true,
     order: [[ 6, "desc" ]],
-    // Scroll settings para fixar header e rolar corpo
     scrollY: 'calc(100vh - 240px)', 
     scrollCollapse: true,
     ajax: {
         url: '/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=listar_solicitacoes',
-        data: (d) => { d.instance_id = instanceId.value; }
+        data: (d) => { 
+            d.instance_id = instanceId.value; 
+        },
+        // --- AQUI ESTÁ A MÁGICA DO POP-UP ---
+        error: function (xhr, error, thrown) {
+            console.error("Erro DataTables:", xhr);
+            
+            let msg = "Erro desconhecido ao carregar dados.";
+            
+            // Tenta ler o JSON de erro que o PHP mandou
+            if (xhr.responseJSON && xhr.responseJSON.erro) {
+                msg = xhr.responseJSON.erro;
+            } else if (xhr.responseText) {
+                // Se não for JSON (ex: erro fatal do PHP), pega o texto
+                try {
+                    const json = JSON.parse(xhr.responseText);
+                    if(json.erro) msg = json.erro;
+                } catch(e) {
+                    msg = "Erro fatal no servidor (Verifique o Console/Network).";
+                }
+            }
+
+            alert("ERRO NO SISTEMA:\n" + msg);
+            
+            // Para o loading infinito
+            // (Hack: força o processing a parar injetando HTML vazio ou recriando a tabela se necessário)
+            // Mas só o alert já resolve a sua solicitação de "ver o erro".
+        }
     },
     drawCallback: () => {
         idsSelecionados.forEach(id => {

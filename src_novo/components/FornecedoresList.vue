@@ -42,20 +42,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-dt';
 import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 DataTable.use(DataTablesCore);
 
-// --- MUDANÇA 1: Recebe Props e Emits ---
 const props = defineProps({ instanceId: String });
 const emit = defineEmits(['fechar']);
 
-// Usamos uma ref local inicializada com o prop
 const instanceId = ref(props.instanceId);
-
 const dt = ref(null);
 const loadingId = ref(null);
 
@@ -68,7 +65,12 @@ const columns = [
 ];
 
 const dtOptions = {
-    language: { sSearch: "Pesquisar", sZeroRecords: "Nada encontrado", sProcessing: "Carregando..." },
+    language: { 
+        sSearch: "Pesquisar", 
+        sZeroRecords: "Nada encontrado", 
+        sProcessing: "Carregando...",
+        sEmptyTable: "Nenhum fornecedor disponível (ou erro de conexão)." 
+    },
     pageLength: 10,
     serverSide: true,
     processing: true,
@@ -78,12 +80,32 @@ const dtOptions = {
         data: (d) => { 
             d.acao = 'listar'; 
             d.instance_id = instanceId.value; 
+        },
+        // --- AQUI ESTÁ A CORREÇÃO: Tratamento de erro do DataTables ---
+        error: function (xhr, error, thrown) {
+            console.error("Erro DataTables:", xhr);
+            
+            let msg = "Erro desconhecido ao carregar fornecedores.";
+            
+            // Tenta ler o JSON de erro do PHP (mesmo com status 500)
+            if (xhr.responseJSON && xhr.responseJSON.erro) {
+                msg = xhr.responseJSON.erro;
+            } else if (xhr.responseText) {
+                try {
+                    const json = JSON.parse(xhr.responseText);
+                    if(json.erro) msg = json.erro;
+                } catch(e) {
+                    msg = "Erro fatal no servidor (Verifique o Console).";
+                }
+            }
+
+            alert("ERRO NO SISTEMA:\n" + msg);
         }
+        // -------------------------------------------------------------
     }
 };
 
 function fechar() {
-    // --- MUDANÇA 2: Emite evento para o pai fechar o modal ---
     emit('fechar');
 }
 

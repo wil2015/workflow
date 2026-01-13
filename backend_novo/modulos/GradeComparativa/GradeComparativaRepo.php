@@ -1,14 +1,14 @@
 <?php
 class GradeComparativaRepo {
-    private $pdo;       // MySQL
-    private $connSenior; // SQL Server
+    private $pdo;       // MySQL (PDO)
+    private $connSenior; // SQL Server (PDO)
 
-    public function __construct($pdo, $connSenior) {
+    public function __construct(PDO $pdo, ?PDO $connSenior = null) {
         $this->pdo = $pdo;
         $this->connSenior = $connSenior;
     }
 
-    // --- LEITURA ---
+    // --- LEITURA (MYSQL - MANTIDO) ---
 
     public function buscarParticipantes($idProcesso) {
         $sql = "SELECT id_fornecedor_senior as id, nome_do_fornecedor as nome, cnpj_cpf 
@@ -30,15 +30,33 @@ class GradeComparativaRepo {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // --- LEITURA (SENIOR - MIGRADO PARA PDO) ---
+
     public function buscarDescricaoSenior($num, $seq) {
+        // Verifica se a conexão existe antes de tentar preparar
         if (!$this->connSenior) return null;
+
         $sql = "SELECT cplpro FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
-        $stmt = sqlsrv_query($this->connSenior, $sql, [$num, $seq]);
-        if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            return $row['cplpro']; // Retorna a descrição do produto
+        
+        try {
+            $stmt = $this->connSenior->prepare($sql);
+            $stmt->execute([$num, $seq]);
+            
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                // Sapiens costuma usar codificação antiga (ISO-8859-1), 
+                // o Service geralmente trata o UTF-8, mas aqui retornamos bruto.
+                return $row['cplpro']; 
+            }
+        } catch (PDOException $e) {
+            // Log silencioso ou retorno nulo para não quebrar a grade inteira por um produto
+            return null;
         }
+
         return null;
     }
+
+    // --- MISTO (MYSQL - MANTIDO) ---
 
     public function buscarTodasOfertas($idProcesso) {
         // Retorna tabela bruta de preços: [num-seq-codFornecedor] => valor
@@ -50,7 +68,7 @@ class GradeComparativaRepo {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // --- ESCRITA ---
+    // --- ESCRITA (MYSQL - MANTIDO) ---
 
     public function salvarValorFinal($idProcesso, $valorTotal) {
         $sql = "UPDATE processos_instancia SET valor_final_processo = ? WHERE id = ?";
@@ -58,3 +76,4 @@ class GradeComparativaRepo {
         $stmt->execute([$valorTotal, $idProcesso]);
     }
 }
+?>

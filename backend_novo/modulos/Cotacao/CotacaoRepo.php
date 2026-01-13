@@ -1,9 +1,9 @@
 <?php
 class CotacaoRepo {
-    private $pdo;       // MySQL
-    private $connSenior; // SQL Server
+    private $pdo;       // MySQL (PDO)
+    private $connSenior; // SQL Server (PDO)
 
-    public function __construct($pdo, $connSenior) {
+    public function __construct(PDO $pdo, ?PDO $connSenior = null) {
         $this->pdo = $pdo;
         $this->connSenior = $connSenior;
     }
@@ -22,23 +22,22 @@ class CotacaoRepo {
     }
 
     public function buscarDetalheSenior($num, $seq) {
-        // Busca descrição, unidade e quantidade no Senior (Sapiens)
+        // Busca descrição, unidade e quantidade no Senior (Sapiens) via PDO
         if (!$this->connSenior) return null;
         
         $sql = "SELECT cplpro, qtdsol, unimed 
                 FROM Sapiens.sapiens.e405sol 
                 WHERE numsol = ? AND seqsol = ?";
         
-        $stmt = sqlsrv_query($this->connSenior, $sql, [$num, $seq]);
-        if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            return $row;
-        }
-        return null;
+        $stmt = $this->connSenior->prepare($sql);
+        $stmt->execute([$num, $seq]);
+        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
     public function buscarFornecedoresEValores($idProcesso, $num, $seq) {
-        // Busca todos os fornecedores do processo e, se houver, o preço lançado para este item
-        // LEFT JOIN garante que o fornecedor aparece mesmo se ainda não tiver preço neste item
+        // Busca todos os fornecedores do processo e, se houver, o preço lançado
         $sql = "SELECT 
                     p.id_fornecedor_senior, 
                     p.nome_do_fornecedor,
@@ -60,7 +59,7 @@ class CotacaoRepo {
     // --- ESCRITA ---
 
     public function salvarValorUnitario($idProcesso, $num, $seq, $codForn, $valorFloat) {
-        // UPSERT: Insere ou Atualiza se já existir (requer UNIQUE KEY na tabela)
+        // UPSERT: Insere ou Atualiza se já existir
         $sql = "INSERT INTO licitacao_itens_ofertados 
                 (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
                 VALUES (:id, :num, :seq, :cod, :val)
@@ -76,3 +75,4 @@ class CotacaoRepo {
         ]);
     }
 }
+?>

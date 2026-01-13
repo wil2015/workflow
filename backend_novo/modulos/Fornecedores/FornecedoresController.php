@@ -7,6 +7,9 @@ require 'FornecedoresService.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
+    if (!isset($connSenior)) {
+        throw new Exception("ERRO CRÍTICO: A variável de conexão com o Senior não foi encontrada.");
+    }
     $service = new FornecedoresService($pdo, $connSenior); 
     
     // --- BLINDAGEM: DETECTOR DE AÇÃO ---

@@ -1,24 +1,27 @@
 <?php
 class FluxoRepo {
     private $pdo;        // Conexão MySQL (PDO)
-    private $connSenior; // Conexão SQL Server (Native Driver)
+    private $connSenior; // Conexão SQL Server (PDO)
 
-    public function __construct($pdo, $connSenior = null) {
+    public function __construct(PDO $pdo, ?PDO $connSenior = null) {
         $this->pdo = $pdo;
         $this->connSenior = $connSenior;
     }
 
     // =========================================================================
-    //  MÉTODOS SQL SERVER (Senior Sapiens) - NOVOS
+    //  MÉTODOS SQL SERVER (Senior Sapiens) - AGORA COM PDO BLINDADO
     // =========================================================================
 
     public function buscarQuantidadeSenior($numSol, $seqSol) {
         if (!$this->connSenior) return 1.0;
 
         $sql = "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
-        $stmt = sqlsrv_query($this->connSenior, $sql, [$numSol, $seqSol]);
         
-        if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $stmt = $this->connSenior->prepare($sql);
+        $stmt->execute([$numSol, $seqSol]);
+        
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
             return (float)$row['qtdsol'];
         }
         return 1.0;
@@ -59,28 +62,36 @@ class FluxoRepo {
                 ORDER BY $campoOrdenacao $dirSQL
                 OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         
-        // Parâmetros para o OFFSET/FETCH
-        $paramsQuery = array_merge($sqlParams, [$start, $length]);
+        // --- CORREÇÃO AQUI: Bind Manual para forçar INT ---
+        $stmt = $this->connSenior->prepare($sql);
 
-        $stmt = sqlsrv_query($this->connSenior, $sql, $paramsQuery);
-        if ($stmt === false) throw new Exception("Erro SQL Senior: " . print_r(sqlsrv_errors(), true));
-
-        $dados = [];
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            $dados[] = $row;
+        // 1. Vincula parâmetros de busca (Strings)
+        $i = 1;
+        foreach ($sqlParams as $val) {
+            $stmt->bindValue($i++, $val);
         }
+
+        // 2. Vincula Paginação OBRIGATORIAMENTE como INTEIRO
+        $stmt->bindValue($i++, (int)$start, PDO::PARAM_INT);
+        $stmt->bindValue($i++, (int)$length, PDO::PARAM_INT);
+
+        $stmt->execute();
+        // --------------------------------------------------
+
+        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // --- Query Total (Count) ---
         $sqlTotal = "SELECT COUNT(*) as T FROM $tabela WHERE $filtroStatus";
-        // Usa os parâmetros do WHERE (sem offset)
-        $stmtTotal = sqlsrv_query($this->connSenior, $sqlTotal, $sqlParams); 
-        $total = sqlsrv_fetch_array($stmtTotal, SQLSRV_FETCH_ASSOC)['T'];
+        
+        $stmtTotal = $this->connSenior->prepare($sqlTotal);
+        $stmtTotal->execute($sqlParams); // Usa apenas os params do WHERE
+        $total = $stmtTotal->fetchColumn();
 
         return ['dados' => $dados, 'total' => $total];
     }
 
     // =========================================================================
-    //  MÉTODOS MYSQL (Processo Interno) - MANTIDOS
+    //  MÉTODOS MYSQL (Processo Interno) - MANTIDOS (JÁ ERAM PDO)
     // =========================================================================
 
     public function getInstanciaCompleta($id) {
@@ -159,3 +170,4 @@ class FluxoRepo {
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 }
+?>

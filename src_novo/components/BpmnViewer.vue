@@ -121,35 +121,65 @@ async function fecharModal() {
     }
 }
 
-// --- AUXILIARES (Backend Calls) ---
+// --- CARREGAMENTO DO PROCESSO (COM TRATAMENTO DE ERRO ROBUSTO) ---
 async function carregarProcessoExistente(id) {
     try {
         const url = `/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=ler_tarefa&id_instancia=${id}`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error("Erro na API");
         
-        const json = await res.json();
-        if (json.erro) {
-            console.warn(json.erro);
-            return;
+        // Tenta ler o JSON independentemente do status HTTP (o PHP manda erro 500 com JSON)
+        let json;
+        try {
+            json = await res.json();
+        } catch (e) {
+            // Se falhar o parse (ex: erro fatal do PHP estourando HTML), json fica undefined
         }
 
+        // Verifica se houve erro HTTP (ex: 500 Erro de Conexão, 404 Não Encontrado)
+        if (!res.ok) {
+            // Se o backend mandou uma mensagem explicativa, usamos ela!
+            if (json && json.erro) {
+                throw new Error(json.erro); 
+            }
+            // Se for 404 sem mensagem, aí sim é "Não encontrado"
+            if (res.status === 404) {
+                alert("Processo não encontrado.");
+                window.location.href = '/';
+                return;
+            }
+            // Outros erros genéricos
+            throw new Error(`Erro HTTP ${res.status}: Falha ao comunicar com o servidor.`);
+        }
+
+        // Verifica erro lógico no JSON (mesmo com status 200)
+        if (json && json.erro) {
+            throw new Error(json.erro);
+        }
+
+        // Sucesso!
         fluxoId.value = json.fluxo_id; 
         titulo.value = `Processo #${id} - ${json.nome_fluxo}`;
         
         if (json.arquivo_xml) await carregarDiagrama(json.arquivo_xml);
 
-        // Pinta tarefa atual
         if (viewer && json.tarefa && json.tarefa.id_xml) {
             const canvas = viewer.get('canvas');
-            // Remove marcadores anteriores se necessário (opcional)
             canvas.addMarker(json.tarefa.id_xml, 'highlight-current');
         }
     } catch (e) {
         console.error(e);
+        // AQUI ESTÁ O POP-UP QUE VOCÊ QUERIA
+        alert("ERRO NO SISTEMA:\n" + e.message);
+        
+        // Opcional: Só volta pra home se for erro de "não encontrado", 
+        // caso contrário deixa na tela pro dev ver o erro.
+        if (e.message.includes('não encontrado')) {
+             window.location.href = '/';
+        } else {
+             titulo.value = "Erro: " + e.message;
+        }
     }
 }
-
 async function carregarDiagrama(xmlName) {
     try {
         const res = await fetch('/public/' + xmlName); 

@@ -7,6 +7,9 @@ require 'FluxoService.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
+    if (!isset($connSenior)) {
+        throw new Exception("A variável \$connSenior não foi definida em db_senior.php");
+    }
     // Injeta as dependências
     $service = new FluxoService($pdo, $connSenior); 
     
