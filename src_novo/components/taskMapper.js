@@ -5,14 +5,16 @@ import SolicitacoesList from './SolicitacoesList.vue';
 import FornecedoresList from './FornecedoresList.vue'; 
 import CotacaoValores   from './CotacaoValores.vue';   
 import GradeComparativa from './GradeComparativa.vue'; 
-import DefaultTask      from './DefaultTask.vue';      
+import DefaultTask      from './DefaultTask.vue';    
+import EmailFornecedores from './EmailFornecedores.vue';  
 
 export const taskMap = {
     // Verifica se os IDs aqui batem com o seu desenho no Camunda/BPMN:
     'Activity_SelecionarSolicitacao':   SolicitacoesList,
     'Activity_SelecionarFornecedores':  FornecedoresList,
     'Activity_ClassificarValores':           CotacaoValores,
-    'Activity_Grade':           GradeComparativa
+    'Activity_Grade':           GradeComparativa,
+    'Event_AguardarOrcamentos': EmailFornecedores
 };
 
 export function getComponentForTask(taskId) {
