@@ -77,7 +77,7 @@ onMounted(async () => {
     eventBus.on('element.click', (e) => {
         const type = e.element.type;
         // Só abre se for Tarefa (UserTask)
-        if (type.toLowerCase().includes('task')) {
+        if (type.toLowerCase().includes('task') || type.toLowerCase().includes('catchevent'))  {
             clicarTarefa(e.element.id);
         }
     });

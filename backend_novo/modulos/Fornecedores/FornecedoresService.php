@@ -15,10 +15,10 @@ class FornecedoresService {
         $search      = $params['search']['value'] ?? '';
         $draw        = (int)($params['draw'] ?? 1);
 
-        // 1. Busca IDs já vinculados para dar destaque
+        // 1. Busca IDs já vinculados
         $idsVinculados = $instance_id ? $this->repo->getIdsVinculados($instance_id) : [];
 
-        // 2. Monta Filtros SQL Server
+        // 2. Filtros SQL
         $condicao = "WHERE sitfor = 'A'";
         $sqlParams = [];
 
@@ -28,7 +28,7 @@ class FornecedoresService {
             $sqlParams = [$term, $term, $term];
         }
 
-        // 3. Ordenação (Vinculados primeiro)
+        // 3. Ordenação
         $orderBy = "";
         if (!empty($idsVinculados)) {
             $listaIds = implode(',', array_map('intval', $idsVinculados));
@@ -36,7 +36,7 @@ class FornecedoresService {
         }
         $orderBy .= "nomfor ASC";
 
-        // 4. Executa Consultas via Repo
+        // 4. Consultas
         $totalRecords = $this->repo->buscarTotalSenior("WHERE sitfor = 'A'", []);
         
         $totalFiltered = $totalRecords;
@@ -46,22 +46,26 @@ class FornecedoresService {
 
         $rawSenior = $this->repo->buscarFornecedoresSenior($condicao, $orderBy, $start, $length, $sqlParams);
 
-        // 5. Formata Saída
+        // 5. Formatação (PADRONIZADA NO SERVICE)
         $data = [];
         $mapaVinculados = array_fill_keys($idsVinculados, true);
 
         foreach ($rawSenior as $row) {
             $cod = (int)$row['codfor'];
-            $nome = utf8_encode($row['nomfor']);
             
-            // Objeto completo para enviar de volta ao salvar
+            // --- PADRONIZAÇÃO: Usando a função utf8() inteligente ---
+            $nome   = $this->utf8($row['nomfor']);
+            $cidade = $this->utf8($row['cidfor']);
+            $uf     = $this->utf8($row['sigufs']);
+            // -------------------------------------------------------
+            
             $objSalvar = ['cod' => $cod, 'nome' => $nome, 'doc' => trim($row['cgccpf'])];
 
             $data[] = [
                 'cod' => $cod,
                 'nome' => $nome,
                 'doc' => trim($row['cgccpf']),
-                'cidade_uf' => utf8_encode($row['cidfor']) . ' - ' . $row['sigufs'],
+                'cidade_uf' => $cidade . ' - ' . $uf,
                 'vinculado' => isset($mapaVinculados[$cod]),
                 'json_full' => json_encode($objSalvar)
             ];
@@ -89,7 +93,6 @@ class FornecedoresService {
             $nomeLimpo = $this->limparNomeNuclear($forn['nome'] ?? '');
             if (empty($nomeLimpo)) $nomeLimpo = "FORN " . $forn['cod'];
 
-            // Salva Fornecedor e Gera Matriz
             $this->repo->adicionarParticipante($idProcesso, $forn['cod'], $nomeLimpo, $forn['doc']);
             $this->repo->gerarMatrizCotas($idProcesso, $forn['cod']);
             $count++;
@@ -105,12 +108,23 @@ class FornecedoresService {
         return ['sucesso' => true, 'msg' => "Fornecedor removido."];
     }
 
-    // Utilitário privado de limpeza
+    // --- FUNÇÃO PADRÃO DE CORREÇÃO DE ENCODING ---
+    // (A mesma usada no FluxoService e GradeComparativaService)
+    private function utf8($str) {
+        // Se a string já for UTF-8 válida, retorna ela mesma para evitar "Ã£"
+        if (mb_detect_encoding($str, 'UTF-8', true) === false) {
+            return utf8_encode($str); // Converte ISO-8859-1 para UTF-8
+        }
+        return $str;
+    }
+
     private function limparNomeNuclear($string) {
         if (empty($string)) return "";
-        $utf8 = mb_convert_encoding($string, 'UTF-8', 'auto');
+        // Garante UTF-8 antes de limpar acentos
+        $utf8 = $this->utf8($string);
         $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $utf8);
         $limpo = preg_replace('/[^a-zA-Z0-9 ]/', '', $ascii);
         return strtoupper(trim(preg_replace('/\s+/', ' ', $limpo)));
     }
 }
+?>

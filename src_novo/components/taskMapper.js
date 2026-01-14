@@ -16,5 +16,7 @@ export const taskMap = {
 };
 
 export function getComponentForTask(taskId) {
-    return taskMap[taskId] || DefaultTask;
+  //  return taskMap[taskId] || DefaultTask;
+      return taskMap[taskId] || null;
+
 }

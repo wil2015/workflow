@@ -121,6 +121,11 @@ class GradeComparativaService {
     }
 
     private function utf8($str) {
-        return mb_convert_encoding($str, 'UTF-8', 'ISO-8859-1');
+        // Verifica se a string JÁ É UTF-8. Se for, não faz nada.
+        // Se NÃO for (retornar false), aí sim converte.
+        if (mb_detect_encoding($str, 'UTF-8', true) === false) {
+            return utf8_encode($str); // Converte ISO-8859-1 para UTF-8
+        }
+        return $str; // Já estava correto
     }
 }
