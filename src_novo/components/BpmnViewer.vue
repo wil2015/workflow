@@ -97,17 +97,27 @@ onMounted(async () => {
 
 // --- LÓGICA DE ABERTURA ---
 function clicarTarefa(taskId) {
+    // 1. Validação de segurança básica
     if (!instanceId.value && !taskId.includes('Solicitacao')) {
          alert("Salve o processo primeiro.");
          return; 
     }
 
-    console.log("Abrindo tarefa:", taskId);
-    
-    // Busca o componente no mapa
-    componenteAtual.value = getComponentForTask(taskId);
+    // 2. Busca o componente no Mapper
+    const componenteEncontrado = getComponentForTask(taskId);
+
+    // --- A CORREÇÃO ESTÁ AQUI ---
+    // Se o mapper retornou null (ou seja, não tem tela definida), 
+    // paramos TUDO aqui. Não setamos modalAberto = true.
+    if (!componenteEncontrado) {
+        console.log(`Tarefa ${taskId} não possui tela mapeada (Ignorando clique).`);
+        return; 
+    }
+    // ----------------------------
+
+    // 3. Se passou do if acima, aí sim abre o modal
+    componenteAtual.value = componenteEncontrado;
     taskIdAtual.value = taskId;
-    
     modalAberto.value = true;
 }
 
