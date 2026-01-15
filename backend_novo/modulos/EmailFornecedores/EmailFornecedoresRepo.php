@@ -1,18 +1,15 @@
 <?php
 class EmailFornecedoresRepo {
-    private $pdo;       // MySQL
-    private $connSenior; // SQL Server
+    private $pdo;       
+    private $connSenior;
 
     public function __construct($pdo, $connSenior) {
         $this->pdo = $pdo;
         $this->connSenior = $connSenior;
     }
 
-    // -------------------------------------------------------------------------
-    // ETAPA 1: SINCRONIZAÇÃO (Senior -> MySQL Local)
-    // -------------------------------------------------------------------------
+    // --- ETAPA 1: SINCRONIZAÇÃO (Senior -> MySQL) ---
 
-    // Busca participantes vinculados a esta instância de processo
     public function buscarParticipantes($idProcesso) {
         $sql = "SELECT id, id_fornecedor_senior, nome_do_fornecedor 
                 FROM licitacao_participantes 
@@ -22,59 +19,56 @@ class EmailFornecedoresRepo {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Busca emails no Senior (Exemplo genérico buscando na tabela de fornecedores e contatos)
-    // Ajuste a query do Senior conforme a estrutura real do seu ERP (R034FON, E095CON, etc)
     public function buscarEmailsNoSenior($codFornecedor) {
         if (!$this->connSenior) return [];
 
         $emails = [];
+        // Busca na tabela de Fornecedores (E095FOR)
+        $sql = "SELECT intnet as email FROM Sapiens.sapiens.e095for WHERE codfor = ?";
         
-        // 1. Email Principal do Fornecedor (E095FOR)
-        $sql1 = "SELECT intnet as email FROM Sapiens.sapiens.e095for WHERE codfor = ?";
-        $stmt1 = $this->connSenior->prepare($sql1);
-        $stmt1->execute([$codFornecedor]);
-        if ($row = $stmt1->fetch(PDO::FETCH_ASSOC)) {
-            if (!empty($row['email'])) $emails[] = strtolower(trim($row['email']));
+        try {
+            $stmt = $this->connSenior->prepare($sql);
+            $stmt->execute([$codFornecedor]);
+            
+            // Pode haver múltiplos contatos ou apenas um campo
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if (!empty($row['email'])) {
+                    // Quebra por ponto e vírgula se houver múltiplos no mesmo campo
+                    $partes = explode(';', $row['email']);
+                    foreach($partes as $p) $emails[] = strtolower(trim($p));
+                }
+            }
+        } catch (Exception $e) {
+            // Se falhar a conexão Senior, segue vida (usaremos o banco local)
         }
 
-        // 2. Emails de Contatos (E095CON - Exemplo)
-        // Adicione aqui se quiser buscar contatos também
-        /*
-        $sql2 = "SELECT intnet as email FROM Sapiens.sapiens.e095con WHERE codfor = ?";
-        $stmt2 = $this->connSenior->prepare($sql2);
-        $stmt2->execute([$codFornecedor]);
-        while ($row = $stmt2->fetch(PDO::FETCH_ASSOC)) {
-             if (!empty($row['email'])) $emails[] = strtolower(trim($row['email']));
-        }
-        */
-
-        return array_unique($emails); // Remove duplicados
+        return array_unique($emails);
     }
 
-    // Insere ou atualiza na tabela mestre (email_fornecedor)
+    // Este método é o segredo: ele insere se não existir, mas NÃO APAGA os manuais
     public function upsertEmailMestre($codFornecedor, $email) {
-        $sql = "INSERT INTO email_fornecedor (id_fornecedor_senior, email_fornecedor) 
-                VALUES (?, ?)
-                ON DUPLICATE KEY UPDATE data_atualizacao = NOW()"; // Apenas atualiza data se já existir
+        // IGNORE: Se já existir (cod + email), não faz nada. Se não existir, insere.
+        $sql = "INSERT IGNORE INTO email_fornecedor (id_fornecedor_senior, email_fornecedor) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$codFornecedor, $email]);
     }
 
-    // -------------------------------------------------------------------------
-    // ETAPA 2: LEITURA PARA O FRONT (MySQL -> Vue)
-    // -------------------------------------------------------------------------
+    // --- ETAPA 2: LEITURA UNIFICADA (MySQL -> Front) ---
 
     public function buscarEmailsParaSelecao($idProcesso) {
-        // Traz todos os emails conhecidos dos fornecedores deste processo
-        // E faz um LEFT JOIN com email_instancia para saber se já está marcado (checked)
+        // Essa query traz TUDO que está na tabela email_fornecedor para os participantes atuais.
+        // Como os manuais também estão lá, eles virão automaticamente.
         $sql = "SELECT 
                     lp.id as id_participante,
                     lp.nome_do_fornecedor,
                     lp.id_fornecedor_senior,
                     ef.email_fornecedor,
+                    -- Verifica se este e-mail já foi selecionado NESTA instância específica
                     (CASE WHEN ei.id IS NOT NULL THEN 1 ELSE 0 END) as selecionado
                 FROM licitacao_participantes lp
+                -- O INNER JOIN garante que pegamos apenas e-mails dos fornecedores desta licitação
                 INNER JOIN email_fornecedor ef ON lp.id_fornecedor_senior = ef.id_fornecedor_senior
+                -- O LEFT JOIN verifica a seleção atual (checkbox)
                 LEFT JOIN email_instancia ei 
                     ON ei.id_licitacao_participante = lp.id 
                     AND ei.email_fornecedor = ef.email_fornecedor
@@ -87,15 +81,10 @@ class EmailFornecedoresRepo {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // -------------------------------------------------------------------------
-    // ETAPA 3: SALVAR SELEÇÃO
-    // -------------------------------------------------------------------------
+    // --- ETAPA 3: GRAVAÇÃO DA SELEÇÃO ---
 
     public function limparSelecaoAnterior($idProcesso) {
-        // Remove todos os registros desta instância para regravar apenas os selecionados
-        // Isso é mais seguro para lidar com desmarcações
-        $sql = "DELETE FROM email_instancia WHERE id_processo_instancia = ?";
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare("DELETE FROM email_instancia WHERE id_processo_instancia = ?");
         $stmt->execute([$idProcesso]);
     }
 
