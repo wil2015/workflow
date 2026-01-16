@@ -25,6 +25,12 @@ try {
             echo json_encode($dados);
             break;
 
+        case 'atualizar_oferta': // [NOVO ENDPOINT]
+            $res = $service->atualizarOferta($_POST);
+            echo json_encode($res);
+            break;
+
+            
         case 'consolidar_vencedores':
             $pdo->beginTransaction();
             try {

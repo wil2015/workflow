@@ -9,31 +9,42 @@ class GradeComparativaService {
     }
 
     public function montarGradeParaFront($idProcesso) {
-        // ... (Mantenha o código de leitura igual ao que você já tem) ...
-        // Vou resumir aqui para focar na consolidação, mas mantenha o método montarGradeParaFront inteiro.
-        
-        // [CÓDIGO DE LEITURA JÁ EXISTENTE...] 
-        // Se precisar que eu reenvie o montarGradeParaFront, me avise.
         return $this->logicaDeMontagem($idProcesso); 
     }
 
-    // --- LÓGICA CENTRALIZADA (Usada tanto para exibir quanto para salvar) ---
+    public function atualizarOferta($dados) {
+        $idOferta = $dados['id_oferta'] ?? 0;
+        $atende = (isset($dados['atende']) && $dados['atende'] == true) ? 1 : 0;
+        $justificativa = $dados['justificativa'] ?? '';
+
+        if (!$idOferta) throw new Exception("ID da oferta não informado.");
+
+        $this->repo->atualizarStatusOferta($idOferta, $atende, $justificativa);
+        return ['sucesso' => true];
+    }
+
     private function logicaDeMontagem($idProcesso) {
         if (!$idProcesso) throw new Exception("ID inválido.");
 
         $participantes = $this->repo->buscarParticipantes($idProcesso);
-        $itens = $this->repo->buscarItensBasicos($idProcesso);
+        // Agora o repo retorna 'id' corretamente
+        $itens = $this->repo->buscarItensBasicos($idProcesso); 
         $ofertasBrutas = $this->repo->buscarTodasOfertas($idProcesso);
 
         if (empty($participantes)) return ['cabecalho' => [], 'linhas' => [], 'total_fmt' => '0,00', 'total_raw' => 0];
 
+        // Mapeia ofertas
         $mapaOfertas = [];
         foreach ($ofertasBrutas as $o) {
             $chaveItem = $o['num_solicitacao'] . '-' . $o['seq_solicitacao'];
-            $mapaOfertas[$chaveItem][$o['id_fornecedor_senior']] = (float)$o['valor_unitario'];
+            $mapaOfertas[$chaveItem][$o['id_fornecedor_senior']] = [
+                'id_oferta' => $o['id'],
+                'valor' => (float)$o['valor_unitario'],
+                'atende' => (int)$o['atende'],
+                'justificativa' => $o['justificativa_da_recusa']
+            ];
         }
 
-        // Cabeçalho
         $cabecalho = [];
         foreach ($participantes as $p) {
             $nomes = explode(' ', trim($p['nome']));
@@ -47,18 +58,31 @@ class GradeComparativaService {
 
         $linhas = [];
         $totalGeral = 0.0;
+        $vencedoresParaSalvar = []; 
 
         foreach ($itens as $item) {
             $chave = $item['num_solicitacao'] . '-' . $item['seq_solicitacao'];
+            
+            // [CORREÇÃO]: Pegamos o 'id' vindo da tabela processos_itens
+            $idItemBanco = $item['id']; 
+
             $qtd = (float)($item['quantidade'] ?? 1);
             if ($qtd <= 0) $qtd = 1;
 
             $descSenior = $this->repo->buscarDescricaoSenior($item['num_solicitacao'], $item['seq_solicitacao']);
             $nomeProduto = $descSenior ? $this->utf8($descSenior) : "Produto ($chave)";
 
-            $precosDesteItem = $mapaOfertas[$chave] ?? [];
-            $validos = array_filter($precosDesteItem, function($v) { return $v > 0; });
-            $menorPreco = !empty($validos) ? min($validos) : null;
+            $dadosItem = $mapaOfertas[$chave] ?? [];
+
+            // Filtra preços válidos (quem atende e valor > 0)
+            $precosValidos = [];
+            foreach ($dadosItem as $fid => $d) {
+                if ($d['valor'] > 0 && $d['atende'] === 1) {
+                    $precosValidos[] = $d['valor'];
+                }
+            }
+
+            $menorPreco = !empty($precosValidos) ? min($precosValidos) : null;
 
             if ($menorPreco) {
                 $totalGeral += ($menorPreco * $qtd);
@@ -67,29 +91,47 @@ class GradeComparativaService {
             $celulas = [];
             foreach ($participantes as $p) {
                 $fid = $p['id'];
-                $valor = $precosDesteItem[$fid] ?? 0.0;
+                $info = $dadosItem[$fid] ?? null;
                 
+                $valor = $info ? $info['valor'] : 0.0;
+                $atende = $info ? $info['atende'] : 1; 
+                $justificativa = $info ? $this->utf8($info['justificativa']) : '';
+                $idOferta = $info ? $info['id_oferta'] : null;
+
                 $status = 'empty';
                 if ($valor > 0) {
-                    if ($menorPreco && abs($valor - $menorPreco) < 0.001) {
-                        $qtdEmpates = count(array_keys($validos, $menorPreco));
+                    if ($atende === 0) {
+                        $status = 'rejected';
+                    } elseif ($menorPreco && abs($valor - $menorPreco) < 0.001) {
+                        $qtdEmpates = count(array_keys($precosValidos, $menorPreco));
                         $status = ($qtdEmpates > 1) ? 'tie' : 'winner';
+                        
+                        if ($status === 'winner') {
+                            // Salva na lista de vencedores para gravar depois
+                            $vencedoresParaSalvar[] = [
+                                'id_fornecedor' => $fid,
+                                'id_item' => $idItemBanco, // Usa o ID correto da tabela processos_itens
+                                'valor' => $valor
+                            ];
+                        }
                     } else {
                         $status = 'loser';
                     }
                 }
 
                 $celulas[$fid] = [
+                    'id_oferta' => $idOferta,
                     'valor' => $valor,
                     'valor_fmt' => $valor > 0 ? number_format($valor, 2, ',', '.') : '-',
-                    'status' => $status
+                    'status' => $status,
+                    'atende' => (bool)$atende,
+                    'justificativa' => $justificativa
                 ];
             }
 
             $linhas[] = [
                 'chave' => $chave,
                 'produto' => $nomeProduto,
-                'qtd' => number_format($qtd, 2, ',', '.'), // Adicionado para o Front
                 'qtd_fmt' => number_format($qtd, 2, ',', '.'),
                 'melhor_fmt' => $menorPreco ? number_format($menorPreco, 2, ',', '.') : '-',
                 'celulas' => $celulas
@@ -100,32 +142,43 @@ class GradeComparativaService {
             'cabecalho' => $cabecalho,
             'linhas' => $linhas,
             'total_fmt' => number_format($totalGeral, 2, ',', '.'),
-            'total_raw' => $totalGeral
+            'total_raw' => $totalGeral,
+            'vencedores_compilados' => $vencedoresParaSalvar
         ];
     }
 
-    // --- NOVA FUNÇÃO DE CONSOLIDAÇÃO ---
     public function consolidarProcesso($idProcesso) {
-        // 1. Recalcula tudo usando a mesma lógica da visualização (Segurança Backend)
         $dados = $this->logicaDeMontagem($idProcesso);
         $total = $dados['total_raw'];
+        $vencedores = $dados['vencedores_compilados'];
 
-        // 2. Chama o Repo para salvar no banco
+        $this->repo->limparGradeCustos($idProcesso);
+
+        foreach ($vencedores as $v) {
+            // Insere usando o ID real do item
+            $this->repo->inserirItemGrade(
+                $idProcesso, 
+                $v['id_fornecedor'], 
+                $v['id_item'], 
+                $v['valor']
+            );
+        }
+
         $this->repo->salvarValorFinal($idProcesso, $total);
 
-        // 3. Retorna sucesso e o valor formatado para o alerta do Front
         return [
             'sucesso' => true, 
-            'valor_gravado' => $dados['total_fmt']
+            'valor_gravado' => $dados['total_fmt'],
+            'qtd_itens_grade' => count($vencedores)
         ];
     }
 
     private function utf8($str) {
-        // Verifica se a string JÁ É UTF-8. Se for, não faz nada.
-        // Se NÃO for (retornar false), aí sim converte.
+        if (!$str) return '';
         if (mb_detect_encoding($str, 'UTF-8', true) === false) {
-            return utf8_encode($str); // Converte ISO-8859-1 para UTF-8
+            return utf8_encode($str);
         }
-        return $str; // Já estava correto
+        return $str;
     }
 }
+?>
