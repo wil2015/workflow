@@ -25,17 +25,13 @@ try {
             echo json_encode($dados);
             break;
 
-        case 'atualizar_oferta': // [NOVO ENDPOINT]
-            $res = $service->atualizarOferta($_POST);
-            echo json_encode($res);
-            break;
-
-            
         case 'consolidar_vencedores':
             $pdo->beginTransaction();
             try {
-                $id = $_POST['id_processo'] ?? 0;
-                $res = $service->consolidarProcesso($id);
+	                $id = $_POST['id_processo'] ?? 0;
+	                $ofertas = $_POST['ofertas'] ?? [];
+	                if (!is_array($ofertas)) $ofertas = [];
+	                $res = $service->consolidarProcesso($id, $ofertas);
                 $pdo->commit();
                 echo json_encode($res);
             } catch (Exception $ex) {
