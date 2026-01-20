@@ -3,8 +3,6 @@ require_once __DIR__ . '/../../core/BaseRepository.php';
 
 class DashboardRepo extends BaseRepository
 {
-    // Não precisa de __construct nem propriedades
-    
     public function buscarFluxosAtivos() {
         $sql = "SELECT 
                     id_fluxo_definicao AS id,
@@ -20,8 +18,12 @@ class DashboardRepo extends BaseRepository
     }
 
     public function buscarInstanciasRecentes() {
+        // Trazemos tudo que o Vue antigo precisava + os campos novos
         $sql = "SELECT 
                     p.id, 
+                    p.ano_do_processo,             -- Novo
+                    p.data_esperada_da_cotacao,    -- Novo
+                    p.data_esperada_do_recebimento,-- Novo
                     p.data_inicio, 
                     p.id_processo_senior, 
                     d.nome_do_fluxo, 

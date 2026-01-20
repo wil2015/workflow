@@ -7,43 +7,77 @@ class FluxoService extends BaseService
     private $repo;
     private $pathPublic;
 
-    public function __construct($pdo, $connSenior)
-    {
+    public function __construct($pdo, $connSenior) {
         parent::__construct($pdo, $connSenior);
         $this->repo = new FluxoRepo($pdo, $connSenior);
-        
-        // Define caminho para ler XMLs
         $this->pathPublic = dirname(__DIR__, 3) . '/public';
     }
 
-    public function carregarPassoAtual($idInstancia)
-    {
+    public function carregarPassoAtual($idInstancia) {
         $instancia = $this->repo->getInstanciaCompleta($idInstancia);
-        if (!$instancia) return ['erro' => "Processo #$idInstancia não encontrado."];
+        
+        if (!$instancia) {
+            return ['erro' => "Processo #$idInstancia não encontrado."];
+        }
 
+        // --- 1. TRATAMENTO ID/ANO ---
+        $instancia['id_visual'] = $instancia['id'] . '/' . ($instancia['ano_do_processo'] ?? date('Y'));
+        
+        // --- 2. TRATAMENTO DE DATAS (Dia/Mês/Ano) ---
+        $dtCot = $instancia['data_esperada_da_cotacao'];
+        $dtRec = $instancia['data_esperada_do_recebimento'];
+        
+        $instancia['datas_editaveis'] = [
+            // ISO (YYYY-MM-DD): Obrigatório para o input type="date" funcionar
+            'cotacao_iso' => $dtCot, 
+            'recebimento_iso' => $dtRec,
+
+            // FORMATADO (DD/MM/YYYY): Para exibir como texto simples
+            'cotacao_fmt' => $dtCot ? date('d/m/Y', strtotime($dtCot)) : '-',
+            'recebimento_fmt' => $dtRec ? date('d/m/Y', strtotime($dtRec)) : '-'
+        ];
+
+        // --- LÓGICA BPMN ---
         $nomeArquivo = !empty($instancia['arquivo_xml']) ? $instancia['arquivo_xml'] : 'compra_direta.xml';
         $caminhoCompleto = $this->pathPublic . '/' . $nomeArquivo;
         
-        if (!file_exists($caminhoCompleto)) throw new Exception("Arquivo BPMN não encontrado: '$nomeArquivo'");
+        $tituloTarefa = 'Visualização';
+        if (file_exists($caminhoCompleto)) {
+            $xml = simplexml_load_file($caminhoCompleto);
+            $xml->registerXPathNamespace('bpmn', 'http://www.omg.org/spec/BPMN/20100524/MODEL');
+            $passoAtualId = $instancia['etapa_bpmn_atual']; 
+            $nodes = $xml->xpath("//bpmn:userTask[@id='$passoAtualId']");
+            if (empty($nodes)) $nodes = $xml->xpath("//bpmn:startEvent");
+            if (!empty($nodes)) $tituloTarefa = (string)$nodes[0]['name'];
+        }
 
-        $xml = simplexml_load_file($caminhoCompleto);
-        $xml->registerXPathNamespace('bpmn', 'http://www.omg.org/spec/BPMN/20100524/MODEL');
-
-        $passoAtualId = $instancia['etapa_bpmn_atual']; 
-        $nodes = $xml->xpath("//bpmn:userTask[@id='$passoAtualId']");
-        if (empty($nodes)) $nodes = $xml->xpath("//bpmn:startEvent");
-        
         return [
             'instancia' => $instancia,
             'fluxo_id' => $instancia['id_fluxo_definicao'],
             'nome_fluxo' => $instancia['nome_do_fluxo'],
             'arquivo_xml' => $nomeArquivo, 
-            'tarefa' => ['titulo' => !empty($nodes) ? (string)$nodes[0]['name'] : 'Visualização', 'id_xml' => $passoAtualId]
+            'tarefa' => ['titulo' => $tituloTarefa, 'id_xml' => $instancia['etapa_bpmn_atual']]
         ];
     }
 
-    public function vincularItens($dados)
-    {
+    public function salvarDatasPrevisao($dados) {
+        $id = $dados['id_processo'] ?? null;
+        $dtCot = $dados['data_cotacao'] ?? null;     
+        $dtRec = $dados['data_recebimento'] ?? null; 
+
+        if (!$id) throw new Exception("ID do processo não informado.");
+        
+        if ($dtCot === '') $dtCot = null;
+        if ($dtRec === '') $dtRec = null;
+
+        $this->repo->atualizarDatasPrevisao($id, $dtCot, $dtRec);
+
+        return ['sucesso' => true, 'msg' => 'Datas atualizadas com sucesso!'];
+    }
+
+    // --- Outros Métodos (Mantidos originais resumidos) ---
+
+    public function vincularItens($dados) {
         $idFluxo = $dados['id_fluxo_definicao'] ?? 1;
         $idProcesso = $dados['id_processo_instancia'] ?? null;
         if ($idProcesso === 'null' || empty($idProcesso)) $idProcesso = null;
@@ -75,9 +109,7 @@ class FluxoService extends BaseService
         return ['sucesso' => true, 'msg' => "$itensProcessados itens vinculados!", 'id_processo' => $idProcesso];
     }
 
-    public function listarSolicitacoesSenior($params)
-    {
-        // (Mantive a lógica original, apenas resumida para caber aqui)
+    public function listarSolicitacoesSenior($params) {
         $start = (int)($params['start'] ?? 0);
         $length = (int)($params['length'] ?? 10);
         $search = $params['search']['value'] ?? '';
@@ -107,7 +139,6 @@ class FluxoService extends BaseService
             $peso = (int)$row['peso_ordenacao'];
             $status = ($peso === 2) ? 'vinculado' : (($peso === 1) ? 'bloqueado' : 'disponivel');
             
-            // HERANÇA: Uso do método utf8() da BaseService
             $desc = $this->utf8($row['cplpro']);
 
             $data[] = [
@@ -135,5 +166,23 @@ class FluxoService extends BaseService
     public function cancelarProcesso($id) {
         $this->repo->excluirProcesso($id);
         return ['sucesso' => true];
+    }
+
+    public function carregarDadosDashboard() {
+        $fluxos = $this->repo->listarFluxosDisponiveis();
+        $rawProc = $this->repo->listarTodosProcessos();
+        $tarefas = [];
+        
+        foreach($rawProc as $r) {
+            $dt = new DateTime($r['data_inicio']);
+            $tarefas[] = [
+                'id' => $r['id'],
+                'nome_do_fluxo' => $this->utf8($r['nome_do_fluxo']), 
+                'id_processo_senior' => $r['id_processo_senior'],
+                'data_formatada' => $dt->format('d/m/Y H:i'),
+                'status_atual' => $r['status_atual']
+            ];
+        }
+        return ['fluxos' => $fluxos, 'tarefas' => $tarefas];
     }
 }

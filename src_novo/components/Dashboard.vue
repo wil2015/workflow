@@ -6,24 +6,31 @@ import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 DataTable.use(DataTablesCore);
 
-// Variáveis Reativas
 const definicoes = ref([]);
 const instancias = ref([]);
 const loading = ref(true);
 const erro = ref(null);
 
-// Colunas da Tabela
+// --- COLUNAS CORRIGIDAS ---
 const columns = [
-  { data: 'id', title: 'ID', width: '50px' },
+  // 1. ID Visual (61/2026)
+  { data: 'id_visual', title: 'ID', width: '70px' },
+
+  // 2. Campos Originais (Respeitando nomes do Service)
   { data: 'nome_do_fluxo', title: 'Fluxo' },
   { 
     data: 'id_processo_senior', 
     title: 'Solicitação', 
     render: d => `<strong style="color:#0056b3">${d || '-'}</strong>` 
   },
-  { data: 'data_formatada', title: 'Data' },
+
+  // 3. Novas Colunas de Data
+  { data: 'prev_cotacao', title: 'Prev. Cotação', width: '90px' },
+  { data: 'prev_entrega', title: 'Prev. Entrega', width: '90px' },
+
+  { data: 'data_formatada', title: 'Criação' }, // Original
   { 
-    data: 'status_atual', 
+    data: 'status_atual', // Original
     title: 'Status', 
     render: d => {
         let bg = d === 'Finalizado' ? '#d4edda' : '#e3f2fd';
@@ -37,14 +44,13 @@ const columns = [
 const dtOptions = {
     language: { sSearch: "Pesquisar:", sZeroRecords: "Nada encontrado" },
     pageLength: 10,
-    order: [[0, 'desc']]
+    order: [[0, 'desc']] 
 };
 
-// Funções de Navegação
 function iniciarFluxo(fluxo) {
     const url = new URL(window.location.href);
     url.searchParams.delete('instance_id');
-    url.searchParams.set('novo', fluxo.arquivo_xml); // Passa o nome do XML
+    url.searchParams.set('novo', fluxo.arquivo_xml);
     url.searchParams.set('fluxo_id', fluxo.id);
     window.location.href = url.toString();
 }
@@ -53,16 +59,13 @@ function abrirProcesso(proc) {
     const url = new URL(window.location.href);
     url.searchParams.delete('novo');
     url.searchParams.delete('fluxo_id');
-    url.searchParams.set('instance_id', proc.id);
+    url.searchParams.set('instance_id', proc.id); // ID real numérico para o link
     window.location.href = url.toString();
 }
 
-// Carga Inicial
 onMounted(async () => {
   try {
-    // Caminho relativo para funcionar em subpastas
     const res = await fetch('backend/modulos/Dashboard/DashboardController.php?acao=home');
-    
     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
     const json = await res.json();
     if (json.erro) throw new Error(json.erro);
