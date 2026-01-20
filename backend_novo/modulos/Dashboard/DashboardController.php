@@ -1,23 +1,31 @@
 <?php
-// Sobe 2 níveis para achar a conexão global
-require '../../db_conexao.php'; 
-require 'DashboardService.php';
+require_once __DIR__ . '/../../core/BaseController.php';
+require_once __DIR__ . '/DashboardService.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
-try {
-    // Agora o $pdo existe porque editamos o db_conexao.php no Passo 0
-    $service = new DashboardService($pdo);
-    
-    $acao = $_GET['acao'] ?? 'home';
-
-    if ($acao === 'home') {
-        echo json_encode($service->carregarHome());
-    } else {
-        throw new Exception("Ação inválida");
+class DashboardController extends BaseController
+{
+    public function __construct($pdo)
+    {
+        // Passa NULL para o connSenior, pois o Dashboard não usa
+        parent::__construct($pdo, null);
+        $this->service = new DashboardService($pdo);
     }
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['erro' => $e->getMessage()]);
+    // Sobrescreve método opcional para definir ação padrão caso venha vazia
+    protected function getAcaoPadrao() {
+        return 'home';
+    }
+
+    protected function executarAcao(string $acao)
+    {
+        if ($acao === 'home') {
+            return $this->service->carregarHome();
+        }
+        
+        throw new Exception("Ação inválida: $acao");
+    }
 }
+
+// Repare que só passamos o $pdo aqui
+$controller = new DashboardController($pdo);
+$controller->handleRequest();

@@ -1,82 +1,41 @@
 <?php
-require '../../db_conexao.php'; // $pdo
-require '../../db_senior.php';  // $connSenior
+require_once __DIR__ . '/../../core/BaseController.php';
+require_once __DIR__ . '/FornecedoresService.php';
 
-require 'FornecedoresService.php';
-
-header('Content-Type: application/json; charset=utf-8');
-
-try {
-    if (!isset($connSenior)) {
-        throw new Exception("ERRO CRÍTICO: A variável de conexão com o Senior não foi encontrada.");
+class FornecedoresController extends BaseController
+{
+    public function __construct($pdo, $connSenior)
+    {
+        if (!isset($connSenior)) throw new Exception("Conexão Senior necessária.");
+        parent::__construct($pdo, $connSenior);
+        $this->service = new FornecedoresService($pdo, $connSenior);
     }
-    $service = new FornecedoresService($pdo, $connSenior); 
-    
-    // --- BLINDAGEM: DETECTOR DE AÇÃO ---
-    $acao = '';
 
-    // 1. Tenta POST ou GET padrão
-    if (isset($_POST['acao'])) $acao = $_POST['acao'];
-    elseif (isset($_GET['acao'])) $acao = $_GET['acao'];
+    protected function executarAcao(string $acao)
+    {
+        switch ($acao) {
+            case 'listar':
+                return $this->service->listarParaDatatable($this->params);
 
-    // 2. Se vazio, tenta ler JSON do corpo da requisição (IMPORTANTE!)
-    if (empty($acao)) {
-        $jsonBruto = file_get_contents('php://input');
-        $dadosJson = json_decode($jsonBruto, true);
-        
-        if (is_array($dadosJson) && isset($dadosJson['acao'])) {
-            $acao = $dadosJson['acao'];
-            // Mescla os dados do JSON no $_POST para o resto do código funcionar igual
-            $_POST = array_merge($_POST, $dadosJson);
+            case 'salvar_lote':
+                return $this->atomic(function() {
+                    return $this->service->salvarLote($this->params);
+                });
+
+            case 'remover':
+                return $this->atomic(function() {
+                    return $this->service->remover(
+                        $this->params['id_processo'] ?? '', 
+                        $this->params['cod_fornecedor'] ?? ''
+                    );
+                });
+
+            default:
+                throw new Exception("Ação desconhecida: '$acao'");
         }
     }
-    // ------------------------------------
-
-    if (empty($acao)) {
-        throw new Exception("Nenhuma ação recebida pelo servidor.");
-    }
-
-    switch ($acao) {
-        // --- LEITURA (Sem Transaction) ---
-        case 'listar':
-            echo json_encode($service->listarParaDatatable($_GET));
-            break;
-
-        // --- ESCRITA (Com Transaction) ---
-        case 'salvar_lote':
-        case 'remover':
-            $pdo->beginTransaction();
-            try {
-                $res = [];
-                
-                if ($acao === 'salvar_lote') {
-                    $res = $service->salvarLote($_POST);
-                } 
-                elseif ($acao === 'remover') {
-                    // Garante a leitura correta dos parâmetros
-                    $idProc = $_POST['id_processo'] ?? '';
-                    $codForn = $_POST['cod_fornecedor'] ?? '';
-                    $res = $service->remover($idProc, $codForn);
-                }
-
-                $pdo->commit();
-                echo json_encode($res);
-
-            } catch (Exception $ex) {
-                $pdo->rollBack();
-                throw $ex;
-            }
-            break;
-
-        default:
-            throw new Exception("Ação desconhecida: '$acao'");
-    }
-
-} catch (Exception $e) {
-    if (isset($pdo) && $pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    // Retorna erro 500 com JSON explicativo para o Alert do Vue pegar
-    http_response_code(500);
-    echo json_encode(['erro' => $e->getMessage()]);
 }
+
+// Inicialização
+$controller = new FornecedoresController($pdo, $connSenior);
+$controller->handleRequest();

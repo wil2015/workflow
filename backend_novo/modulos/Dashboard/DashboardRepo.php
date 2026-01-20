@@ -1,17 +1,14 @@
 <?php
-class DashboardRepo {
-    private $pdo;
+require_once __DIR__ . '/../../core/BaseRepository.php';
 
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
-    }
-
+class DashboardRepo extends BaseRepository
+{
+    // Não precisa de __construct nem propriedades
+    
     public function buscarFluxosAtivos() {
-        // MANTENDO A COMPATIBILIDADE COM O VUE LEGADO
-        // O Vue pede: fluxo.fluxo_id, fluxo.nome_do_fluxo, fluxo.arquivo_xml
         $sql = "SELECT 
-                    id_fluxo_definicao AS id,        -- Para o :key do Vue
-                    id_fluxo_definicao AS fluxo_id,  -- Para o link (fluxo_id=...)
+                    id_fluxo_definicao AS id,
+                    id_fluxo_definicao AS fluxo_id,
                     nome_do_fluxo, 
                     arquivo_xml 
                 FROM nome_do_fluxo 
@@ -19,13 +16,10 @@ class DashboardRepo {
                   AND id_fluxo_definicao IS NOT NULL
                 ORDER BY nome_do_fluxo ASC";
         
-        $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+        return $this->pdo->query($sql)->fetchAll();
     }
 
     public function buscarInstanciasRecentes() {
-        // MANTENDO A COMPATIBILIDADE COM O VUE LEGADO
-        // O Vue pede: estatus_atual (com 'e'), id_processo_senior
         $sql = "SELECT 
                     p.id, 
                     p.data_inicio, 
@@ -36,7 +30,6 @@ class DashboardRepo {
                 INNER JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao
                 ORDER BY p.id DESC"; 
         
-        $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+        return $this->pdo->query($sql)->fetchAll();
     }
 }

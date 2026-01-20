@@ -1,51 +1,35 @@
 <?php
-require '../../db_conexao.php'; // $pdo
-require '../../db_senior.php';  // $connSenior
+require_once __DIR__ . '/../../core/BaseController.php';
+require_once __DIR__ . '/GradeComparativaService.php';
 
-require 'GradeComparativaService.php';
+class GradeComparativaController extends BaseController
+{
+    public function __construct($pdo, $connSenior)
+    {
+        parent::__construct($pdo, $connSenior);
+        $this->service = new GradeComparativaService($pdo, $connSenior);
+    }
 
-header('Content-Type: application/json; charset=utf-8');
+    protected function executarAcao(string $acao)
+    {
+        switch ($acao) {
+            case 'carregar_grade':
+                return $this->service->montarGradeParaFront($this->params['instance_id'] ?? 0);
 
-try {
-    $service = new GradeComparativaService($pdo, $connSenior); 
-    
-    // Blindagem JSON/POST
-    $acao = $_REQUEST['acao'] ?? '';
-    if (empty($acao)) {
-        $json = json_decode(file_get_contents('php://input'), true);
-        if ($json && isset($json['acao'])) {
-            $acao = $json['acao'];
-            $_POST = array_merge($_POST, $json);
+            case 'consolidar_vencedores':
+                return $this->atomic(function() {
+                    $id = $this->params['id_processo'] ?? 0;
+                    $ofertas = $this->params['ofertas'] ?? [];
+                    if (!is_array($ofertas)) $ofertas = [];
+                    
+                    return $this->service->consolidarProcesso($id, $ofertas);
+                });
+
+            default:
+                throw new Exception("Ação desconhecida: '$acao'");
         }
     }
-
-    switch ($acao) {
-        case 'carregar_grade':
-            $dados = $service->montarGradeParaFront($_GET['instance_id'] ?? 0);
-            echo json_encode($dados);
-            break;
-
-        case 'consolidar_vencedores':
-            $pdo->beginTransaction();
-            try {
-	                $id = $_POST['id_processo'] ?? 0;
-	                $ofertas = $_POST['ofertas'] ?? [];
-	                if (!is_array($ofertas)) $ofertas = [];
-	                $res = $service->consolidarProcesso($id, $ofertas);
-                $pdo->commit();
-                echo json_encode($res);
-            } catch (Exception $ex) {
-                $pdo->rollBack();
-                throw $ex;
-            }
-            break;
-
-        default:
-            throw new Exception("Ação desconhecida no módulo GradeComparativa: '$acao'");
-    }
-
-} catch (Exception $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-    http_response_code(500);
-    echo json_encode(['erro' => $e->getMessage()]);
 }
+
+$controller = new GradeComparativaController($pdo, $connSenior);
+$controller->handleRequest();

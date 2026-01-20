@@ -1,18 +1,23 @@
 <?php
-require_once 'DashboardRepo.php';
+require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/DashboardRepo.php';
 
-class DashboardService {
+class DashboardService extends BaseService
+{
     private $repo;
 
-    public function __construct($pdo) {
+    public function __construct($pdo)
+    {
+        // Passa null pois Dashboard não usa Senior
+        parent::__construct($pdo, null);
         $this->repo = new DashboardRepo($pdo);
     }
 
-    public function carregarHome() {
+    public function carregarHome()
+    {
         $fluxos = $this->repo->buscarFluxosAtivos();
         $instancias = $this->repo->buscarInstanciasRecentes();
 
-        // Tratamento de Dados (Para não sujar o Vue)
         $fluxos = array_map(function($f) {
             $f['cor_ui'] = $this->getCorPorId($f['id']);
             return $f;
@@ -29,7 +34,8 @@ class DashboardService {
         ];
     }
 
-    private function getCorPorId($id) {
+    private function getCorPorId($id)
+    {
         $cores = ['#007bff', '#6610f2', '#e83e8c', '#fd7e14', '#28a745', '#20c997'];
         return $cores[$id % count($cores)];
     }
