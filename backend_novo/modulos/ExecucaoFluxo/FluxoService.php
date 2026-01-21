@@ -20,24 +20,21 @@ class FluxoService extends BaseService
             return ['erro' => "Processo #$idInstancia não encontrado."];
         }
 
-        // --- 1. TRATAMENTO ID/ANO ---
+        // --- TRATAMENTO ID/ANO ---
         $instancia['id_visual'] = $instancia['id'] . '/' . ($instancia['ano_do_processo'] ?? date('Y'));
         
-        // --- 2. TRATAMENTO DE DATAS (Dia/Mês/Ano) ---
+        // --- TRATAMENTO DE DATAS (Dia/Mês/Ano) ---
         $dtCot = $instancia['data_esperada_da_cotacao'];
         $dtRec = $instancia['data_esperada_do_recebimento'];
         
         $instancia['datas_editaveis'] = [
-            // ISO (YYYY-MM-DD): Obrigatório para o input type="date" funcionar
             'cotacao_iso' => $dtCot, 
             'recebimento_iso' => $dtRec,
-
-            // FORMATADO (DD/MM/YYYY): Para exibir como texto simples
             'cotacao_fmt' => $dtCot ? date('d/m/Y', strtotime($dtCot)) : '-',
             'recebimento_fmt' => $dtRec ? date('d/m/Y', strtotime($dtRec)) : '-'
         ];
 
-        // --- LÓGICA BPMN ---
+        // XML
         $nomeArquivo = !empty($instancia['arquivo_xml']) ? $instancia['arquivo_xml'] : 'compra_direta.xml';
         $caminhoCompleto = $this->pathPublic . '/' . $nomeArquivo;
         
@@ -60,6 +57,7 @@ class FluxoService extends BaseService
         ];
     }
 
+    // --- SALVAR DATAS (COM VALIDAÇÕES) ---
     public function salvarDatasPrevisao($dados) {
         $id = $dados['id_processo'] ?? null;
         $dtCot = $dados['data_cotacao'] ?? null;     
@@ -67,15 +65,34 @@ class FluxoService extends BaseService
 
         if (!$id) throw new Exception("ID do processo não informado.");
         
+        // Tratamento para salvar NULL se vier vazio
         if ($dtCot === '') $dtCot = null;
         if ($dtRec === '') $dtRec = null;
+
+        // --- VALIDAÇÃO 1: Datas não podem ser no passado ---
+        $hoje = date('Y-m-d'); // Data atual do servidor (sem hora)
+
+        if ($dtCot && $dtCot < $hoje) {
+            throw new Exception("Erro: A Data de Cotação não pode ser menor que hoje (" . date('d/m/Y') . ").");
+        }
+
+        if ($dtRec && $dtRec < $hoje) {
+            throw new Exception("Erro: A Data de Entrega não pode ser menor que hoje (" . date('d/m/Y') . ").");
+        }
+
+        // --- VALIDAÇÃO 2: Entrega deve ser >= Cotação ---
+        if ($dtCot && $dtRec) {
+            if ($dtRec < $dtCot) {
+                throw new Exception("Erro Inconsistente: A Data de Entrega não pode ser menor que a Data de Cotação.");
+            }
+        }
 
         $this->repo->atualizarDatasPrevisao($id, $dtCot, $dtRec);
 
         return ['sucesso' => true, 'msg' => 'Datas atualizadas com sucesso!'];
     }
 
-    // --- Outros Métodos (Mantidos originais resumidos) ---
+    // --- Outros Métodos (Mantidos iguais) ---
 
     public function vincularItens($dados) {
         $idFluxo = $dados['id_fluxo_definicao'] ?? 1;
