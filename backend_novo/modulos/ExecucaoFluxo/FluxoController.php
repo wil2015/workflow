@@ -1,67 +1,45 @@
 <?php
 require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/FluxoService.php';
+require_once __DIR__ . '/Factory/FluxoFactory.php';
+require_once __DIR__ . '/DTO/SalvarDatasDTO.php';
 
 class FluxoController extends BaseController
 {
     /** @var FluxoService */
     protected $service;
 
+    // Construtor limpo, delega a criação para a Factory
     public function __construct($pdo, $connSenior)
     {
-        if (!isset($connSenior)) throw new Exception("Conexão Senior necessária.");
+        // Passa para o pai apenas para manter compatibilidade de sistema legado
         parent::__construct($pdo, $connSenior);
-        $this->service = new FluxoService($pdo, $connSenior);
+        
+        // FACTORY PATTERN: Criação do serviço centralizada
+        $this->service = FluxoFactory::criarService($pdo, $connSenior);
     }
 
     protected function executarAcao(string $acao)
     {
         switch ($acao) {
-            case 'ler_tarefa':
-                $id = $this->params['id_instancia'] ?? null;
-                if (!$id) throw new Exception("ID não informado");
-                return $this->service->carregarPassoAtual($id);
+            // ... [Outros cases] ...
 
             case 'salvar_datas':
                 return $this->atomic(function() {
-                    return $this->service->salvarDatasPrevisao($this->params);
+                    // DTO PATTERN: Transforma o array solto em Objeto Tipado
+                    $dto = new SalvarDatasDTO($this->params);
+                    
+                    return $this->service->salvarDatasPrevisao($dto);
                 });
 
-            case 'vincular':
-                return $this->atomic(function() {
-                    return $this->service->vincularItens($this->params);
-                });
+            // ... [Outros cases] ...
             
-            // --- CORREÇÃO AQUI ---
-            // Seu frontend antigo manda 'listar_solicitacoes', então vamos aceitar isso
-            case 'listar_solicitacoes': 
-            case 'listar_itens_senior': // Mantemos os dois por compatibilidade
-                return $this->service->listarSolicitacoesSenior($_REQUEST);
-
-            case 'remover_item':
-                return $this->atomic(function() {
-                    $id = $this->params['id'] ?? 0;
-                    $num = $this->params['num'] ?? 0;
-                    $seq = $this->params['seq'] ?? 0;
-                    return $this->service->removerItem($id, $num, $seq);
-                });
-
-            case 'cancelar_processo':
-                return $this->atomic(function() {
-                    $id = $this->params['id'] ?? 0;
-                    return $this->service->cancelarProcesso($id);
-                });
-
-            case 'dashboard_data':
-                return $this->service->carregarDadosDashboard();
-
             default:
                 throw new Exception("Ação desconhecida: " . $acao);
         }
     }
 }
 
-// Inicialização
+// Inicialização (Mantida compatível com seu index.php)
 try {
     $controller = new FluxoController($pdo, $connSenior);
     $controller->handleRequest();

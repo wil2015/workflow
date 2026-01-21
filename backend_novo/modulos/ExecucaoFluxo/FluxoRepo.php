@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../../core/BaseRepository.php';
+// Importa o Query Object
+require_once __DIR__ . '/Query/ListarSolicitacoesQuery.php';
 
 class FluxoRepo extends BaseRepository
 {
@@ -9,85 +11,46 @@ class FluxoRepo extends BaseRepository
 
     public function buscarQuantidadeSenior($numSol, $seqSol) {
         if (!$this->connSenior) return 1.0;
-
         $sql = "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
-        
         $stmt = $this->connSenior->prepare($sql);
         $stmt->execute([$numSol, $seqSol]);
-        
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['qtdsol'] : 1.0;
     }
 
+    // --- AQUI ESTÁ A MUDANÇA (QUERY OBJECT) ---
     public function buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados) {
         $this->checkSenior();
 
-        $caseParts = [];
-        if (!empty($meusItens))  $caseParts[] = "WHEN (" . implode(" OR ", $meusItens) . ") THEN 2";
-        if (!empty($bloqueados)) $caseParts[] = "WHEN (" . implode(" OR ", $bloqueados) . ") THEN 1";
-        
-        $colunaPeso = empty($caseParts) ? "0" : "CASE " . implode(" ", $caseParts) . " ELSE 0 END";
-        
-        $filtroStatus = "sitsol IN (1, 2)"; 
-        $todosEmUso = array_merge($meusItens, $bloqueados);
-        if (!empty($todosEmUso)) {
-            $filtroStatus = "($filtroStatus OR (" . implode(" OR ", $todosEmUso) . "))";
-        }
+        // 1. Instancia o especialista (Query Object)
+        $query = new ListarSolicitacoesQuery($this->connSenior);
 
-        $where = "WHERE $filtroStatus";
-        $sqlParams = [];
+        // 2. Configura as regras (Bloqueios, Cores, Status)
+        $query->configurarRegras($meusItens, $bloqueados);
 
-        if ($search) {
-            $where .= " AND (cplpro LIKE ? OR CAST(numsol AS VARCHAR(20)) LIKE ? OR numprj LIKE ?)";
-            $termo = "%$search%";
-            $sqlParams = [$termo, $termo, $termo];
-        }
+        // 3. Aplica o filtro de texto do usuário
+        $query->aplicarBusca($search);
 
-        $sql = "SELECT codemp, numsol, seqsol, cplpro, qtdsol, presol, unimed, numprj, datsol, 
-                $colunaPeso as peso_ordenacao
-                FROM Sapiens.sapiens.e405sol $where 
-                ORDER BY $campoOrdenacao $dirSQL
-                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        
-        $stmt = $this->connSenior->prepare($sql);
-
-        $i = 1;
-        foreach ($sqlParams as $val) $stmt->bindValue($i++, $val);
-        $stmt->bindValue($i++, (int)$start, PDO::PARAM_INT);
-        $stmt->bindValue($i++, (int)$length, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmtTotal = $this->connSenior->prepare("SELECT COUNT(*) as T FROM Sapiens.sapiens.e405sol WHERE $filtroStatus");
-        $stmtTotal->execute($sqlParams);
-        $total = $stmtTotal->fetchColumn();
-
-        return ['dados' => $dados, 'total' => $total];
+        // 4. Manda executar e retorna o resultado
+        return $query->executar($start, $length, $campoOrdenacao, $dirSQL);
     }
+    // ------------------------------------------
 
-    // =========================================================================
-    //  MÉTODOS MYSQL (Aplicação)
-    // =========================================================================
-
-    // --- LEITURA ---
-
+    // ... [MANTENHA OS OUTROS MÉTODOS MYSQL IGUAIS ABAIXO] ...
+    // getInstanciaCompleta, criarProcesso, atualizarDatasPrevisao, etc.
+    // (O restante do arquivo continua igual ao que te passei antes, 
+    // só mudamos a parte do Senior acima).
+    
     public function getInstanciaCompleta($id) {
-        // Traz todas as colunas (*), incluindo ano_do_processo e as datas novas
-        $sql = "SELECT 
-                    p.*, 
-                    d.arquivo_xml, 
-                    d.nome_do_fluxo, 
-                    d.id_fluxo_definicao 
+        $sql = "SELECT p.*, d.arquivo_xml, d.nome_do_fluxo, d.id_fluxo_definicao 
                 FROM processos_instancia p
                 INNER JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao
                 WHERE p.id = :id";
-        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
+    
     public function buscarIdPorSolicitacao($numSol) {
         $stmt = $this->pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
         $stmt->execute([$numSol]);
@@ -103,50 +66,32 @@ class FluxoRepo extends BaseRepository
     }
 
     public function listarTodosProcessos() {
-        $sql = "SELECT 
-                    p.id, p.data_inicio, p.status_atual, p.id_processo_senior, d.nome_do_fluxo 
+        $sql = "SELECT p.id, p.data_inicio, p.status_atual, p.id_processo_senior, d.nome_do_fluxo 
                 FROM processos_instancia p 
                 LEFT JOIN nome_do_fluxo d ON p.id_fluxo_definicao = d.id_fluxo_definicao 
                 ORDER BY p.id DESC LIMIT 50";
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // --- ESCRITA (SQL EXPLÍCITO) ---
-
     public function criarProcesso($numSol, $idFluxo) {
-        $sql = "INSERT INTO processos_instancia 
-                    (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
-                VALUES 
-                    (:num, :num, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
-        
+        $sql = "INSERT INTO processos_instancia (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
+                VALUES (:num, :num, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':num' => $numSol, ':fluxo' => $idFluxo]);
         return $this->pdo->lastInsertId();
     }
 
     public function adicionarItem($idProcesso, $numSol, $seqSol, $qtd) {
-        $sql = "INSERT IGNORE INTO processos_itens 
-                    (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) 
-                VALUES 
-                    (:id, :num, :seq, :qtd)";
-                    
+        $sql = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) 
+                VALUES (:id, :num, :seq, :qtd)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([
-            ':id'  => $idProcesso, 
-            ':num' => $numSol, 
-            ':seq' => $seqSol, 
-            ':qtd' => $qtd
-        ]);
+        $stmt->execute([':id' => $idProcesso, ':num' => $numSol, ':seq' => $seqSol, ':qtd' => $qtd]);
         return $stmt->rowCount() > 0;
     }
 
     public function inicializarCotacao($idProcesso, $numSol, $seqSol) {
-        $sql = "INSERT IGNORE INTO licitacao_itens_ofertados 
-                    (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
-                SELECT ?, ?, ?, id_fornecedor_senior, NULL 
-                FROM licitacao_participantes 
-                WHERE id_processo_instancia = ?";
-        
+        $sql = "INSERT IGNORE INTO licitacao_itens_ofertados (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
+                SELECT ?, ?, ?, id_fornecedor_senior, NULL FROM licitacao_participantes WHERE id_processo_instancia = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$idProcesso, $numSol, $seqSol, $idProcesso]);
     }
@@ -164,7 +109,6 @@ class FluxoRepo extends BaseRepository
         $this->pdo->prepare("DELETE FROM processos_instancia WHERE id = :id")->execute($params);
     }
 
-    // --- NOVO: ATUALIZAÇÃO DE DATAS ---
     public function atualizarDatasPrevisao($idProcesso, $dtCotacao, $dtRecebimento) {
         $sql = "UPDATE processos_instancia 
                 SET 
