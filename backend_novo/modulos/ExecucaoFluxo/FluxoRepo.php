@@ -18,29 +18,21 @@ class FluxoRepo extends BaseRepository
         return $row ? (float)$row['qtdsol'] : 1.0;
     }
 
-    // --- AQUI ESTÁ A MUDANÇA (QUERY OBJECT) ---
+    // --- USO DO QUERY OBJECT ---
     public function buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados) {
         $this->checkSenior();
 
-        // 1. Instancia o especialista (Query Object)
         $query = new ListarSolicitacoesQuery($this->connSenior);
-
-        // 2. Configura as regras (Bloqueios, Cores, Status)
         $query->configurarRegras($meusItens, $bloqueados);
-
-        // 3. Aplica o filtro de texto do usuário
         $query->aplicarBusca($search);
 
-        // 4. Manda executar e retorna o resultado
         return $query->executar($start, $length, $campoOrdenacao, $dirSQL);
     }
-    // ------------------------------------------
 
-    // ... [MANTENHA OS OUTROS MÉTODOS MYSQL IGUAIS ABAIXO] ...
-    // getInstanciaCompleta, criarProcesso, atualizarDatasPrevisao, etc.
-    // (O restante do arquivo continua igual ao que te passei antes, 
-    // só mudamos a parte do Senior acima).
-    
+    // =========================================================================
+    //  MÉTODOS MYSQL (Aplicação)
+    // =========================================================================
+
     public function getInstanciaCompleta($id) {
         $sql = "SELECT p.*, d.arquivo_xml, d.nome_do_fluxo, d.id_fluxo_definicao 
                 FROM processos_instancia p
@@ -50,7 +42,7 @@ class FluxoRepo extends BaseRepository
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     public function buscarIdPorSolicitacao($numSol) {
         $stmt = $this->pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
         $stmt->execute([$numSol]);
@@ -72,6 +64,8 @@ class FluxoRepo extends BaseRepository
                 ORDER BY p.id DESC LIMIT 50";
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // --- ESCRITA ---
 
     public function criarProcesso($numSol, $idFluxo) {
         $sql = "INSERT INTO processos_instancia (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 

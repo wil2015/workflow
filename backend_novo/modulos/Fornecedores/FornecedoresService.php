@@ -19,31 +19,18 @@ class FornecedoresService extends BaseService
         $length      = (int)($params['length'] ?? 10);
         $search      = $params['search']['value'] ?? '';
 
+        // 1. Busca IDs que já estão no processo para marcá-los visualmente e ordenar
         $idsVinculados = $instance_id ? $this->repo->getIdsVinculados($instance_id) : [];
 
-        $condicao = "WHERE sitfor = 'A'";
-        $sqlParams = [];
-        if (!empty($search)) {
-            $condicao .= " AND (nomfor LIKE ? OR cgccpf LIKE ? OR CAST(codfor AS VARCHAR) LIKE ?)";
-            $sqlParams = ["%$search%", "%$search%", "%$search%"];
-        }
+        // 2. Busca no Senior usando o método limpo do Repo (que usa o Query Object)
+        $resultado = $this->repo->buscarFornecedoresComFiltros($start, $length, $search, $idsVinculados);
 
-        $orderBy = !empty($idsVinculados) 
-            ? "CASE WHEN codfor IN (" . implode(',', array_map('intval', $idsVinculados)) . ") THEN 1 ELSE 0 END DESC, nomfor ASC"
-            : "nomfor ASC";
-
-        $totalRecords = $this->repo->buscarTotalSenior("WHERE sitfor = 'A'", []);
-        $totalFiltered = !empty($search) ? $this->repo->buscarTotalSenior($condicao, $sqlParams) : $totalRecords;
-        
-        $rawSenior = $this->repo->buscarFornecedoresSenior($condicao, $orderBy, $start, $length, $sqlParams);
-
+        // 3. Formata para o Front
         $data = [];
         $mapaVinculados = array_fill_keys($idsVinculados, true);
 
-        foreach ($rawSenior as $row) {
+        foreach ($resultado['dados'] as $row) {
             $cod = (int)$row['codfor'];
-            
-            // USO DA HERANÇA AQUI
             $nome   = $this->utf8($row['nomfor']);
             $cidade = $this->utf8($row['cidfor']);
             $uf     = $this->utf8($row['sigufs']);
@@ -58,7 +45,12 @@ class FornecedoresService extends BaseService
             ];
         }
 
-        return ["draw" => (int)($params['draw'] ?? 1), "recordsTotal" => $totalRecords, "recordsFiltered" => $totalFiltered, "data" => $data];
+        return [
+            "draw" => (int)($params['draw'] ?? 1), 
+            "recordsTotal" => $resultado['total'], 
+            "recordsFiltered" => $resultado['total'], 
+            "data" => $data
+        ];
     }
 
     public function salvarLote($dados)
@@ -72,6 +64,7 @@ class FornecedoresService extends BaseService
             $forn = json_decode($jsonItem, true);
             if (!$forn) continue;
 
+            // Mantivemos a lógica de limpeza de nome aqui, pois é regra de negócio
             $nomeLimpo = $this->limparNomeNuclear($forn['nome'] ?? '');
             if (empty($nomeLimpo)) $nomeLimpo = "FORN " . $forn['cod'];
 
@@ -91,7 +84,6 @@ class FornecedoresService extends BaseService
     private function limparNomeNuclear($string)
     {
         if (empty($string)) return "";
-        // Reutiliza o método utf8 do pai
         $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $this->utf8($string));
         $limpo = preg_replace('/[^a-zA-Z0-9 ]/', '', $ascii);
         return strtoupper(trim(preg_replace('/\s+/', ' ', $limpo)));
