@@ -14,16 +14,16 @@ class AutorizacaoCompraController extends BaseController
     protected function executarAcao(string $acao)
     {
         switch ($acao) {
-            // Gera os PDFs, Salva no Disco e Retorna os Links
+            // Caso de Uso: O usuário clica em "Gerar Autorização" na tarefa do BPMN
             case 'gerar_autorizacoes':
                 return $this->atomic(function() {
                     return $this->service->gerarDocumentosOficiais(
                         $this->params['instance_id'] ?? 0,
-                        $this->params['id_usuario'] ?? 1 // ID do usuário logado
+                        $this->params['id_usuario'] ?? 0
                     );
                 });
 
-            // Lista os documentos já gerados para este processo
+            // Caso de Uso: O visualizador busca a lista de documentos já gerados para exibir na tela
             case 'listar_documentos':
                 return $this->service->listarDocumentosGerados($this->params['instance_id'] ?? 0);
 
@@ -33,6 +33,5 @@ class AutorizacaoCompraController extends BaseController
     }
 }
 
-// Inicialização padrão
 $controller = new AutorizacaoCompraController($pdo, $connSenior);
 $controller->handleRequest();

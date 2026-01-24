@@ -1,8 +1,8 @@
 <?php
 // Supondo que DocumentoBase e HtmlBuilder estejam no Core
-require_once __DIR__ . '/../../core/Documentos/Engine/DocumentoBase.php';
-require_once __DIR__ . '/../../core/Documentos/Engine/HtmlBuilder.php';
 
+require_once __DIR__ . '/../Engine/DocumentoBase.php';
+require_once __DIR__ . '/../Engine/HtmlBuilder.php';
 class AutorizacaoCompraDoc extends DocumentoBase {
 
     protected function montarCorpo(): string {

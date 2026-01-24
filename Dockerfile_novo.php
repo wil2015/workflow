@@ -1,56 +1,37 @@
-FROM php:7.1-apache
+FROM php:8.3-apache
 
-# --- 1. CORREÇÃO DOS REPOSITÓRIOS DEBIAN (FIX 404) ---
-RUN echo "deb http://archive.debian.org/debian/ buster main" > /etc/apt/sources.list && \
-    echo "deb http://archive.debian.org/debian/ buster-updates main" >> /etc/apt/sources.list && \
-    echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list || true
-
-RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list || true && \
-    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list || true && \
-    sed -i '/stretch-updates/d' /etc/apt/sources.list || true
-
-# --- 2. INSTALA DEPENDÊNCIAS BÁSICAS E GNUMPG (Para chaves da Microsoft) ---
-RUN apt-get -o Acquire::Check-Valid-Until=false update && \
-    apt-get -o Acquire::Check-Valid-Until=false install -y \
+# --- 1. DEPENDÊNCIAS BÁSICAS ---
+RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zlib1g-dev \
     libzip-dev \
     unzip \
     gnupg2 \
     apt-transport-https \
+    curl \
     $PHPIZE_DEPS
 
-# --- 3. ADICIONA REPOSITÓRIO DA MICROSOFT (SQL SERVER) ---
-# Adiciona a chave e o repositório do Debian 10 (Buster)
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-RUN curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list
+# --- 2. ADICIONA REPOSITÓRIO DA MICROSOFT (SQL SERVER) ---
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+RUN curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list
 
-# --- 4. INSTALA O DRIVER ODBC DA MICROSOFT ---
-# ACCEPT_EULA=Y aceita a licença automaticamente
-RUN apt-get -o Acquire::Check-Valid-Until=false update && \
-    ACCEPT_EULA=Y apt-get -o Acquire::Check-Valid-Until=false install -y \
-    msodbcsql17 \
-    unixodbc-dev
+# --- 3. INSTALA O DRIVER ODBC 18 E PHP EXTENSIONS ---
+RUN apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
-# --- 5. INSTALA EXTENSÕES PHP ---
-# Nativas
 RUN docker-php-ext-install pdo_mysql xml zip
 
-# SQL Server (Versão 5.6.1 é a última compatível com PHP 7.1)
-RUN pecl install sqlsrv-5.6.1 pdo_sqlsrv-5.6.1 \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# Instala versões modernas do sqlsrv e pdo_sqlsrv (sem travas de versão antiga)
+RUN pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
-# Xdebug (Versão 2.9.8 para PHP 7.1)
-RUN pecl install xdebug-2.9.8 \
-    && docker-php-ext-enable xdebug
-
-# --- 6. CONFIGURAÇÕES FINAIS ---
-RUN echo "xdebug.remote_enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.remote_autostart=1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.remote_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.remote_port=9000" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+# --- 4. XDEBUG 3 ---
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 RUN a2enmod rewrite
-COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
