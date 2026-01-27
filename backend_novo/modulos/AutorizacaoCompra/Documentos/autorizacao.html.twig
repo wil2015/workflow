@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; }
+        .titulo { color: #004085; border-bottom: 2px solid #004085; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { border: 1px solid #ccc; padding: 8px; }
+        th { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h2 class="titulo">Autorização de Compra #{{ id_autorizacao }}</h2>
+    
+    <p><strong>Fornecedor:</strong> {{ fornecedor_nome }}</p>
+    <p><strong>Processo:</strong> {{ numero_processo }}</p>
+    
+    <h3>Itens Autorizados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Qtd</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <td>{{ item.descricao }}</td>
+                <td>{{ item.quantidade }}</td>
+                <td>R$ {{ item.valor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
