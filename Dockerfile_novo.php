@@ -1,10 +1,14 @@
 FROM php:8.3-apache
 
 # --- 1. DEPENDÊNCIAS BÁSICAS ---
+# [ALTERADO] Adicionei libpng-dev, libjpeg-dev e libfreetype6-dev
 RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zlib1g-dev \
     libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     unzip \
     gnupg2 \
     apt-transport-https \
@@ -19,9 +23,11 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list > /etc/
 RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
-RUN docker-php-ext-install pdo_mysql xml zip
+# [ALTERADO] Configura e instala o GD junto com as outras extensões
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql xml zip
 
-# Instala versões modernas do sqlsrv e pdo_sqlsrv (sem travas de versão antiga)
+# Instala versões modernas do sqlsrv e pdo_sqlsrv
 RUN pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # --- 4. XDEBUG 3 ---
