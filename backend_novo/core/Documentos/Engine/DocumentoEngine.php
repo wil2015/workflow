@@ -1,15 +1,6 @@
 <?php
-// Arquivo: backend_novo/core/Documentos/Engine/DocumentoEngine.php
-
-// --- CORREÇÃO DE OURO ---
-// Garante que o Autoload do Composer esteja carregado, não importa quem chamou este arquivo.
-// __DIR__ = Engine
-// ../     = Documentos
-// ../../  = core
-// ../../../ = raiz (onde está a pasta vendor)
+// CARREGA O AUTOLOAD DO COMPOSER (Garante que Twig/mPDF funcionem)
 require_once __DIR__ . '/../../../vendor/autoload.php';
-
-// Importa a Interface
 require_once __DIR__ . '/../Interfaces/DocumentoInterface.php';
 
 use Twig\Environment;
@@ -23,39 +14,36 @@ class DocumentoEngine {
 
     public function __construct($mailer) {
         $this->mailer = $mailer;
-        // Caminho físico (ajuste se necessário)
+        // Caminho onde salva os PDFs
         $this->storageRoot = '/var/www/html/storage/docs'; 
     }
 
-    public function processar(DocumentoInterface $doc, $idProcesso, $emailDestino) {
-        // 1. Configura o Twig para ler a pasta DO MÓDULO
-        $caminhoArquivoTwig = $doc->getCaminhoTemplate();
+    // $enviarEmail = false por padrão para não travar se o SMTP falhar
+    public function processar(DocumentoInterface $doc, $idProcesso, $emailDestino = null, $enviarEmail = false) {
         
+        // 1. Configura Twig
+        $caminhoArquivoTwig = $doc->getCaminhoTemplate();
         if (!file_exists($caminhoArquivoTwig)) {
-            // Dica de Debug: Mostra onde ele tentou procurar
-            throw new Exception("Template Twig não encontrado: $caminhoArquivoTwig");
+            throw new Exception("Template não encontrado: $caminhoArquivoTwig");
         }
 
         $pastaDoModulo = dirname($caminhoArquivoTwig); 
         $nomeArquivo = basename($caminhoArquivoTwig);  
 
-        // AQUI OCORRIA O ERRO: Agora o FilesystemLoader será encontrado!
         $loader = new FilesystemLoader($pastaDoModulo);
         $twig = new Environment($loader);
 
-        // 2. Renderiza o HTML
+        // 2. Renderiza HTML
         $html = $twig->render($nomeArquivo, $doc->getDados());
 
-        // 3. Prepara diretórios
+        // 3. Cria Pastas
         $ano = date('Y');
         $tipoDoc = $doc->getNomePastaStorage();
         $pathDir = "{$this->storageRoot}/{$ano}/{$idProcesso}/{$tipoDoc}";
 
-        if (!is_dir($pathDir)) {
-            mkdir($pathDir, 0777, true);
-        }
+        if (!is_dir($pathDir)) mkdir($pathDir, 0777, true);
 
-        // 4. Gera o PDF com mPDF
+        // 4. Gera PDF (mPDF)
         $nomePdf = $doc->getNomeArquivoBase() . '_' . date('YmdHis') . '.pdf';
         $caminhoPdfCompleto = "{$pathDir}/{$nomePdf}";
 
@@ -63,15 +51,22 @@ class DocumentoEngine {
         $mpdf->WriteHTML($html);
         $mpdf->Output($caminhoPdfCompleto, \Mpdf\Output\Destination::FILE);
 
-        // 5. Envia o E-mail
-        $email = (new Email())
-            ->from('compras@unesp.br') 
-            ->to($emailDestino)
-            ->subject($doc->getAssunto())
-            ->html($html)
-            ->attachFromPath($caminhoPdfCompleto, 'Documento_Oficial.pdf');
+        // 5. Envio de E-mail (Opcional)
+        if ($enviarEmail && !empty($emailDestino)) {
+            try {
+                $email = (new Email())
+                    ->from('compras@unesp.br') 
+                    ->to($emailDestino)
+                    ->subject($doc->getAssunto())
+                    ->html($html)
+                    ->attachFromPath($caminhoPdfCompleto, 'Documento_Oficial.pdf');
 
-        $this->mailer->send($email);
+                $this->mailer->send($email);
+            } catch (Exception $e) {
+                // Loga erro mas não para o processo
+                error_log("Erro ao enviar email: " . $e->getMessage());
+            }
+        }
 
         return $caminhoPdfCompleto;
     }

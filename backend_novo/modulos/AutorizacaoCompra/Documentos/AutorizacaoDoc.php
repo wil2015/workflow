@@ -1,12 +1,4 @@
 <?php
-// Caminho: backend_novo/modulos/AutorizacaoCompra/Documentos/AutorizacaoDoc.php
-// Objetivo: Chegar em core/Documentos/Interfaces/DocumentoInterface.php
-
-// __DIR__ = Documentos
-// ../    = AutorizacaoCompra
-// ../../ = modulos
-// ../../../ = backend_novo
-
 require_once __DIR__ . '/../../../core/Documentos/Interfaces/DocumentoInterface.php';
 
 class AutorizacaoDoc implements DocumentoInterface {
@@ -17,11 +9,11 @@ class AutorizacaoDoc implements DocumentoInterface {
     }
 
     public function getAssunto() {
-        return "Autorização de Compra #" . $this->dados['id'];
+        return "Autorização de Compra - Processo " . ($this->dados['numero_processo'] ?? 'N/A');
     }
 
     public function getCaminhoTemplate() {
-        // O arquivo .twig está na mesma pasta que este arquivo .php
+        // Aponta para o arquivo na MESMA PASTA
         return __DIR__ . '/autorizacao.html.twig';
     }
 
@@ -34,6 +26,6 @@ class AutorizacaoDoc implements DocumentoInterface {
     }
 
     public function getNomeArquivoBase() {
-        return 'auth_' . $this->dados['id'];
+        return 'auth_' . ($this->dados['id_autorizacao'] ?? date('Ymd'));
     }
 }
