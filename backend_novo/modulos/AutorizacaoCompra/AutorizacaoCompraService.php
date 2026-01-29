@@ -1,9 +1,6 @@
 <?php
-// Carrega o Autoload (Importante para o erro Class not found)
-require_once __DIR__ . '/../../vendor/autoload.php';
-
 require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/AutorizacaoCompraRepo.php';
+require_once __DIR__ . '/AutorizacaoCompraRepo.php'; // Seu Repo Original
 
 // Engine e Documento
 require_once __DIR__ . '/../../core/Documentos/Engine/DocumentoEngine.php';
@@ -20,35 +17,35 @@ class AutorizacaoCompraService extends BaseService {
         $this->repo = new AutorizacaoCompraRepo($pdo, $connSenior);
     }
 
-    // Este método usa as funções ANTIGAS do Repo para preparar a NOVA Engine
+    // Este método é chamado pelo Controller
     public function gerarDocumentosOficiais($idProcesso, $idUsuario) {
         
-        // 1. Busca os itens "crus" (Função que sempre existiu)
+        // 1. Usa o método ANTIGO que retorna dados crus da grade
         $itensRaw = $this->repo->buscarItensVencedores($idProcesso);
 
         if (empty($itensRaw)) {
-             throw new Exception("Não existe cotação de fornecedores (Processo $idProcesso sem itens na grade).");
+             throw new Exception("Não existe cotação de fornecedores (Grade vazia).");
         }
 
-        // 2. Agrupa os dados aqui no Service (Como era feito antes)
+        // 2. Agrupa os dados aqui no Service (para não mexer no Repo)
         $agrupado = [];
         foreach ($itensRaw as $row) {
             $codForn = $row['id_fornecedor_senior'];
 
             if (!isset($agrupado[$codForn])) {
-                // Busca dados do fornecedor no Senior (Função que sempre existiu)
+                // Usa método ANTIGO de buscar dados do Senior
                 $dadosSenior = $this->repo->buscarDadosFornecedorSenior($codForn);
                 
                 $agrupado[$codForn] = [
                     'id_vencedor' => $codForn,
                     'nome'        => $dadosSenior['nomfor'] ?? "Fornecedor $codForn",
                     'cnpj'        => $dadosSenior['cgccpf'] ?? '',
-                    'email'       => $dadosSenior['intnet'] ?? '', 
+                    'email'       => $dadosSenior['intnet'] ?? null, 
                     'itens'       => []
                 ];
             }
 
-            // Busca detalhe do item no Senior (Função que sempre existiu)
+            // Usa método ANTIGO de detalhe do item
             $detalhe = $this->repo->buscarDetalheItemSenior($row['num_solicitacao'], $row['seq_solicitacao']);
             
             $agrupado[$codForn]['itens'][] = [
@@ -60,8 +57,8 @@ class AutorizacaoCompraService extends BaseService {
             ];
         }
 
-        // 3. Configura a Engine (A novidade entra aqui)
-        $dsn = 'smtp://usuario:senha@smtp.mailtrap.io:2525'; 
+        // 3. Configura a Engine (Dummy Mailer)
+        $dsn = 'smtp://null:null@localhost'; 
         $transport = Transport::fromDsn($dsn);
         $mailer = new Mailer($transport);
         $engine = new DocumentoEngine($mailer);
@@ -70,10 +67,9 @@ class AutorizacaoCompraService extends BaseService {
         $this->repo->limparDocumentosAnteriores($idProcesso, 'AUTORIZACAO_COMPRA');
         $logs = [];
 
-        // 4. Gera os documentos usando os dados agrupados
+        // 4. Loop de Geração
         foreach ($agrupado as $fornecedor) {
             
-            // Prepara dados para o Template
             $dadosParaTemplate = [
                 'id_autorizacao'  => $fornecedor['id_vencedor'],
                 'numero_processo' => $idProcesso . '/2026',
@@ -85,10 +81,10 @@ class AutorizacaoCompraService extends BaseService {
             $doc = new AutorizacaoDoc($dadosParaTemplate);
             
             try {
-                // Engine gera PDF
-                $caminhoPdf = $engine->processar($doc, $idProcesso, $fornecedor['email']);
+                // False = Não envia email, só gera PDF e Salva
+                $caminhoPdf = $engine->processar($doc, $idProcesso, $fornecedor['email'], false);
                 
-                // Registra no banco (Função que sempre existiu)
+                // Registra no banco para aparecer na tela
                 $meta = [
                     'caminho_relativo' => str_replace('/var/www/html', '', $caminhoPdf),
                     'nome_arquivo'     => basename($caminhoPdf),
@@ -105,6 +101,7 @@ class AutorizacaoCompraService extends BaseService {
         return ['sucesso' => true, 'logs' => $logs];
     }
     
+    // Método para listar (usado pelo Controller)
     public function listarDocumentosGerados($idProcesso) {
         return $this->repo->listarDocumentosPorProcesso($idProcesso);
     }
