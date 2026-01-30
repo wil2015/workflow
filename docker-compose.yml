@@ -69,5 +69,6 @@ services:
       - ./backend_novo:/var/www/html/backend
       # ADICIONE ESTA LINHA ABAIXO:
       - ./public:/var/www/html/public
+      - ./storage:/var/www/html/storage
     ports:
       - "8081:80"
