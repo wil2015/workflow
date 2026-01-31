@@ -19,7 +19,11 @@ export default defineConfig(({ mode }) => {
           // Cada frontend fala com seu respectivo backend
           target: env.VITE_API_URL || 'http://backend_legacy:80',
           changeOrigin: true,
-        }
+        },
+        '/backend': {
+        target: 'http://backend_new:80',
+        changeOrigin: true,
+      }
       }
     }
   };
