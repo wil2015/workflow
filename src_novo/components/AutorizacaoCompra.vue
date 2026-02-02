@@ -189,14 +189,25 @@ async function enviarEConcluir() {
     }
 }
 
+
 function montarLink(caminhoRelativo) {
     if (!caminhoRelativo) return '#';
-    let path = caminhoRelativo;
-    if (!path.startsWith('public') && !path.startsWith('http')) path = 'public/' + path;
-    if (path.startsWith('/')) path = path.substring(1);
+    
+    // 1. Remove barra inicial se houver (ex: "/storage" vira "storage")
+    let path = caminhoRelativo.replace(/^\//, '');
+    
+    // 2. CORREÇÃO: Se o caminho começar com "public/", removemos.
+    // O objetivo é que o link final fique limpo: "http://.../storage/docs/..."
+    if (path.startsWith('public/')) {
+        path = path.replace('public/', '');
+    }
+
+    // 3. Verifica se é link absoluto ou relativo
+    if (path.startsWith('http')) return path;
+    
+    // Retorna a URL base + o caminho limpo (ex: storage/docs/...)
     return BASE_APACHE + path;
 }
-
 function formatData(dt) { return dt ? new Date(dt).toLocaleString('pt-BR') : '-'; }
 function voltar() { window.history.back(); }
 </script>

@@ -70,7 +70,7 @@ services:
       # ADICIONE ESTA LINHA ABAIXO:
       - ./public:/var/www/html/public
       - ./storage:/var/www/html/storage
-      - ./site.conf:/etc/apache2/sites-enabled/000-default.conf
+      
     ports:
       - "8081:80"
     command: >

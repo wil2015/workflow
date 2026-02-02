@@ -23,9 +23,31 @@ class AutorizacaoCompraService extends BaseService
     }
 
     public function listarDocumentosGerados($idProcesso) {
-        return $this->repo->listarDocumentosPorProcesso($idProcesso);
-    }
+        // 1. Busca os dados brutos do banco
+        $docs = $this->repo->listarDocumentosPorProcesso($idProcesso);
+        
+        // 2. Itera para verificar a existência física de cada um
+        foreach ($docs as &$doc) {
+            $pathBanco = $doc['caminho_arquivo'];
+            
+            // Tenta higienizar o caminho para encontrar o arquivo físico em /var/www/html/
+            // Remove '/public/' inicial se houver, pois no container o root costuma ser /var/www/html/
+            // e a pasta storage está na raiz do projeto, não dentro de public (na estrutura física padrão).
+            $pathLimpo = str_replace(['/public/', 'public/'], '', $pathBanco);
+            $pathLimpo = ltrim($pathLimpo, '/');
+            
+            // Monta o caminho absoluto do servidor
+            $pathFisico = '/var/www/html/' . $pathLimpo;
 
+            // 3. Injeta a propriedade que o Vue espera
+            $doc['existe_fisicamente'] = file_exists($pathFisico);
+            
+            // Opcional: Debug para ver onde ele está procurando se der erro
+            // $doc['debug_path'] = $pathFisico; 
+        }
+        
+        return $docs;
+    }
     public function gerarDocumentosOficiais($idProcesso, $idUsuario) {
         $idProcesso = (int)$idProcesso;
         $itens = $this->repo->buscarItensVencedores($idProcesso);
