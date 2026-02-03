@@ -12,15 +12,16 @@ class GradeComparativaService extends BaseService
         $this->repo = new GradeComparativaRepo($pdo, $connSenior);
     }
 
-    // Helper seguro para evitar erro de "Method not found"
     private function safeUtf8($str) {
         if (method_exists($this, 'utf8')) {
             return $this->utf8($str);
         }
-        return mb_convert_encoding($str, 'UTF-8', 'ISO-8859-1'); // Fallback padrão
+        return mb_convert_encoding($str, 'UTF-8', 'ISO-8859-1');
     }
 
     public function montarGradeParaFront($idProcesso) {
+        // Mantém a lógica de visualização em tempo real (sem persistência)
+        // para o usuário ver o que está acontecendo antes de salvar.
         return $this->logicaDeMontagem((int)$idProcesso);
     }
 
@@ -29,72 +30,60 @@ class GradeComparativaService extends BaseService
         $idProcesso = (int)$idProcesso;
         if ($idProcesso <= 0) throw new Exception('ID do processo invalido.');
 
-        // 1. Atualiza justificativas
+        // 1. Atualiza justificativas e flags "Atende" no banco (licitacao_itens_ofertados)
+        // Isso é pré-requisito para a Procedure funcionar corretamente
         foreach (($ofertas ?: []) as $o) {
             $ofertaId = (int)($o['oferta_id'] ?? 0);
             if ($ofertaId <= 0) continue;
             
             $atende = !empty($o['atende']);
+            // Se atende, limpa justificativa, senão grava a justificativa truncada
             $just = $atende ? null : mb_substr(trim((string)($o['justificativa_da_recusa'] ?? '')), 0, 50);
             
             $this->repo->atualizarAtendeJustificativa($ofertaId, $atende, $just);
         }
 
-        // 2. Recalcula
-        $dados = $this->logicaDeMontagem($idProcesso);
-
-        // 3. Prepara gravação
-        $rowsParaGravar = [];
-        $linhas = isset($dados['linhas']) ? $dados['linhas'] : [];
-
-        foreach ($linhas as $linha) {
-            // Recupera quantidade (Corrigido Zeros)
-            $qtdItem = isset($linha['quantidade_raw']) ? (float)$linha['quantidade_raw'] : 0.0;
-            if ($qtdItem <= 0.0001) $qtdItem = 1.0; 
-
-            $celulas = isset($linha['celulas']) ? $linha['celulas'] : [];
+        // 2. Transação simplificada: Executa a Procedure
+        // A procedure já contém DELETE, INSERT e UPDATE do valor final
+        
+        $dadosFinais = $this->repo->executarEmTransacao(function() use ($idProcesso) {
             
-            foreach ($celulas as $fid => $c) {
-                if (isset($c['valor']) && (float)$c['valor'] > 0) {
-                    $valorUnitario = (float)$c['valor'];
-                    $status = isset($c['status']) ? $c['status'] : '';
-                    $isVencedor = ($status === 'winner' || $status === 'tie');
-                    
-                    $rowsParaGravar[] = [
-                        'id_fornecedor_senior' => (int)$fid,
-                        'id_item' => (int)$linha['id_item'],
-                        'quantidade' => $qtdItem,
-                        'valor_cotado' => $valorUnitario,
-                        'valor_total' => ($valorUnitario * $qtdItem),
-                        'vencedor' => $isVencedor ? 1 : 0
-                    ];
-                }
-            }
-        }
+            // A) Executa a lógica pesada no banco
+            $this->repo->executarProcedureConsolidacao($idProcesso);
 
-        // Variável local para closure
-        $repo = $this->repo;
-
-        // 4. Transação
-        return $this->repo->executarEmTransacao(function() use ($idProcesso, $dados, $rowsParaGravar, $repo) {
-            $totalFinal = (float)($dados['total_raw'] ?? 0);
-            $repo->limparEAtualizarTotal($idProcesso, $totalFinal);
-            $gravados = $repo->inserirLote($idProcesso, $rowsParaGravar);
+            // B) Busca os dados atualizados para retorno
+            $valorFinal = $this->repo->buscarValorFinalProcesso($idProcesso);
+            $qtdItens = $this->repo->contarItensGrade($idProcesso);
 
             return [
-                'sucesso' => true, 
-                'valor_gravado' => isset($dados['total_fmt']) ? $dados['total_fmt'] : '0,00', 
-                'itens_gravados' => $gravados
+                'valor_final' => (float)$valorFinal,
+                'itens_gravados' => (int)$qtdItens
             ];
         });
+
+        // 3. Retorno formatado para o Vue
+        return [
+            'sucesso' => true, 
+            'valor_gravado' => number_format($dadosFinais['valor_final'], 2, ',', '.'), 
+            'itens_gravados' => $dadosFinais['itens_gravados']
+        ];
     }
 
+    // Mantido para visualização do Grid no Frontend (GET)
     private function logicaDeMontagem($idProcesso)
     {
+        // ... (Mantenha o código original da logicaDeMontagem aqui intacto)
+        // Apenas para visualização em tela, não afeta a gravação do banco.
+        // O código original fornecido na pergunta para esta função estava correto
+        // para fins de exibição (renderização da tabela).
+        
+        // REPLICANDO O INICIO PARA CONTEXTO (Mantenha o resto da função original):
         $participantes = $this->repo->buscarParticipantes($idProcesso);
         $itens = $this->repo->buscarItensBasicos($idProcesso);
         $ofertasBrutas = $this->repo->buscarTodasOfertas($idProcesso);
-
+        
+        // ... (Restante da lógica original de logicaDeMontagem) ...
+        
         // Mapa
         $mapa = [];
         foreach ($ofertasBrutas as $o) {
@@ -125,14 +114,10 @@ class GradeComparativaService extends BaseService
 
         $linhas = [];
         $totalGeral = 0.0;
-
-        // Se $itens for false (erro no SQL), trata como array vazio
         if (!is_array($itens)) $itens = [];
 
         foreach ($itens as $item) {
             $chave = $item['num_solicitacao'] . '-' . $item['seq_solicitacao'];
-            
-            // Quantidade
             $qtdRaw = isset($item['quantidade']) ? (float)$item['quantidade'] : 0.0;
             $qtd = ($qtdRaw > 0) ? $qtdRaw : 1.0;
             
@@ -141,7 +126,6 @@ class GradeComparativaService extends BaseService
 
             $ofertasItem = isset($mapa[$chave]) ? $mapa[$chave] : [];
             
-            // Menor Preço
             $validos = [];
             foreach ($ofertasItem as $d) {
                 if (($d['valor'] > 0) && $d['atende']) $validos[] = $d['valor'];
@@ -153,17 +137,15 @@ class GradeComparativaService extends BaseService
                 $totalGeral += ($menor * $qtd);
             }
 
-            // Células
             $celulas = [];
             foreach ($participantes as $p) {
                 $pid = (int)$p['id'];
                 $d = isset($ofertasItem[$pid]) ? $ofertasItem[$pid] : null;
-                
                 $val = $d ? $d['valor'] : 0.0;
                 $atende = $d ? $d['atende'] : true;
                 $just = $d ? $d['justificativa'] : '';
-                
                 $status = 'empty';
+                
                 if ($val > 0) {
                     if (!$atende) {
                         $status = 'rejected';
@@ -190,7 +172,7 @@ class GradeComparativaService extends BaseService
                 'id_item' => (int)$item['id_item'],
                 'chave' => $chave,
                 'produto' => $nomeProduto,
-                'quantidade_raw' => $qtd, // Garante que a quantidade vá para o frontend/consolidação
+                'quantidade_raw' => $qtd,
                 'qtd_fmt' => number_format($qtd, 2, ',', '.'),
                 'melhor_fmt' => ($menor !== null) ? number_format($menor, 2, ',', '.') : '-',
                 'celulas' => $celulas,

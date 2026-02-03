@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../core/BaseRepository.php';
 class GradeComparativaRepo extends BaseRepository
 {
     // =========================================================================
-    // MÉTODOS DE LEITURA (Estes eram os que estavam faltando)
+    // MÉTODOS DE LEITURA 
     // =========================================================================
 
     public function buscarParticipantes($idProcesso) {
@@ -14,7 +14,6 @@ class GradeComparativaRepo extends BaseRepository
     }
 
     public function buscarItensBasicos($idProcesso) {
-        // Traz a quantidade do banco para o cálculo correto
         $stmt = $this->pdo->prepare("SELECT id AS id_item, num_solicitacao, seq_solicitacao, quantidade FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
         $stmt->execute([$idProcesso]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -37,49 +36,40 @@ class GradeComparativaRepo extends BaseRepository
     }
 
     // =========================================================================
-    // MÉTODOS DE ESCRITA (Consolidação e Bulk Insert)
+    // NOVOS MÉTODOS (Arquitetura via Stored Procedure)
     // =========================================================================
 
     public function atualizarAtendeJustificativa($ofertaId, $atende, $justificativa) {
+        // Mantemos este pois precisamos salvar a intenção do usuário antes de rodar a SP
         $stmt = $this->pdo->prepare("UPDATE licitacao_itens_ofertados SET atende = ?, justificativa_da_recusa = ? WHERE id = ?");
         $stmt->execute([$atende ? 1 : 0, $justificativa, $ofertaId]);
     }
 
-    public function limparEAtualizarTotal($idProcesso, $valorFinal) {
-        // Limpa a grade antiga
-        $stmtDel = $this->pdo->prepare("DELETE FROM grade_de_custos WHERE id_instancia_processo = ?");
-        $stmtDel->execute([$idProcesso]);
-
-        // Atualiza o total no cabeçalho
-        $stmtUpd = $this->pdo->prepare("UPDATE processos_instancia SET valor_final_processo = ? WHERE id = ?");
-        $stmtUpd->execute([$valorFinal, $idProcesso]);
+    /**
+     * Dispara a procedure que limpa a grade antiga, recalcula vencedores
+     * baseada nas flags 'atende' e insere os novos dados.
+     */
+    public function executarProcedureConsolidacao($idProcesso) {
+        // Chamada direta à procedure fornecida
+        $stmt = $this->pdo->prepare("CALL fundunesp_workflow.sp_consolidar_grade_custos_completa(?)");
+        $stmt->execute([$idProcesso]);
     }
 
-    public function inserirLote($idProcesso, $rows) {
-        if (empty($rows)) return 0;
-
-        $campos = [];
-        $valores = [];
-        foreach ($rows as $r) {
-            $campos[] = "(?, ?, ?, ?, ?, ?, ?)";
-            array_push($valores, 
-                $idProcesso, 
-                (int)$r['id_fornecedor_senior'], 
-                (int)$r['id_item'], 
-                (float)$r['quantidade'], 
-                (float)$r['valor_cotado'], 
-                (float)$r['valor_total'], 
-                (int)$r['vencedor']
-            );
-        }
-
-        $sql = "INSERT INTO grade_de_custos 
-                (id_instancia_processo, id_fornecedor_senior, id_item, quantidade, valor_cotado, valor_total, vencedor) 
-                VALUES " . implode(',', $campos);
-        
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($valores);
-        
-        return count($rows);
+    /**
+     * Busca o valor final já calculado pela procedure na tabela processos_instancia
+     */
+    public function buscarValorFinalProcesso($idProcesso) {
+        $stmt = $this->pdo->prepare("SELECT valor_final_processo FROM processos_instancia WHERE id = ?");
+        $stmt->execute([$idProcesso]);
+        return $stmt->fetchColumn(); 
+    }
+    
+    /**
+     * Conta quantos itens foram gerados na grade (para feedback visual)
+     */
+    public function contarItensGrade($idProcesso) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM grade_de_custos WHERE id_instancia_processo = ?");
+        $stmt->execute([$idProcesso]);
+        return $stmt->fetchColumn();
     }
 }

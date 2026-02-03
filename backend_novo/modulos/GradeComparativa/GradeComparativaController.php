@@ -12,14 +12,14 @@ class GradeComparativaController extends BaseController
 
     protected function executarAcao(string $acao)
     {
-        // BLINDAGEM: O try/catch agora captura erros fatais (Throwable)
         try {
             switch ($acao) {
                 case 'carregar_grade':
+                    // Apenas leitura/visualização, usa lógica PHP (logicaDeMontagem)
                     return $this->service->montarGradeParaFront($this->params['instance_id'] ?? 0);
 
                 case 'consolidar_vencedores':
-                    // Removemos a transação daqui, pois o Service já gerencia via BaseRepository
+                    // Escrita e Processamento: Usa a Procedure MySQL
                     $id = $this->params['id_processo'] ?? 0;
                     $ofertas = $this->params['ofertas'] ?? [];
                     if (!is_array($ofertas)) $ofertas = [];
@@ -30,11 +30,10 @@ class GradeComparativaController extends BaseController
                     throw new Exception("Ação desconhecida: '$acao'");
             }
         } catch (Throwable $e) {
-            // Retorna o erro real como JSON para o Vue conseguir ler
             return [
-                'erro' => 'ERRO PHP: ' . $e->getMessage(),
-                'arquivo' => $e->getFile(),
-                'linha' => $e->getLine()
+                'erro' => 'ERRO: ' . $e->getMessage(),
+                'arquivo' => $e->getFile(), // Opcional: remover em produção
+                'linha' => $e->getLine()    // Opcional: remover em produção
             ];
         }
     }
