@@ -12,7 +12,6 @@ class AutorizacaoCompraController extends BaseController
 
     protected function executarAcao(string $acao)
     {
-        // 1. INICIA O BUFFER (Segura qualquer output do PHP)
         ob_start();
 
         try {
@@ -21,6 +20,7 @@ class AutorizacaoCompraController extends BaseController
 
             switch ($acao) {
                 case 'gerar_autorizacoes':
+                    // A Service agora encapsula a chamada da Procedure + Geração de PDF
                     $resultado = $this->atomic(function() use ($idProcesso) {
                         return $this->service->gerarDocumentosOficiais(
                             $idProcesso, 
@@ -39,6 +39,7 @@ class AutorizacaoCompraController extends BaseController
                     break;
 
                 case 'listar_documentos':
+                    // Inclui a verificação física que corrigimos anteriormente
                     $resultado = $this->service->listarDocumentosGerados($idProcesso);
                     break;
 
@@ -46,14 +47,12 @@ class AutorizacaoCompraController extends BaseController
                     throw new Exception("Ação desconhecida: '$acao'");
             }
 
-            // 2. LIMPA A SUJEIRA E ENTREGA O JSON PURO
-            ob_end_clean(); // Joga fora Warnings e HTML quebrados
+            ob_end_clean(); 
             header('Content-Type: application/json');
             echo json_encode($resultado);
-            exit; // Mata o script aqui para garantir
+            exit;
 
         } catch (\Throwable $e) {
-            // 3. SE DER ERRO, LIMPA TAMBÉM E ENTREGA JSON DE ERRO
             ob_end_clean(); 
             http_response_code(400);
             header('Content-Type: application/json');
@@ -66,7 +65,6 @@ class AutorizacaoCompraController extends BaseController
         }
     }
 }
-
 // Inicialização
 $controller = new AutorizacaoCompraController($pdo, $connSenior);
 $controller->handleRequest();
