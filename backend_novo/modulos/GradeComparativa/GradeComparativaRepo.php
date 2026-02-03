@@ -3,7 +3,9 @@ require_once __DIR__ . '/../../core/BaseRepository.php';
 
 class GradeComparativaRepo extends BaseRepository
 {
-    // --- LEITURA (MYSQL) ---
+    // =========================================================================
+    // MÉTODOS DE LEITURA (Estes eram os que estavam faltando)
+    // =========================================================================
 
     public function buscarParticipantes($idProcesso) {
         $stmt = $this->pdo->prepare("SELECT id_fornecedor_senior as id, nome_do_fornecedor as nome, cnpj_cpf FROM licitacao_participantes WHERE id_processo_instancia = ? ORDER BY nome_do_fornecedor ASC");
@@ -12,12 +14,11 @@ class GradeComparativaRepo extends BaseRepository
     }
 
     public function buscarItensBasicos($idProcesso) {
+        // Traz a quantidade do banco para o cálculo correto
         $stmt = $this->pdo->prepare("SELECT id AS id_item, num_solicitacao, seq_solicitacao, quantidade FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
         $stmt->execute([$idProcesso]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    // --- LEITURA (SENIOR) ---
 
     public function buscarDescricaoSenior($num, $seq) {
         if (!$this->connSenior) return null;
@@ -29,41 +30,56 @@ class GradeComparativaRepo extends BaseRepository
         } catch (PDOException $e) { return null; }
     }
 
-    // --- MISTO (MYSQL) ---
-
     public function buscarTodasOfertas($idProcesso) {
         $stmt = $this->pdo->prepare("SELECT id, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario, atende, justificativa_da_recusa FROM licitacao_itens_ofertados WHERE id_processo_instancia = ?");
         $stmt->execute([$idProcesso]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-	public function atualizarAtendeJustificativa($ofertaId, $atende, $justificativa) {
-		$stmt = $this->pdo->prepare("UPDATE licitacao_itens_ofertados SET atende = ?, justificativa_da_recusa = ? WHERE id = ?");
-		$stmt->execute([$atende ? 1 : 0, $justificativa, $ofertaId]);
-	}
+    // =========================================================================
+    // MÉTODOS DE ESCRITA (Consolidação e Bulk Insert)
+    // =========================================================================
 
-	public function limparGradeDeCustos($idProcesso) {
-		$this->pdo->prepare("DELETE FROM grade_de_custos WHERE id_instancia_processo = ?")->execute([$idProcesso]);
-	}
+    public function atualizarAtendeJustificativa($ofertaId, $atende, $justificativa) {
+        $stmt = $this->pdo->prepare("UPDATE licitacao_itens_ofertados SET atende = ?, justificativa_da_recusa = ? WHERE id = ?");
+        $stmt->execute([$atende ? 1 : 0, $justificativa, $ofertaId]);
+    }
 
-	public function inserirGradeDeCustos($idProcesso, $rows) {
-		if (empty($rows)) return 0;
-        $maxStmt = $this->pdo->query("SELECT id FROM grade_de_custos ORDER BY id DESC LIMIT 1 FOR UPDATE");
-        $row = $maxStmt ? $maxStmt->fetch(PDO::FETCH_ASSOC) : null;
-        $nextId = ($row ? (int)$row['id'] : 0) + 1;
+    public function limparEAtualizarTotal($idProcesso, $valorFinal) {
+        // Limpa a grade antiga
+        $stmtDel = $this->pdo->prepare("DELETE FROM grade_de_custos WHERE id_instancia_processo = ?");
+        $stmtDel->execute([$idProcesso]);
 
-		$sql = "INSERT INTO grade_de_custos (id, id_instancia_processo, id_fornecedor_senior, id_item, valor_cotado) VALUES (?, ?, ?, ?, ?)";
-		$stmt = $this->pdo->prepare($sql);
-		$count = 0;
-		foreach ($rows as $r) {
-			$stmt->execute([$nextId++, $idProcesso, (int)$r['id_fornecedor_senior'], (int)$r['id_item'], $r['valor_cotado']]);
-			$count++;
-		}
-		return $count;
-	}
+        // Atualiza o total no cabeçalho
+        $stmtUpd = $this->pdo->prepare("UPDATE processos_instancia SET valor_final_processo = ? WHERE id = ?");
+        $stmtUpd->execute([$valorFinal, $idProcesso]);
+    }
 
-    public function salvarValorFinal($idProcesso, $valorTotal) {
-        $stmt = $this->pdo->prepare("UPDATE processos_instancia SET valor_final_processo = ? WHERE id = ?");
-        $stmt->execute([$valorTotal, $idProcesso]);
+    public function inserirLote($idProcesso, $rows) {
+        if (empty($rows)) return 0;
+
+        $campos = [];
+        $valores = [];
+        foreach ($rows as $r) {
+            $campos[] = "(?, ?, ?, ?, ?, ?, ?)";
+            array_push($valores, 
+                $idProcesso, 
+                (int)$r['id_fornecedor_senior'], 
+                (int)$r['id_item'], 
+                (float)$r['quantidade'], 
+                (float)$r['valor_cotado'], 
+                (float)$r['valor_total'], 
+                (int)$r['vencedor']
+            );
+        }
+
+        $sql = "INSERT INTO grade_de_custos 
+                (id_instancia_processo, id_fornecedor_senior, id_item, quantidade, valor_cotado, valor_total, vencedor) 
+                VALUES " . implode(',', $campos);
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($valores);
+        
+        return count($rows);
     }
 }
