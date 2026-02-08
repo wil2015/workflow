@@ -13,7 +13,8 @@ class GradeComparativaController extends BaseController
     public function __construct($pdo, $connSenior)
     {
         parent::__construct($pdo, $connSenior);
-        $this->service = new GradeComparativaService($pdo, $connSenior);
+        $repo = new GradeComparativaRepo($pdo, $connSenior);
+        $this->service = new GradeComparativaService($repo);
     }
 
     protected function executarAcao(string $acao)
@@ -23,9 +24,7 @@ class GradeComparativaController extends BaseController
                 case 'carregar_grade':
                     return $this->service->montarGradeParaFront($this->params['instance_id'] ?? 0);
                 case 'consolidar_vencedores':
-                    $id = $this->params['id_processo'] ?? 0;
-                    $ofertas = $this->params['ofertas'] ?? [];
-                    return $this->service->consolidarProcesso($id, $ofertas);
+                    return $this->service->consolidarProcesso($this->params['id_processo'] ?? 0, $this->params['ofertas'] ?? []);
                 default:
                     throw new Exception("Ação desconhecida: '$acao'");
             }
@@ -35,18 +34,15 @@ class GradeComparativaController extends BaseController
     }
 }
 
-// --- EXECUÇÃO ---
+// Bootstrap
 try {
     $pdo = Database::getConexao();
     $senior = Database::getSenior();
-
     $controller = new GradeComparativaController($pdo, $senior);
     $controller->handleRequest();
-
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (ob_get_length()) ob_clean();
     http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['erro' => $e->getMessage()]);
     exit;
 }

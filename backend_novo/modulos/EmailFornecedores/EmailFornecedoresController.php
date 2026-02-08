@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Core\BaseController;
 use App\Config\Database;
+use Throwable;
 use Exception;
 
 class EmailFornecedoresController extends BaseController
@@ -12,7 +13,8 @@ class EmailFornecedoresController extends BaseController
     public function __construct($pdo, $connSenior)
     {
         parent::__construct($pdo, $connSenior);
-        $this->service = new EmailFornecedoresService($pdo, $connSenior);
+        $repo = new EmailFornecedoresRepo($pdo, $connSenior);
+        $this->service = new EmailFornecedoresService($repo);
     }
 
     protected function executarAcao(string $acao)
@@ -30,18 +32,15 @@ class EmailFornecedoresController extends BaseController
     }
 }
 
-// --- EXECUÇÃO ---
+// Bootstrap
 try {
     $pdo = Database::getConexao();
     $senior = Database::getSenior();
-
     $controller = new EmailFornecedoresController($pdo, $senior);
     $controller->handleRequest();
-
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (ob_get_length()) ob_clean();
     http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['erro' => $e->getMessage()]);
     exit;
 }

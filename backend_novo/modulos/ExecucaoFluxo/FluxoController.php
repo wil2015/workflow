@@ -5,17 +5,17 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Core\BaseController;
 use App\Config\Database;
+use Throwable;
 use Exception;
 
 class FluxoController extends BaseController
 {
-    protected $service;
-
     public function __construct($pdo, $connSenior)
     {
         if (!isset($connSenior)) throw new Exception("Conexão Senior necessária.");
         parent::__construct($pdo, $connSenior);
-        $this->service = new FluxoService($pdo, $connSenior);
+        $repo = new FluxoRepo($pdo, $connSenior);
+        $this->service = new FluxoService($repo);
     }
 
     protected function executarAcao(string $acao)
@@ -30,37 +30,26 @@ class FluxoController extends BaseController
             case 'listar_solicitacoes':
                 return $this->service->listarSolicitacoesSenior($_REQUEST);
             case 'remover_item':
-                return $this->atomic(function() {
-                    $id = $this->params['id'] ?? 0;
-                    $num = $this->params['num'] ?? 0;
-                    $seq = $this->params['seq'] ?? 0;
-                    return $this->service->removerItem($id, $num, $seq);
-                });
+                return $this->atomic(fn() => $this->service->removerItem($this->params['id'] ?? 0, $this->params['num'] ?? 0, $this->params['seq'] ?? 0));
             case 'cancelar_processo':
-                return $this->atomic(function() {
-                    return $this->service->cancelarProcesso($this->params['id'] ?? 0);
-                });
+                return $this->atomic(fn() => $this->service->cancelarProcesso($this->params['id'] ?? 0));
             case 'dashboard_data':
                 return $this->service->carregarDadosDashboard();
-
             default:
                 throw new Exception("Ação desconhecida: " . $acao);
         }
     }
 }
 
-// --- EXECUÇÃO ---
+// Bootstrap
 try {
     $pdo = Database::getConexao();
     $senior = Database::getSenior();
-
     $controller = new FluxoController($pdo, $senior);
     $controller->handleRequest();
-
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (ob_get_length()) ob_clean();
     http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['erro' => $e->getMessage()]);
     exit;
 }

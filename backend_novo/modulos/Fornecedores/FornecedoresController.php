@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Core\BaseController;
 use App\Config\Database;
+use Throwable;
 use Exception;
 
 class FornecedoresController extends BaseController
@@ -13,7 +14,9 @@ class FornecedoresController extends BaseController
     {
         if (!isset($connSenior)) throw new Exception("Conexão Senior necessária.");
         parent::__construct($pdo, $connSenior);
-        $this->service = new FornecedoresService($pdo, $connSenior);
+        
+        $repo = new FornecedoresRepo($pdo, $connSenior);
+        $this->service = new FornecedoresService($repo);
     }
 
     protected function executarAcao(string $acao)
@@ -31,18 +34,15 @@ class FornecedoresController extends BaseController
     }
 }
 
-// --- EXECUÇÃO ---
+// Bootstrap
 try {
     $pdo = Database::getConexao();
     $senior = Database::getSenior();
-
     $controller = new FornecedoresController($pdo, $senior);
     $controller->handleRequest();
-
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (ob_get_length()) ob_clean();
     http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['erro' => $e->getMessage()]);
     exit;
 }

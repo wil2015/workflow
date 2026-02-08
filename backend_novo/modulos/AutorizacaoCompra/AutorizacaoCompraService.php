@@ -2,9 +2,9 @@
 namespace App\Modulos\AutorizacaoCompra;
 
 use App\Core\BaseService;
-// O use garante que o PHP encontre a classe. Não precisa de if manual.
 use App\Core\Documentos\Engine\DocumentoEngine;
 use App\Modulos\AutorizacaoCompra\Documentos\AutorizacaoDoc;
+use App\Modulos\AutorizacaoCompra\Dto\AutorizacaoDTO;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
@@ -14,17 +14,14 @@ class AutorizacaoCompraService extends BaseService
 {
     private $repo;
 
-    public function __construct($pdo, $connSenior)
-    {
-        parent::__construct($pdo, $connSenior);
-        $this->repo = new AutorizacaoCompraRepo($pdo, $connSenior);
+    public function __construct(AutorizacaoCompraRepo $repo) {
+        $this->repo = $repo;
     }
 
     public function listarDocumentosGerados($idProcesso) {
         $docs = $this->repo->listarDocumentosPorProcesso($idProcesso);
         foreach ($docs as &$doc) {
-            $pathLimpo = str_replace(['/public/', 'public/'], '', $doc['caminho_arquivo'] ?? '');
-            $pathLimpo = ltrim($pathLimpo, '/');
+            $pathLimpo = ltrim(str_replace(['/public/', 'public/'], '', $doc['caminho_arquivo'] ?? ''), '/');
             $doc['existe_fisicamente'] = file_exists('/var/www/html/' . $pathLimpo);
         }
         return $docs;
@@ -32,60 +29,37 @@ class AutorizacaoCompraService extends BaseService
 
     public function gerarDocumentosOficiais($idProcesso, $idUsuario) {
         $idProcesso = (int)$idProcesso;
-
-        // 1. Snapshot
         $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
-
-        // 2. Busca dados
+        
         $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+        if (empty($autorizacoes)) throw new Exception("Nenhuma autorização gerada.");
 
-        if (empty($autorizacoes)) {
-            throw new Exception("Nenhuma autorização gerada. Verifique se a cotação tem vencedores.");
-        }
-
-        // --- CORREÇÃO AQUI ---
-        // Removemos o 'if (!class_exists)'. O autoloader resolve sozinho.
-        
-        // Configure seu DSN real aqui (ou use null para testes)
-        $transport = Transport::fromDsn('smtp://null:null@localhost'); 
-        $mailer = new Mailer($transport);
-        
-        $engine = new DocumentoEngine($mailer);
-        
+        $engine = new DocumentoEngine(new Mailer(Transport::fromDsn('smtp://null:null@localhost')));
         $this->repo->limparDocumentosAnteriores($idProcesso, 'AUTORIZACAO_COMPRA');
         $logs = [];
 
         foreach ($autorizacoes as $auth) {
             try {
-                $itensSnapshot = $this->repo->buscarItensDoSnapshot($auth['id']);
-                $fornecedorDados = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
+                $itens = $this->repo->buscarItensDoSnapshot($auth['id']);
+                $forn = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
 
-                $itensParaPdf = [];
-                foreach($itensSnapshot as $item) {
-                    $itensParaPdf[] = [
-                        'descricao' => $item['descricao_item_snapshot'],
-                        'quantidade' => $item['quantidade'],
-                        'valor' => $item['valor_unitario_congelado'],
-                        'valor_total' => $item['valor_total_item']
-                    ];
+                // DTO
+                $dto = new AutorizacaoDTO(
+                    (int)$auth['id'],
+                    "$idProcesso/" . date('Y'),
+                    $forn['nomfor'] ?? '',
+                    $forn['cgccpf'] ?? '',
+                    (float)$auth['valor_total_pedido']
+                );
+
+                foreach($itens as $item) {
+                    $dto->addItem($item['descricao_item_snapshot'], $item['quantidade'], $item['valor_unitario_congelado'], $item['valor_total_item']);
                 }
 
-                $doc = new AutorizacaoDoc([
-                    'id_autorizacao' => $auth['id'],
-                    'numero_processo' => "$idProcesso/" . date('Y'),
-                    'fornecedor_nome' => $fornecedorDados['nomfor'], 
-                    'fornecedor_cnpj' => $fornecedorDados['cgccpf'], 
-                    'itens' => $itensParaPdf,
-                    'valor_total_pedido' => $auth['valor_total_pedido']
-                ]);
-
-                // Gera PDF
+                $doc = new AutorizacaoDoc($dto);
                 $pathAbs = $engine->processar($doc, $idProcesso);
                 
-                // Trata caminho relativo para salvar no banco
-                $pathRel = str_replace('/var/www/html/', '', $pathAbs);
-                $pathRel = ltrim($pathRel, '/');
-
+                $pathRel = ltrim(str_replace('/var/www/html/', '', $pathAbs), '/');
                 $meta = [
                     'caminho_relativo' => $pathRel, 
                     'nome_arquivo' => basename($pathAbs),
@@ -94,24 +68,17 @@ class AutorizacaoCompraService extends BaseService
                 
                 $this->repo->registrarDocumento($idProcesso, 'AUTORIZACAO_COMPRA', $meta, $idUsuario);
                 $logs[] = "Gerado: " . $meta['nome_arquivo'];
-
-            } catch (Exception $e) { 
-                $logs[] = "Erro (Auth {$auth['id']}): " . $e->getMessage(); 
-            }
+            } catch (Exception $e) { $logs[] = "Erro: " . $e->getMessage(); }
         }
         return ['sucesso' => true, 'logs' => $logs];
     }
 
-    // --- SEU MÉTODO DE EMAIL RESTAURADO ---
     public function enviarEmailsEConcluir($idProcesso, $idUsuario) {
-        // Configure o transporte correto (Mailtrap, Gmail, Postfix, etc)
-        // Dica: Para produção, evite colocar senha no código. Use variáveis de ambiente (getenv).
         $transport = Transport::fromDsn('smtp://usuario:senha@smtp.mailtrap.io:2525');
         $mailer = new Mailer($transport);
         
         $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
-        $logs = []; 
-        $enviados = 0;
+        $logs = []; $enviados = 0;
 
         foreach ($autorizacoes as $auth) {
             $dados = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
@@ -120,10 +87,7 @@ class AutorizacaoCompraService extends BaseService
                 continue;
             }
 
-            // Tenta achar o documento pelo padrão de nome
             $doc = $this->repo->buscarDocumentoPorNomeParcial($idProcesso, "auth_" . $auth['id']);
-            
-            // Corrige caminho físico
             $pathFisico = '';
             if ($doc) {
                 $relativo = ltrim(str_replace(['/public/', 'public/'], '', $doc['caminho_arquivo']), '/');
@@ -136,19 +100,15 @@ class AutorizacaoCompraService extends BaseService
                         ->from('compras@unesp.br')
                         ->to($dados['intnet'])
                         ->subject("Autorização de Compra #$idProcesso")
-                        ->html("<p>Prezado fornecedor, segue em anexo a autorização de compra referente ao processo $idProcesso.</p>")
+                        ->html("<p>Prezado fornecedor, segue autorização anexa.</p>")
                         ->attachFromPath($pathFisico, 'Autorizacao_Compra.pdf');
                     
                     $mailer->send($email);
                     $enviados++; 
                     $logs[] = "Enviado para: {$dados['intnet']}";
-                } catch (Exception $e) { 
-                    $logs[] = "Falha email {$dados['intnet']}: " . $e->getMessage(); 
-                }
-            } else {
-                $logs[] = "Arquivo não encontrado para envio: " . ($doc['nome_arquivo'] ?? 'Sem registro');
+                } catch (Exception $e) { $logs[] = "Falha email: " . $e->getMessage(); }
             }
         }
-        return ['sucesso' => $enviados > 0, 'mensagem' => "$enviados emails enviados.", 'logs' => $logs];
+        return ['sucesso' => $enviados > 0, 'logs' => $logs];
     }
 }

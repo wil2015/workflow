@@ -3,6 +3,7 @@ namespace App\Core;
 
 use PDO;
 use Exception;
+use Throwable;
 
 abstract class BaseRepository
 {
@@ -24,27 +25,36 @@ abstract class BaseRepository
         }
     }
 
-    /**
-     * Executa uma Procedure e limpa o cursor imediatamente.
-     * Isso resolve o erro de "Packets out of order" ou trava de SELECTs subsequentes.
-     */
     protected function callProcedure($sql, $params = []) {
         $stmt = $this->pdo->prepare($sql);
-        
-        // Executa com os parâmetros
         $stmt->execute($params);
-        
-        // Loop para consumir todos os rowsets (resultados extras que a procedure retorna)
-        // Isso é o que "destrava" o PDO para a próxima consulta
         try {
             do {
-                // Consumindo resultados pendentes...
+                // Consumindo rowsets pendentes para liberar o PDO
             } while ($stmt->nextRowset());
-        } catch (Exception $e) {
-            // Ignora se não houver mais rowsets
-        }
-
+        } catch (Exception $e) { }
         $stmt->closeCursor(); 
         return true;
+    }
+
+    /**
+     * --- CORREÇÃO DO ERRO ---
+     * Adicionamos este método para permitir transações dentro dos Repositórios/Services
+     */
+    public function executarEmTransacao(callable $funcao) {
+        // Se já houver transação aberta, apenas executa
+        if ($this->pdo->inTransaction()) {
+            return $funcao();
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $resultado = $funcao();
+            $this->pdo->commit();
+            return $resultado;
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }

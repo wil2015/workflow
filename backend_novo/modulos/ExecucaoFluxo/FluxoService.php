@@ -1,44 +1,39 @@
 <?php
-/*require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/FluxoRepo.php';*/
 namespace App\Modulos\ExecucaoFluxo;
 
 use App\Core\BaseService;
+use App\Core\Utils\Formatador;
 use Exception;
 use DateTime;
+
 class FluxoService extends BaseService
 {
     private $repo;
     private $pathPublic;
 
-    public function __construct($pdo, $connSenior) {
-        parent::__construct($pdo, $connSenior);
-        $this->repo = new FluxoRepo($pdo, $connSenior);
+    public function __construct(FluxoRepo $repo) 
+    {
+        $this->repo = $repo;
         $this->pathPublic = dirname(__DIR__, 3) . '/public';
     }
 
-    public function carregarPassoAtual($idInstancia) {
+    public function carregarPassoAtual($idInstancia) 
+    {
         $instancia = $this->repo->getInstanciaCompleta($idInstancia);
-        
-        if (!$instancia) {
-            return ['erro' => "Processo #$idInstancia não encontrado."];
-        }
+        if (!$instancia) return ['erro' => "Processo #$idInstancia não encontrado."];
 
-        // --- TRATAMENTO ID/ANO ---
         $instancia['id_visual'] = $instancia['id'] . '/' . ($instancia['ano_do_processo'] ?? date('Y'));
         
-        // --- TRATAMENTO DE DATAS (Dia/Mês/Ano) ---
         $dtCot = $instancia['data_esperada_da_cotacao'];
         $dtRec = $instancia['data_esperada_do_recebimento'];
         
         $instancia['datas_editaveis'] = [
             'cotacao_iso' => $dtCot, 
             'recebimento_iso' => $dtRec,
-            'cotacao_fmt' => $dtCot ? date('d/m/Y', strtotime($dtCot)) : '-',
-            'recebimento_fmt' => $dtRec ? date('d/m/Y', strtotime($dtRec)) : '-'
+            'cotacao_fmt' => Formatador::data($dtCot),
+            'recebimento_fmt' => Formatador::data($dtRec)
         ];
 
-        // XML
         $nomeArquivo = !empty($instancia['arquivo_xml']) ? $instancia['arquivo_xml'] : 'compra_direta.xml';
         $caminhoCompleto = $this->pathPublic . '/' . $nomeArquivo;
         
@@ -61,42 +56,24 @@ class FluxoService extends BaseService
         ];
     }
 
-    // --- SALVAR DATAS (SIMPLIFICADO) ---
-    public function salvarDatasPrevisao($dados) {
+    public function salvarDatasPrevisao($dados) 
+    {
         $id = $dados['id_processo'] ?? null;
-        
-        // Tratamento simples: se vier vazio, vira NULL
-        $dtCot = !empty($dados['data_cotacao']) ? $dados['data_cotacao'] : null;
-        $dtRec = !empty($dados['data_recebimento']) ? $dados['data_recebimento'] : null;
+        $dtCot = $dados['data_cotacao'] ?? null;
+        $dtRec = $dados['data_recebimento'] ?? null;
 
-        if (!$id) throw new Exception("ID do processo obrigatório.");
-
-        // VALIDAÇÃO DIRETA
+        if (!$id) throw new Exception("ID obrigatório.");
         $hoje = date('Y-m-d');
-
-        // Regra 1: Não pode data passada
-        if ($dtCot && $dtCot < $hoje) {
-            throw new Exception("A data de Cotação não pode ser menor que hoje.");
-        }
-        if ($dtRec && $dtRec < $hoje) {
-            throw new Exception("A data de Entrega não pode ser menor que hoje.");
-        }
-
-        // Regra 2: Entrega >= Cotação
-        if ($dtCot && $dtRec) {
-            if ($dtRec < $dtCot) {
-                throw new Exception("A data de Entrega não pode ser menor que a Cotação.");
-            }
-        }
+        if ($dtCot && $dtCot < $hoje) throw new Exception("Cotação menor que hoje.");
+        if ($dtRec && $dtRec < $hoje) throw new Exception("Entrega menor que hoje.");
+        if ($dtCot && $dtRec && $dtRec < $dtCot) throw new Exception("Entrega menor que Cotação.");
 
         $this->repo->atualizarDatasPrevisao($id, $dtCot, $dtRec);
-
         return ['sucesso' => true, 'msg' => 'Datas atualizadas!'];
     }
 
-    // --- MÉTODOS MANTIDOS ---
-
-    public function vincularItens($dados) {
+    public function vincularItens($dados) 
+    {
         $idFluxo = $dados['id_fluxo_definicao'] ?? 1;
         $idProcesso = $dados['id_processo_instancia'] ?? null;
         if ($idProcesso === 'null' || empty($idProcesso)) $idProcesso = null;
@@ -115,7 +92,7 @@ class FluxoService extends BaseService
         foreach ($mapaSolicitacoes as $numsol => $listaSeqs) {
             if (!$idProcesso) {
                 $existente = $this->repo->buscarIdPorSolicitacao($numsol);
-                $idProcesso = $existente ? $existente : $this->repo->criarProcesso($numsol, $idFluxo);
+                $idProcesso = $existente ?: $this->repo->criarProcesso($numsol, $idFluxo);
             }
             foreach ($listaSeqs as $seq) {
                 $qtdSenior = $this->repo->buscarQuantidadeSenior($numsol, $seq);
@@ -128,7 +105,8 @@ class FluxoService extends BaseService
         return ['sucesso' => true, 'msg' => "$itensProcessados itens vinculados!", 'id_processo' => $idProcesso];
     }
 
-    public function listarSolicitacoesSenior($params) {
+    public function listarSolicitacoesSenior($params) 
+    {
         $start = (int)($params['start'] ?? 0);
         $length = (int)($params['length'] ?? 10);
         $search = $params['search']['value'] ?? '';
@@ -145,27 +123,23 @@ class FluxoService extends BaseService
             $n = (int)$row['num_solicitacao']; $s = (int)$row['seq_solicitacao'];
             $sqlCond = "(CAST(numsol AS INT) = $n AND CAST(seqsol AS INT) = $s)";
             $mapaDonos["$n-$s"] = $row['id_processo_instancia'];
-
             if ($instance_id && $row['id_processo_instancia'] == $instance_id) $meusItens[] = $sqlCond;
             else $bloqueados[] = $sqlCond;
         }
 
         $resultado = $this->repo->buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados);
-
         $data = [];
         foreach ($resultado['dados'] as $row) {
             $n = (int)$row['numsol']; $s = (int)$row['seqsol'];
             $peso = (int)$row['peso_ordenacao'];
             $status = ($peso === 2) ? 'vinculado' : (($peso === 1) ? 'bloqueado' : 'disponivel');
             
-            $desc = $this->utf8($row['cplpro']);
-
             $data[] = [
                 'id_unico' => $row['codemp'] . '-' . $n . '-' . $s,
                 'projeto' => trim((string)$row['numprj']),
                 'data_solicitacao' => ($row['datsol'] instanceof DateTime) ? $row['datsol']->format('Y-m-d') : null,
                 'id_solicitacao_senior' => "$n-$s",
-                'descricao_produto' => $desc,
+                'descricao_produto' => Formatador::utf8($row['cplpro']),
                 'quantidade' => (float)$row['qtdsol'],
                 'preco_unitario' => (float)$row['presol'],
                 'unidade' => trim($row['unimed']),
@@ -173,7 +147,6 @@ class FluxoService extends BaseService
                 'proc_bloqueador' => ($status === 'bloqueado') ? ($mapaDonos["$n-$s"] ?? '?') : ''
             ];
         }
-
         return ["draw" => (int)($params['draw'] ?? 1), "recordsTotal" => $resultado['total'], "recordsFiltered" => $resultado['total'], "data" => $data];
     }
 
@@ -193,12 +166,11 @@ class FluxoService extends BaseService
         $tarefas = [];
         
         foreach($rawProc as $r) {
-            $dt = new DateTime($r['data_inicio']);
             $tarefas[] = [
                 'id' => $r['id'],
-                'nome_do_fluxo' => $this->utf8($r['nome_do_fluxo']), 
+                'nome_do_fluxo' => Formatador::utf8($r['nome_do_fluxo']), 
                 'id_processo_senior' => $r['id_processo_senior'],
-                'data_formatada' => $dt->format('d/m/Y H:i'),
+                'data_formatada' => Formatador::dataHora($r['data_inicio']),
                 'status_atual' => $r['status_atual']
             ];
         }
