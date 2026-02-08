@@ -1,18 +1,20 @@
 <?php
-require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/FluxoService.php';
+namespace App\Modulos\ExecucaoFluxo;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Core\BaseController;
+use App\Config\Database;
+use Exception;
 
 class FluxoController extends BaseController
 {
-    /** @var FluxoService */
     protected $service;
 
     public function __construct($pdo, $connSenior)
     {
         if (!isset($connSenior)) throw new Exception("Conexão Senior necessária.");
         parent::__construct($pdo, $connSenior);
-        
-        // Simples: Instancia direto, sem Factory
         $this->service = new FluxoService($pdo, $connSenior);
     }
 
@@ -20,25 +22,13 @@ class FluxoController extends BaseController
     {
         switch ($acao) {
             case 'ler_tarefa':
-                $id = $this->params['id_instancia'] ?? null;
-                if (!$id) throw new Exception("ID não informado");
-                return $this->service->carregarPassoAtual($id);
-
+                return $this->service->carregarPassoAtual($this->params['id_instancia'] ?? null);
             case 'salvar_datas':
-                return $this->atomic(function() {
-                    return $this->service->salvarDatasPrevisao($this->params);
-                });
-
+                return $this->atomic(fn() => $this->service->salvarDatasPrevisao($this->params));
             case 'vincular':
-                return $this->atomic(function() {
-                    return $this->service->vincularItens($this->params);
-                });
-            
-            // Aceita os dois nomes para evitar erro no front
+                return $this->atomic(fn() => $this->service->vincularItens($this->params));
             case 'listar_solicitacoes':
-            case 'listar_itens_senior':
                 return $this->service->listarSolicitacoesSenior($_REQUEST);
-
             case 'remover_item':
                 return $this->atomic(function() {
                     $id = $this->params['id'] ?? 0;
@@ -46,13 +36,10 @@ class FluxoController extends BaseController
                     $seq = $this->params['seq'] ?? 0;
                     return $this->service->removerItem($id, $num, $seq);
                 });
-
             case 'cancelar_processo':
                 return $this->atomic(function() {
-                    $id = $this->params['id'] ?? 0;
-                    return $this->service->cancelarProcesso($id);
+                    return $this->service->cancelarProcesso($this->params['id'] ?? 0);
                 });
-
             case 'dashboard_data':
                 return $this->service->carregarDadosDashboard();
 
@@ -62,11 +49,18 @@ class FluxoController extends BaseController
     }
 }
 
-// Inicialização
+// --- EXECUÇÃO ---
 try {
-    $controller = new FluxoController($pdo, $connSenior);
+    $pdo = Database::getConexao();
+    $senior = Database::getSenior();
+
+    $controller = new FluxoController($pdo, $senior);
     $controller->handleRequest();
+
 } catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
     http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['erro' => $e->getMessage()]);
+    exit;
 }

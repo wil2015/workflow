@@ -1,6 +1,8 @@
 <?php
 // /core/BaseService.php
+namespace App\Core; // <--- NOVO
 
+use PDO; // <--- Importante
 abstract class BaseService
 {
     protected $pdo;

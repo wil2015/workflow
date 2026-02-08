@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php'; */
+namespace App\Modulos\Cotacao;
 
+use App\Core\BaseRepository;
+use PDO;
 class CotacaoRepo extends BaseRepository
 {
     public function buscarItensDoProcesso($idProcesso) {

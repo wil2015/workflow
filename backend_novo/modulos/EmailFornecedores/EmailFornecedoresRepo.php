@@ -1,6 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php'; */
+namespace App\Modulos\EmailFornecedores;
 
+use App\Core\BaseRepository;
+use PDO;
+use Exception;
 class EmailFornecedoresRepo extends BaseRepository
 {
     // --- ETAPA 1: SINCRONIZAÇÃO (Senior -> MySQL) ---

@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . '/../../../core/Documentos/Interfaces/DocumentoInterface.php';
+/*require_once __DIR__ . '/../../../core/Documentos/Interfaces/DocumentoInterface.php';*/
+namespace App\Modulos\AutorizacaoCompra\Documentos;
 
+use App\Core\Documentos\Interfaces\DocumentoInterface;
 class AutorizacaoDoc implements DocumentoInterface {
     private $dados;
 

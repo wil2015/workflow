@@ -1,6 +1,12 @@
 <?php
-require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/AutorizacaoCompraService.php';
+namespace App\Modulos\AutorizacaoCompra;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Core\BaseController;
+use App\Config\Database;
+use Exception;
+use Throwable;
 
 class AutorizacaoCompraController extends BaseController
 {
@@ -12,34 +18,38 @@ class AutorizacaoCompraController extends BaseController
 
     protected function executarAcao(string $acao)
     {
+        // Limpa qualquer saída anterior para garantir que o JSON saia limpo
+        if (ob_get_length()) ob_clean(); 
         ob_start();
 
         try {
-            $idProcesso = $this->params['instance_id'] ?? 0;
+            $idProcesso = (int)($this->params['instance_id'] ?? 0);
+            $idUsuario  = (int)($this->params['id_usuario'] ?? 1);
+            
+            // TRAVA DE SEGURANÇA: Se não vier ID, para aqui.
+            if ($idProcesso === 0) {
+                throw new Exception("ID do processo (instance_id) inválido ou não recebido.");
+            }
+
             $resultado = null;
 
             switch ($acao) {
                 case 'gerar_autorizacoes':
-                    // A Service agora encapsula a chamada da Procedure + Geração de PDF
-                    $resultado = $this->atomic(function() use ($idProcesso) {
-                        return $this->service->gerarDocumentosOficiais(
-                            $idProcesso, 
-                            $this->params['id_usuario'] ?? 1
-                        );
-                    });
+                    // --- ALTERAÇÃO CRÍTICA AQUI ---
+                    // Removemos o $this->atomic(). 
+                    // Motivo: A Procedure gerencia sua própria consistência. 
+                    // Rodar fora da transação do PHP garante que o SELECT seguinte enxergue os dados.
+                    $resultado = $this->service->gerarDocumentosOficiais($idProcesso, $idUsuario);
                     break;
 
-                case 'enviar_email_concluir':
-                    $resultado = $this->atomic(function() use ($idProcesso) {
-                        return $this->service->enviarEmailsEConcluir(
-                            $idProcesso, 
-                            $this->params['id_usuario'] ?? 1
-                        );
+                case 'enviar_emails':
+                    // Aqui mantemos o atomic pois envolve apenas UPDATEs simples e controle de estado
+                    $resultado = $this->atomic(function() use ($idProcesso, $idUsuario) {
+                        return $this->service->enviarEmailsEConcluir($idProcesso, $idUsuario);
                     });
                     break;
 
                 case 'listar_documentos':
-                    // Inclui a verificação física que corrigimos anteriormente
                     $resultado = $this->service->listarDocumentosGerados($idProcesso);
                     break;
 
@@ -47,12 +57,14 @@ class AutorizacaoCompraController extends BaseController
                     throw new Exception("Ação desconhecida: '$acao'");
             }
 
-            ob_end_clean(); 
+            $output = ob_get_clean(); 
+            if ($output) error_log("Output inesperado no buffer: $output");
+            
             header('Content-Type: application/json');
             echo json_encode($resultado);
             exit;
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             ob_end_clean(); 
             http_response_code(400);
             header('Content-Type: application/json');
@@ -65,6 +77,19 @@ class AutorizacaoCompraController extends BaseController
         }
     }
 }
-// Inicialização
-$controller = new AutorizacaoCompraController($pdo, $connSenior);
-$controller->handleRequest();
+
+// --- INICIALIZAÇÃO ---
+try {
+    $pdo = Database::getConexao();
+    $senior = Database::getSenior();
+
+    $controller = new AutorizacaoCompraController($pdo, $senior);
+    $controller->handleRequest();
+
+} catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['erro' => 'Erro fatal na inicialização: ' . $e->getMessage()]);
+    exit;
+}

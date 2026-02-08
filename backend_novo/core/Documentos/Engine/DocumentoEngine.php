@@ -1,12 +1,12 @@
 <?php
 // CARREGA O AUTOLOAD DO COMPOSER (Garante que Twig/mPDF funcionem)
-require_once __DIR__ . '/../../../vendor/autoload.php';
-require_once __DIR__ . '/../Interfaces/DocumentoInterface.php';
+namespace App\Core\Documentos\Engine; // Acompanha a estrutura de pastas
 
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Mpdf\Mpdf;
 use Symfony\Component\Mime\Email;
+use App\Core\Documentos\Interfaces\DocumentoInterface; // Importando a interface do seu próprio projeto
 
 class DocumentoEngine {
     private $mailer;

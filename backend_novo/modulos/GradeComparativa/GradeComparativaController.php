@@ -1,6 +1,12 @@
 <?php
-require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/GradeComparativaService.php';
+namespace App\Modulos\GradeComparativa;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Core\BaseController;
+use App\Config\Database;
+use Throwable;
+use Exception;
 
 class GradeComparativaController extends BaseController
 {
@@ -15,29 +21,32 @@ class GradeComparativaController extends BaseController
         try {
             switch ($acao) {
                 case 'carregar_grade':
-                    // Apenas leitura/visualização, usa lógica PHP (logicaDeMontagem)
                     return $this->service->montarGradeParaFront($this->params['instance_id'] ?? 0);
-
                 case 'consolidar_vencedores':
-                    // Escrita e Processamento: Usa a Procedure MySQL
                     $id = $this->params['id_processo'] ?? 0;
                     $ofertas = $this->params['ofertas'] ?? [];
-                    if (!is_array($ofertas)) $ofertas = [];
-                    
                     return $this->service->consolidarProcesso($id, $ofertas);
-
                 default:
                     throw new Exception("Ação desconhecida: '$acao'");
             }
         } catch (Throwable $e) {
-            return [
-                'erro' => 'ERRO: ' . $e->getMessage(),
-                'arquivo' => $e->getFile(), // Opcional: remover em produção
-                'linha' => $e->getLine()    // Opcional: remover em produção
-            ];
+            return ['erro' => 'ERRO: ' . $e->getMessage()];
         }
     }
 }
 
-$controller = new GradeComparativaController($pdo, $connSenior);
-$controller->handleRequest();
+// --- EXECUÇÃO ---
+try {
+    $pdo = Database::getConexao();
+    $senior = Database::getSenior();
+
+    $controller = new GradeComparativaController($pdo, $senior);
+    $controller->handleRequest();
+
+} catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['erro' => $e->getMessage()]);
+    exit;
+}

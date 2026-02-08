@@ -2,8 +2,10 @@
 // Caminho: backend_novo/modulos/EmailFornecedores/Documentos/OrcamentoDoc.php
 
 // 1. Importa a Interface do Core (sobe 3 níveis)
-require_once __DIR__ . '/../../../core/Documentos/Interfaces/DocumentoInterface.php';
+/*require_once __DIR__ . '/../../../core/Documentos/Interfaces/DocumentoInterface.php';*/
+namespace App\Modulos\EmailFornecedores\Documentos;
 
+use App\Core\Documentos\Interfaces\DocumentoInterface;
 class OrcamentoDoc implements DocumentoInterface {
     private $dados;
 

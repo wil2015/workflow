@@ -1,7 +1,9 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/DashboardRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/DashboardRepo.php'; */
+namespace App\Modulos\Dashboard;
 
+use App\Core\BaseService;
 class DashboardService extends BaseService
 {
     private $repo;

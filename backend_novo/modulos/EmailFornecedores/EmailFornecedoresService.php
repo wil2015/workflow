@@ -1,7 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/EmailFornecedoresRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/EmailFornecedoresRepo.php';*/
+namespace App\Modulos\EmailFornecedores;
 
+use App\Core\BaseService;
+use Exception;
 class EmailFornecedoresService extends BaseService
 {
     private $repo;

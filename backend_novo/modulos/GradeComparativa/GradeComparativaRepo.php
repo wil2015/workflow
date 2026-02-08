@@ -1,6 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php';*/
+namespace App\Modulos\GradeComparativa;
 
+use App\Core\BaseRepository;
+use PDO;
+use PDOException;
 class GradeComparativaRepo extends BaseRepository
 {
     // =========================================================================

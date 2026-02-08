@@ -1,6 +1,12 @@
 <?php
-require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/DashboardService.php';
+namespace App\Modulos\Dashboard;
+
+// 1. O Autoload sempre vem depois do namespace
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Core\BaseController;
+use App\Config\Database;
+use Exception;
 
 class DashboardController extends BaseController
 {
@@ -26,6 +32,20 @@ class DashboardController extends BaseController
     }
 }
 
-// Repare que só passamos o $pdo aqui
-$controller = new DashboardController($pdo);
-$controller->handleRequest();
+// --- ÁREA DE EXECUÇÃO ---
+try {
+    // CORREÇÃO AQUI: Criamos a conexão explicitamente
+    $pdo = Database::getConexao();
+    
+    // Agora passamos o $pdo válido (e não null)
+    $controller = new DashboardController($pdo);
+    $controller->handleRequest();
+
+} catch (Exception $e) {
+    // Tratamento de erro fatal para devolver JSON
+    if (ob_get_length()) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['erro' => 'Erro fatal no Dashboard: ' . $e->getMessage()]);
+    exit;
+}

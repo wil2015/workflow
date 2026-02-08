@@ -1,7 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/FornecedoresRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/FornecedoresRepo.php';*/
+namespace App\Modulos\Fornecedores;
 
+use App\Core\BaseService;
+use Exception;
 class FornecedoresService extends BaseService
 {
     private $repo;

@@ -1,6 +1,11 @@
 <?php
-require_once __DIR__ . '/../../core/BaseController.php';
-require_once __DIR__ . '/CotacaoService.php';
+namespace App\Modulos\Cotacao;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use App\Core\BaseController;
+use App\Config\Database;
+use Exception;
 
 class CotacaoController extends BaseController
 {
@@ -15,20 +20,30 @@ class CotacaoController extends BaseController
         switch ($acao) {
             case 'listar_itens':
                 return $this->service->listarItensComDetalhes($this->params['instance_id'] ?? 0);
-
             case 'listar_cotacoes':
                 return $this->service->buscarCotacoesDoItem($this->params);
-
             case 'salvar_lote':
                 return $this->atomic(function() {
                     return $this->service->salvarLote($this->params);
                 });
-
             default:
                 throw new Exception("Ação desconhecida: '$acao'");
         }
     }
 }
 
-$controller = new CotacaoController($pdo, $connSenior);
-$controller->handleRequest();
+// --- EXECUÇÃO ---
+try {
+    $pdo = Database::getConexao();
+    $senior = Database::getSenior();
+    
+    $controller = new CotacaoController($pdo, $senior);
+    $controller->handleRequest();
+
+} catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['erro' => $e->getMessage()]);
+    exit;
+}

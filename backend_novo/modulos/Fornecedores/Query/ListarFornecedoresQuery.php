@@ -1,5 +1,7 @@
 <?php
+namespace App\Modulos\Fornecedores\Query;
 
+use PDO;
 class ListarFornecedoresQuery {
     private $pdo;
     private $params = [];

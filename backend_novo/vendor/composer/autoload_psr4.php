@@ -35,4 +35,7 @@ return array(
     'Doctrine\\DBAL\\' => array($vendorDir . '/doctrine/dbal/src'),
     'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/src'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
+    'App\\Modulos\\' => array($baseDir . '/modulos'),
+    'App\\Core\\' => array($baseDir . '/core'),
+    'App\\Config\\' => array($baseDir . '/config'),
 );

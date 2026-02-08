@@ -1,7 +1,11 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/FluxoRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/FluxoRepo.php';*/
+namespace App\Modulos\ExecucaoFluxo;
 
+use App\Core\BaseService;
+use Exception;
+use DateTime;
 class FluxoService extends BaseService
 {
     private $repo;

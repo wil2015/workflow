@@ -1,5 +1,7 @@
 <?php
+namespace App\Modulos\ExecucaoFluxo\Query;
 
+use PDO;
 class ListarSolicitacoesQuery {
     private $pdo;
     private $params = [];

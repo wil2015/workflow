@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php';*/
+namespace App\Modulos\Dashboard;
 
+use App\Core\BaseRepository;
+use PDO;
 class DashboardRepo extends BaseRepository
 {
     public function buscarFluxosAtivos() {

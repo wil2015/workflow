@@ -1,8 +1,14 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php';
 // Importa o Query Object
-require_once __DIR__ . '/Query/ListarSolicitacoesQuery.php';
+require_once __DIR__ . '/Query/ListarSolicitacoesQuery.php'; */
 
+
+namespace App\Modulos\ExecucaoFluxo;
+
+use App\Core\BaseRepository;
+use App\Modulos\ExecucaoFluxo\Query\ListarSolicitacoesQuery; // Importando classe da subpasta
+use PDO;
 class FluxoRepo extends BaseRepository
 {
     // =========================================================================

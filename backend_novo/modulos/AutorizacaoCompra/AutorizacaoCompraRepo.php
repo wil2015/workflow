@@ -1,14 +1,40 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php';*/
+namespace App\Modulos\AutorizacaoCompra;
 
+use App\Core\BaseRepository;
+use PDO;
 class AutorizacaoCompraRepo extends BaseRepository
 {
     // --- 1. GERAÇÃO DE DADOS (Procedure) ---
-    public function executarSnapshotDados($idProcesso, $idUsuario) {
-        $stmt = $this->pdo->prepare("CALL sp_gerar_autorizacao_snapshot(?, ?)");
-        $stmt->execute([$idProcesso, $idUsuario]);
-    }
+   
 
+   
+// --- 1. GERAÇÃO DE DADOS (Procedure) ---
+    public function executarSnapshotDados($idProcesso, $idUsuario) {
+        // 1. Prepara a chamada
+        $stmt = $this->pdo->prepare("CALL sp_gerar_autorizacao_snapshot(:id, :usuario)");
+        
+        // 2. Força a tipagem (Segurança extra contra erros de conversão)
+        $stmt->bindValue(':id', $idProcesso, PDO::PARAM_INT);
+        $stmt->bindValue(':usuario', $idUsuario, PDO::PARAM_INT);
+        
+        // 3. Executa
+        $stmt->execute();
+        
+        // 4. O SEGREDO: Loop para consumir TODOS os resultados extras
+        // Procedures no MySQL podem retornar múltiplos pacotes de resposta (rowsets)
+        // Se não consumirmos todos, o próximo SELECT falha silenciosamente.
+        try {
+            do {
+                // Não precisamos fazer nada, só avançar o cursor
+            } while ($stmt->nextRowset());
+        } catch (\Exception $e) {
+            // Ignora erro se não houver mais rowsets
+        }
+        
+        $stmt->closeCursor(); 
+    }
     // --- 2. LEITURA DE DADOS CONGELADOS ---
     public function buscarAutorizacoesGeradas($idProcesso) {
         $sql = "SELECT * FROM autorizacao_compra WHERE id_processo_instancia = ?";

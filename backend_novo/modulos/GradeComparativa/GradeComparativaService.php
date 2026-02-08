@@ -1,7 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/GradeComparativaRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/GradeComparativaRepo.php';*/
+namespace App\Modulos\GradeComparativa;
 
+use App\Core\BaseService;
+use Exception;
 class GradeComparativaService extends BaseService
 {
     private $repo;

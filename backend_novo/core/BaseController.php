@@ -1,8 +1,8 @@
 <?php
 // Carrega as configurações de banco (caminho relativo à pasta 'core')
-require_once __DIR__ . '/../config/db_conexao.php';
-require_once __DIR__ . '/../config/db_senior.php';
 
+namespace App\Core;
+use Exception; // Classes nativas do PHP precisam de "use" ou barra invertida \Exceptionabstract class BaseController
 abstract class BaseController
 {
     protected $pdo;

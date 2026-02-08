@@ -1,7 +1,10 @@
 <?php
-require_once __DIR__ . '/../../core/BaseService.php';
-require_once __DIR__ . '/CotacaoRepo.php';
+/*require_once __DIR__ . '/../../core/BaseService.php';
+require_once __DIR__ . '/CotacaoRepo.php';  */
+namespace App\Modulos\Cotacao;
 
+use App\Core\BaseService;
+use Exception;
 class CotacaoService extends BaseService
 {
     private $repo;

@@ -1,8 +1,14 @@
 <?php
-require_once __DIR__ . '/../../core/BaseRepository.php';
+/*require_once __DIR__ . '/../../core/BaseRepository.php';
 // Importa o Query Object
-require_once __DIR__ . '/Query/ListarFornecedoresQuery.php';
+require_once __DIR__ . '/Query/ListarFornecedoresQuery.php'; */
 
+
+namespace App\Modulos\Fornecedores;
+
+use App\Core\BaseRepository;
+use App\Modulos\Fornecedores\Query\ListarFornecedoresQuery; // Importa Query 
+use PDO;
 class FornecedoresRepo extends BaseRepository
 {
     // --- USO DO QUERY OBJECT (SENIOR) ---

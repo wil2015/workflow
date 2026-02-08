@@ -1,6 +1,9 @@
 <?php
 // /core/BaseRepository.php
+namespace App\Core; // <--- NOVO NAMESPACE
 
+use PDO;       // <--- Importante: Classe global
+use Exception; // <--- Importante: Classe global
 abstract class BaseRepository
 {
     /** @var PDO */
