@@ -1,8 +1,9 @@
 <?php
-// Carrega as configurações de banco (caminho relativo à pasta 'core')
-
 namespace App\Core;
-use Exception; // Classes nativas do PHP precisam de "use" ou barra invertida \Exceptionabstract class BaseController
+
+use Exception;
+use Throwable;
+
 abstract class BaseController
 {
     protected $pdo;
@@ -14,35 +15,33 @@ abstract class BaseController
     {
         $this->pdo = $pdo;
         $this->connSenior = $connSenior;
-        
         $this->parseInput();
-        
-        // Define JSON como padrão
-        header('Content-Type: application/json; charset=utf-8');
     }
 
+    // Método Utilitário: Unifica $_GET, $_POST e JSON body
     private function parseInput()
     {
-        $this->params = $_REQUEST; // Pega GET e POST
-        
-        // Pega JSON (útil para Vue.js/Axios)
+        $this->params = $_REQUEST; 
         $inputJSON = file_get_contents('php://input');
         $input = json_decode($inputJSON, true);
-        
         if (is_array($input)) {
             $this->params = array_merge($this->params, $input);
-            $_POST = array_merge($_POST, $input); // Retrocompatibilidade
         }
     }
 
-    public function handleRequest()
+    // --- TEMPLATE METHOD (O Esqueleto) ---
+    // Este método controla o fluxo da vida da requisição
+    final public function handleRequest()
     {
+        // 1. Limpeza preventiva de buffer (evita lixo antes do JSON)
+        if (ob_get_length()) ob_clean();
+        ob_start();
+
         try {
+            // 2. Determina qual ação executar
             $acao = $this->params['acao'] ?? '';
             
-            // Se vazio, tenta pegar de um parametro padrão ou lança erro
             if (empty($acao)) {
-                 // Tratamento especial para controllers que usam 'home' como default
                  if (method_exists($this, 'getAcaoPadrao')) {
                      $acao = $this->getAcaoPadrao();
                  } else {
@@ -50,42 +49,72 @@ abstract class BaseController
                  }
             }
 
+            // 3. HOOK METHOD: Chama a implementação específica do filho
             $response = $this->executarAcao($acao);
 
-            if ($response !== null) {
-                echo json_encode($response);
-            }
+            // 4. Finaliza com sucesso
+            $this->enviarResposta($response);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            // 5. Tratamento centralizado de erro
             $this->tratarErro($e);
         }
     }
 
+    // Contrato que todo Controller filho deve assinar
     abstract protected function executarAcao(string $acao);
 
-    // Helper para transações seguras
+    // --- HELPERS PARA OS FILHOS ---
+
+    protected function getParam($key, $default = null, $type = 'string') {
+        $val = $this->params[$key] ?? $default;
+        if ($type === 'int') return (int)$val;
+        return $val;
+    }
+
+    // Wrapper para Transações Atômicas
     protected function atomic(callable $function)
     {
+        if ($this->pdo->inTransaction()) {
+            return $function();
+        }
+
         $this->pdo->beginTransaction();
         try {
             $result = $function();
             $this->pdo->commit();
             return $result;
-        } catch (Exception $ex) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
+        } catch (Throwable $ex) {
+            $this->pdo->rollBack();
             throw $ex;
         }
     }
 
-    protected function tratarErro(Exception $e)
+    // --- RESPOSTAS HTTP ---
+
+    private function enviarResposta($dados) {
+        $lixo = ob_get_clean(); // Pega warnings se houver
+        if ($lixo) error_log("Lixo no buffer: $lixo");
+
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($dados);
+        exit;
+    }
+
+    private function tratarErro(Throwable $e)
     {
         if ($this->pdo->inTransaction()) {
             $this->pdo->rollBack();
         }
-        http_response_code(500);
-        echo json_encode(['erro' => $e->getMessage()]);
+        ob_end_clean(); 
+        
+        http_response_code(400); 
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'sucesso' => false,
+            'erro' => $e->getMessage(),
+            'local' => basename($e->getFile()) . ':' . $e->getLine()
+        ]);
         exit;
     }
 }

@@ -1,9 +1,9 @@
 <?php
-// /core/BaseRepository.php
-namespace App\Core; // <--- NOVO NAMESPACE
+namespace App\Core;
 
-use PDO;       // <--- Importante: Classe global
-use Exception; // <--- Importante: Classe global
+use PDO;
+use Exception;
+
 abstract class BaseRepository
 {
     /** @var PDO */
@@ -18,35 +18,33 @@ abstract class BaseRepository
         $this->connSenior = $connSenior;
     }
 
-    // Opcional: Helper para garantir que o Senior está conectado antes de rodar queries
     protected function checkSenior() {
         if (!$this->connSenior) {
             throw new Exception("Conexão com o banco Senior não está ativa.");
         }
     }
 
-    public function executarEmTransacao(callable $funcao) {
-        // Verifica se já existe uma transação ativa para evitar erro de aninhamento
-        $jaEmTransacao = $this->pdo->inTransaction();
-
-        if (!$jaEmTransacao) {
-            $this->pdo->beginTransaction();
-        }
-
+    /**
+     * Executa uma Procedure e limpa o cursor imediatamente.
+     * Isso resolve o erro de "Packets out of order" ou trava de SELECTs subsequentes.
+     */
+    protected function callProcedure($sql, $params = []) {
+        $stmt = $this->pdo->prepare($sql);
+        
+        // Executa com os parâmetros
+        $stmt->execute($params);
+        
+        // Loop para consumir todos os rowsets (resultados extras que a procedure retorna)
+        // Isso é o que "destrava" o PDO para a próxima consulta
         try {
-            // Executa a lógica de negócio (Service)
-            $resultado = $funcao(); 
-
-            if (!$jaEmTransacao) {
-                $this->pdo->commit();
-            }
-            
-            return $resultado;
+            do {
+                // Consumindo resultados pendentes...
+            } while ($stmt->nextRowset());
         } catch (Exception $e) {
-            if (!$jaEmTransacao) {
-                $this->pdo->rollBack();
-            }
-            throw $e; // Joga o erro para cima (para o Controller tratar)
+            // Ignora se não houver mais rowsets
         }
+
+        $stmt->closeCursor(); 
+        return true;
     }
 }

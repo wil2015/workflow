@@ -6,7 +6,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Core\BaseController;
 use App\Config\Database;
 use Exception;
-use Throwable;
 
 class AutorizacaoCompraController extends BaseController
 {
@@ -16,80 +15,53 @@ class AutorizacaoCompraController extends BaseController
         $this->service = new AutorizacaoCompraService($pdo, $connSenior);
     }
 
+    // Implementação do método abstrato do pai
     protected function executarAcao(string $acao)
     {
-        // Limpa qualquer saída anterior para garantir que o JSON saia limpo
-        if (ob_get_length()) ob_clean(); 
-        ob_start();
+        // 1. Validação de Entrada usando Helpers
+        $idProcesso = $this->getParam('instance_id', 0, 'int');
+        $idUsuario  = $this->getParam('id_usuario', 1, 'int');
 
-        try {
-            $idProcesso = (int)($this->params['instance_id'] ?? 0);
-            $idUsuario  = (int)($this->params['id_usuario'] ?? 1);
-            
-            // TRAVA DE SEGURANÇA: Se não vier ID, para aqui.
-            if ($idProcesso === 0) {
-                throw new Exception("ID do processo (instance_id) inválido ou não recebido.");
-            }
-
-            $resultado = null;
-
-            switch ($acao) {
-                case 'gerar_autorizacoes':
-                    // --- ALTERAÇÃO CRÍTICA AQUI ---
-                    // Removemos o $this->atomic(). 
-                    // Motivo: A Procedure gerencia sua própria consistência. 
-                    // Rodar fora da transação do PHP garante que o SELECT seguinte enxergue os dados.
-                    $resultado = $this->service->gerarDocumentosOficiais($idProcesso, $idUsuario);
-                    break;
-
-                case 'enviar_emails':
-                    // Aqui mantemos o atomic pois envolve apenas UPDATEs simples e controle de estado
-                    $resultado = $this->atomic(function() use ($idProcesso, $idUsuario) {
-                        return $this->service->enviarEmailsEConcluir($idProcesso, $idUsuario);
-                    });
-                    break;
-
-                case 'listar_documentos':
-                    $resultado = $this->service->listarDocumentosGerados($idProcesso);
-                    break;
-
-                default:
-                    throw new Exception("Ação desconhecida: '$acao'");
-            }
-
-            $output = ob_get_clean(); 
-            if ($output) error_log("Output inesperado no buffer: $output");
-            
-            header('Content-Type: application/json');
-            echo json_encode($resultado);
-            exit;
-
-        } catch (Throwable $e) {
-            ob_end_clean(); 
-            http_response_code(400);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'sucesso' => false, 
-                'erro' => $e->getMessage(),
-                'local' => basename($e->getFile()) . ':' . $e->getLine()
-            ]);
-            exit;
+        if ($idProcesso === 0) {
+            throw new Exception("ID do processo (instance_id) é obrigatório.");
         }
+
+        // 2. Despacho (Switch)
+        switch ($acao) {
+            case 'gerar_autorizacoes':
+                // Nota Arquitetural:
+                // Não usamos $this->atomic() aqui propositalmente.
+                // A Procedure já gerencia a integridade dos dados, e rodar fora de
+                // transação PHP garante que o SELECT subsequente "enxergue" os dados.
+                return $this->service->gerarDocumentosOficiais($idProcesso, $idUsuario);
+
+            case 'enviar_emails':
+                // Aqui usamos atomic() pois são várias operações PHP (update status, envio email)
+                return $this->atomic(fn() => 
+                    $this->service->enviarEmailsEConcluir($idProcesso, $idUsuario)
+                );
+
+            case 'listar_documentos':
+                return $this->service->listarDocumentosGerados($idProcesso);
+
+            default:
+                throw new Exception("Ação desconhecida: '$acao'");
+        }
+        
+        // O retorno daqui (array) será automaticamente convertido para JSON pelo BaseController
     }
 }
 
-// --- INICIALIZAÇÃO ---
+// --- Bootstrap do Módulo ---
 try {
     $pdo = Database::getConexao();
     $senior = Database::getSenior();
-
-    $controller = new AutorizacaoCompraController($pdo, $senior);
-    $controller->handleRequest();
+    
+    // Inicia o Controller e dispara o Template Method
+    (new AutorizacaoCompraController($pdo, $senior))->handleRequest();
 
 } catch (Exception $e) {
-    if (ob_get_length()) ob_clean();
+    // Fallback apenas para erro crítico de conexão inicial
     http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode(['erro' => 'Erro fatal na inicialização: ' . $e->getMessage()]);
-    exit;
+    echo json_encode(['erro' => 'Erro crítico de inicialização: ' . $e->getMessage()]);
 }
