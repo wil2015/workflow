@@ -92,7 +92,7 @@
 import { ref, onMounted, computed } from 'vue';
 
 const BASE_APACHE = 'http://localhost:8081/'; 
-const API_CONTROLLER = '/backend/modulos/AutorizacaoCompra/AutorizacaoCompraController.php';
+const API_CONTROLLER = '/backend/api/autorizacao';
 
 const instanceId = ref(null);
 const documentos = ref([]);

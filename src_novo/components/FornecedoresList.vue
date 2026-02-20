@@ -76,7 +76,7 @@ const dtOptions = {
     processing: true,
     order: [[ 1, "asc" ]],
     ajax: {
-        url: '/backend/modulos/Fornecedores/FornecedoresController.php',
+        url: '/backend/api/fornecedores',
         data: (d) => { 
             d.acao = 'listar'; 
             d.instance_id = instanceId.value; 
@@ -122,7 +122,7 @@ async function toggleFornecedor(row, event) {
     else payload.cod_fornecedor = row.cod;
 
     try {
-        const req = await fetch('/backend/modulos/Fornecedores/FornecedoresController.php', { 
+        const req = await fetch('/backend/api/fornecedores', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload) 
