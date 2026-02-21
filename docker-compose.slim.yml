@@ -1,0 +1,43 @@
+# Docker Compose para versao Slim Framework 4
+# Uso: docker-compose -f docker-compose.slim.yml up --build
+#
+# Para usar com o frontend Vue existente, combine:
+# docker-compose -f docker-compose.yml -f docker-compose.slim.yml up --build
+
+version: '3.8'
+
+services:
+  # =====================================================================
+  # Backend Slim 4 (substitui backend_new do compose principal)
+  # =====================================================================
+  backend_slim:
+    build:
+      context: .
+      dockerfile: Dockerfile.slim
+    container_name: back_slim
+    volumes:
+      # Monta o backend_slim inteiro como raiz do projeto Slim
+      - ./backend_slim:/var/www/html
+      # Arquivos BPMN publicos
+      - ./public:/var/www/html/public/bpmn
+      # Storage para PDFs gerados
+      - ./storage:/var/www/html/storage
+    ports:
+      - "8081:80"
+    command: >
+      sh -c "cd /var/www/html && composer install --no-interaction --prefer-dist 2>/dev/null || true && chmod -R 777 /var/www/html/storage 2>/dev/null || true && apache2-foreground"
+
+  # =====================================================================
+  # Frontend Vue 3 (Vite dev server)
+  # =====================================================================
+  frontend:
+    image: node:20-alpine
+    container_name: front_slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npx vite --host 0.0.0.0"
+    depends_on:
+      - backend_slim
