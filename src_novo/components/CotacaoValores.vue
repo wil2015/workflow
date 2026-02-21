@@ -88,7 +88,7 @@ const loadingCotacao = ref(false);
 const salvando = ref(false);
 const modificado = ref(false);
 
-const API_URL = '/backend/api/cotacao';
+const API_BASE = '/backend/api/cotacao';
 
 onMounted(() => {
     if (instanceId.value) {
@@ -100,7 +100,7 @@ onMounted(() => {
 
 async function carregarItens() {
     try {
-        const req = await fetch(`${API_URL}?acao=listar_itens&instance_id=${instanceId.value}`);
+        const req = await fetch(`${API_BASE}/itens/${instanceId.value}`);
         const res = await req.json();
         if (res.erro) throw new Error(res.erro);
         itens.value = res;
@@ -117,7 +117,7 @@ async function selecionarItem(item) {
     fornecedores.value = [];
 
     try {
-        const url = `${API_URL}?acao=listar_cotacoes&id_processo=${instanceId.value}&num=${item.num}&seq=${item.seq}`;
+        const url = `${API_BASE}/valores?id_processo=${instanceId.value}&num=${item.num}&seq=${item.seq}`;
         const req = await fetch(url);
         const res = await req.json();
         if (res.erro) throw new Error(res.erro);
@@ -150,7 +150,6 @@ async function salvarTudoManual() {
     }));
 
     const payload = {
-        acao: 'salvar_lote',
         id_processo: instanceId.value,
         num_solicitacao: itemAtual.value.num,
         seq_solicitacao: itemAtual.value.seq,
@@ -158,7 +157,7 @@ async function salvarTudoManual() {
     };
 
     try {
-        const req = await fetch(API_URL, { 
+        const req = await fetch(`${API_BASE}/valores`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) 
         });
         const res = await req.json();

@@ -109,7 +109,7 @@ const loading = ref(true);
 const salvando = ref(false);
 const dados = ref({ cabecalho: [], linhas: [], total_fmt: '0,00', total_raw: 0 });
 
-const API_URL = '/backend/api/grade';
+const API_BASE = '/backend/api/grade';
 
 const nf = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function fmt(n) {
@@ -128,7 +128,7 @@ onMounted(() => {
 
 async function carregarDados() {
   try {
-    const req = await fetch(`${API_URL}?acao=carregar_grade&instance_id=${props.instanceId}`);
+    const req = await fetch(`${API_BASE}/${props.instanceId}`);
 
     let json;
     try {
@@ -297,10 +297,10 @@ async function consolidar() {
     }
   }
 
-  const payload = { acao: 'consolidar_vencedores', id_processo: props.instanceId, ofertas };
+  const payload = { id_processo: props.instanceId, ofertas };
 
   try {
-    const req = await fetch(API_URL, {
+    const req = await fetch(`${API_BASE}/consolidar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

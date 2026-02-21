@@ -47,8 +47,8 @@ $definitions[\Dashboard\Repository\DashboardRepo::class] = function (ContainerIn
 $definitions[\Dashboard\Service\DashboardService::class] = function (ContainerInterface $c) {
     return new \Dashboard\Service\DashboardService($c->get(\Dashboard\Repository\DashboardRepo::class));
 };
-$definitions[\Dashboard\Handler\DashboardHandler::class] = function (ContainerInterface $c) {
-    return new \Dashboard\Handler\DashboardHandler($c->get(\Dashboard\Service\DashboardService::class));
+$definitions[\Dashboard\Handler\DashboardHomeHandler::class] = function (ContainerInterface $c) {
+    return new \Dashboard\Handler\DashboardHomeHandler($c->get(\Dashboard\Service\DashboardService::class));
 };
 
 // ========================================================================
@@ -60,8 +60,37 @@ $definitions[\ExecucaoFluxo\Repository\FluxoRepo::class] = function (ContainerIn
 $definitions[\ExecucaoFluxo\Service\FluxoService::class] = function (ContainerInterface $c) {
     return new \ExecucaoFluxo\Service\FluxoService($c->get(\ExecucaoFluxo\Repository\FluxoRepo::class));
 };
-$definitions[\ExecucaoFluxo\Handler\FluxoHandler::class] = function (ContainerInterface $c) {
-    return new \ExecucaoFluxo\Handler\FluxoHandler(
+// Single Action Handlers - ExecucaoFluxo
+$definitions[\ExecucaoFluxo\Handler\LerTarefaHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\LerTarefaHandler(
+        $c->get(\ExecucaoFluxo\Service\FluxoService::class)
+    );
+};
+$definitions[\ExecucaoFluxo\Handler\SalvarDatasHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\SalvarDatasHandler(
+        $c->get(\ExecucaoFluxo\Service\FluxoService::class),
+        $c->get('pdo.mysql')
+    );
+};
+$definitions[\ExecucaoFluxo\Handler\VincularItensHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\VincularItensHandler(
+        $c->get(\ExecucaoFluxo\Service\FluxoService::class),
+        $c->get('pdo.mysql')
+    );
+};
+$definitions[\ExecucaoFluxo\Handler\ListarSolicitacoesHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\ListarSolicitacoesHandler(
+        $c->get(\ExecucaoFluxo\Service\FluxoService::class)
+    );
+};
+$definitions[\ExecucaoFluxo\Handler\RemoverItemHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\RemoverItemHandler(
+        $c->get(\ExecucaoFluxo\Service\FluxoService::class),
+        $c->get('pdo.mysql')
+    );
+};
+$definitions[\ExecucaoFluxo\Handler\CancelarProcessoHandler::class] = function (ContainerInterface $c) {
+    return new \ExecucaoFluxo\Handler\CancelarProcessoHandler(
         $c->get(\ExecucaoFluxo\Service\FluxoService::class),
         $c->get('pdo.mysql')
     );
@@ -76,8 +105,20 @@ $definitions[\Fornecedores\Repository\FornecedoresRepo::class] = function (Conta
 $definitions[\Fornecedores\Service\FornecedoresService::class] = function (ContainerInterface $c) {
     return new \Fornecedores\Service\FornecedoresService($c->get(\Fornecedores\Repository\FornecedoresRepo::class));
 };
-$definitions[\Fornecedores\Handler\FornecedoresHandler::class] = function (ContainerInterface $c) {
-    return new \Fornecedores\Handler\FornecedoresHandler(
+// Single Action Handlers - Fornecedores
+$definitions[\Fornecedores\Handler\ListarFornecedoresHandler::class] = function (ContainerInterface $c) {
+    return new \Fornecedores\Handler\ListarFornecedoresHandler(
+        $c->get(\Fornecedores\Service\FornecedoresService::class)
+    );
+};
+$definitions[\Fornecedores\Handler\SalvarFornecedoresHandler::class] = function (ContainerInterface $c) {
+    return new \Fornecedores\Handler\SalvarFornecedoresHandler(
+        $c->get(\Fornecedores\Service\FornecedoresService::class),
+        $c->get('pdo.mysql')
+    );
+};
+$definitions[\Fornecedores\Handler\RemoverFornecedorHandler::class] = function (ContainerInterface $c) {
+    return new \Fornecedores\Handler\RemoverFornecedorHandler(
         $c->get(\Fornecedores\Service\FornecedoresService::class),
         $c->get('pdo.mysql')
     );
@@ -92,8 +133,19 @@ $definitions[\Cotacao\Repository\CotacaoRepo::class] = function (ContainerInterf
 $definitions[\Cotacao\Service\CotacaoService::class] = function (ContainerInterface $c) {
     return new \Cotacao\Service\CotacaoService($c->get(\Cotacao\Repository\CotacaoRepo::class));
 };
-$definitions[\Cotacao\Handler\CotacaoHandler::class] = function (ContainerInterface $c) {
-    return new \Cotacao\Handler\CotacaoHandler(
+// Single Action Handlers - Cotacao
+$definitions[\Cotacao\Handler\ListarItensCotacaoHandler::class] = function (ContainerInterface $c) {
+    return new \Cotacao\Handler\ListarItensCotacaoHandler(
+        $c->get(\Cotacao\Service\CotacaoService::class)
+    );
+};
+$definitions[\Cotacao\Handler\ListarCotacoesHandler::class] = function (ContainerInterface $c) {
+    return new \Cotacao\Handler\ListarCotacoesHandler(
+        $c->get(\Cotacao\Service\CotacaoService::class)
+    );
+};
+$definitions[\Cotacao\Handler\SalvarCotacaoHandler::class] = function (ContainerInterface $c) {
+    return new \Cotacao\Handler\SalvarCotacaoHandler(
         $c->get(\Cotacao\Service\CotacaoService::class),
         $c->get('pdo.mysql')
     );
@@ -108,10 +160,15 @@ $definitions[\GradeComparativa\Repository\GradeComparativaRepo::class] = functio
 $definitions[\GradeComparativa\Service\GradeComparativaService::class] = function (ContainerInterface $c) {
     return new \GradeComparativa\Service\GradeComparativaService($c->get(\GradeComparativa\Repository\GradeComparativaRepo::class));
 };
-$definitions[\GradeComparativa\Handler\GradeComparativaHandler::class] = function (ContainerInterface $c) {
-    return new \GradeComparativa\Handler\GradeComparativaHandler(
-        $c->get(\GradeComparativa\Service\GradeComparativaService::class),
-        $c->get('pdo.mysql')
+// Single Action Handlers - GradeComparativa
+$definitions[\GradeComparativa\Handler\CarregarGradeHandler::class] = function (ContainerInterface $c) {
+    return new \GradeComparativa\Handler\CarregarGradeHandler(
+        $c->get(\GradeComparativa\Service\GradeComparativaService::class)
+    );
+};
+$definitions[\GradeComparativa\Handler\ConsolidarGradeHandler::class] = function (ContainerInterface $c) {
+    return new \GradeComparativa\Handler\ConsolidarGradeHandler(
+        $c->get(\GradeComparativa\Service\GradeComparativaService::class)
     );
 };
 
@@ -124,8 +181,19 @@ $definitions[\AutorizacaoCompra\Repository\AutorizacaoCompraRepo::class] = funct
 $definitions[\AutorizacaoCompra\Service\AutorizacaoCompraService::class] = function (ContainerInterface $c) {
     return new \AutorizacaoCompra\Service\AutorizacaoCompraService($c->get(\AutorizacaoCompra\Repository\AutorizacaoCompraRepo::class));
 };
-$definitions[\AutorizacaoCompra\Handler\AutorizacaoCompraHandler::class] = function (ContainerInterface $c) {
-    return new \AutorizacaoCompra\Handler\AutorizacaoCompraHandler(
+// Single Action Handlers - AutorizacaoCompra
+$definitions[\AutorizacaoCompra\Handler\ListarDocumentosHandler::class] = function (ContainerInterface $c) {
+    return new \AutorizacaoCompra\Handler\ListarDocumentosHandler(
+        $c->get(\AutorizacaoCompra\Service\AutorizacaoCompraService::class)
+    );
+};
+$definitions[\AutorizacaoCompra\Handler\GerarAutorizacoesHandler::class] = function (ContainerInterface $c) {
+    return new \AutorizacaoCompra\Handler\GerarAutorizacoesHandler(
+        $c->get(\AutorizacaoCompra\Service\AutorizacaoCompraService::class)
+    );
+};
+$definitions[\AutorizacaoCompra\Handler\EnviarEmailsHandler::class] = function (ContainerInterface $c) {
+    return new \AutorizacaoCompra\Handler\EnviarEmailsHandler(
         $c->get(\AutorizacaoCompra\Service\AutorizacaoCompraService::class),
         $c->get('pdo.mysql')
     );
@@ -140,10 +208,21 @@ $definitions[\EmailFornecedores\Repository\EmailFornecedoresRepo::class] = funct
 $definitions[\EmailFornecedores\Service\EmailFornecedoresService::class] = function (ContainerInterface $c) {
     return new \EmailFornecedores\Service\EmailFornecedoresService($c->get(\EmailFornecedores\Repository\EmailFornecedoresRepo::class));
 };
-$definitions[\EmailFornecedores\Handler\EmailFornecedoresHandler::class] = function (ContainerInterface $c) {
-    return new \EmailFornecedores\Handler\EmailFornecedoresHandler(
+// Single Action Handlers - EmailFornecedores
+$definitions[\EmailFornecedores\Handler\CarregarEmailsHandler::class] = function (ContainerInterface $c) {
+    return new \EmailFornecedores\Handler\CarregarEmailsHandler(
+        $c->get(\EmailFornecedores\Service\EmailFornecedoresService::class)
+    );
+};
+$definitions[\EmailFornecedores\Handler\SalvarEmailsHandler::class] = function (ContainerInterface $c) {
+    return new \EmailFornecedores\Handler\SalvarEmailsHandler(
         $c->get(\EmailFornecedores\Service\EmailFornecedoresService::class),
         $c->get('pdo.mysql')
+    );
+};
+$definitions[\EmailFornecedores\Handler\AdicionarEmailHandler::class] = function (ContainerInterface $c) {
+    return new \EmailFornecedores\Handler\AdicionarEmailHandler(
+        $c->get(\EmailFornecedores\Service\EmailFornecedoresService::class)
     );
 };
 

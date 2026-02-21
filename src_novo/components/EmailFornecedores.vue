@@ -80,7 +80,7 @@ const salvando = ref(false);
 const salvandoLocal = ref(null);
 const listaFornecedores = ref([]);
 
-const API_URL = '/backend/api/email-fornecedores';
+const API_BASE = '/backend/api/email-fornecedores';
 
 // Computed para mostrar quantos estão marcados no rodapé
 const totalSelecionados = computed(() => {
@@ -97,7 +97,7 @@ onMounted(() => {
 
 async function carregarEmails() {
     try {
-        const req = await fetch(`${API_URL}?acao=listar&instance_id=${props.instanceId}`);
+        const req = await fetch(`${API_BASE}/${props.instanceId}`);
         const res = await req.json();
         
         if (res.erro) throw new Error(res.erro);
@@ -130,12 +130,11 @@ async function adicionarEmail(forn) {
 
     try {
         const payload = {
-            acao: 'add_email',
             id_fornecedor_senior: forn.id_fornecedor_senior,
             email: forn.novoEmailTemp
         };
 
-        const req = await fetch(API_URL, {
+        const req = await fetch(`${API_BASE}/email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -182,12 +181,10 @@ async function salvar() {
     salvando.value = true;
 
     try {
-        const req = await fetch(API_URL, {
+        const req = await fetch(`${API_BASE}/${props.instanceId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                acao: 'salvar',
-                instance_id: props.instanceId,
                 emails_selecionados: selecionados
             })
         });

@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use PDO;
 use Throwable;
 
-class FornecedoresHandler
+final class SalvarFornecedoresHandler
 {
     use HandlerHelper;
 
@@ -28,17 +28,7 @@ class FornecedoresHandler
     {
         try {
             $params = $this->getAllParams($request);
-            $acao = $params['acao'] ?? '';
-
-            if (empty($acao)) return $this->errorResponse("Nenhuma acao fornecida.");
-
-            $result = match ($acao) {
-                'listar' => $this->service->listarParaDatatable($params),
-                'salvar_lote' => $this->atomic($this->pdo, fn() => $this->service->salvarLote($params)),
-                'remover' => $this->atomic($this->pdo, fn() => $this->service->remover($params['id_processo'] ?? '', $params['cod_fornecedor'] ?? '')),
-                default => throw new \Exception("Acao desconhecida: '$acao'"),
-            };
-
+            $result = $this->atomic($this->pdo, fn() => $this->service->salvarLote($params));
             return $this->jsonResponse($result);
         } catch (Throwable $e) {
             return $this->errorResponse($e->getMessage());

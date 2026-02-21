@@ -78,7 +78,6 @@ const dtOptions = {
     ajax: {
         url: '/backend/api/fornecedores',
         data: (d) => { 
-            d.acao = 'listar'; 
             d.instance_id = instanceId.value; 
         },
         // --- AQUI ESTÁ A CORREÇÃO: Tratamento de erro do DataTables ---
@@ -113,20 +112,23 @@ async function toggleFornecedor(row, event) {
     const isChecked = event.target.checked;
     loadingId.value = row.cod; 
     
-    const payload = {
-        id_processo: instanceId.value,
-        acao: isChecked ? 'salvar_lote' : 'remover'
-    };
-
-    if (isChecked) payload.participantes = [row.json_full];
-    else payload.cod_fornecedor = row.cod;
-
     try {
-        const req = await fetch('/backend/api/fornecedores', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload) 
-        });
+        let req;
+        if (isChecked) {
+            const payload = {
+                id_processo: instanceId.value,
+                participantes: [row.json_full]
+            };
+            req = await fetch('/backend/api/fornecedores', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload) 
+            });
+        } else {
+            req = await fetch(`/backend/api/fornecedores/${instanceId.value}/${row.cod}`, { 
+                method: 'DELETE' 
+            });
+        }
         const res = await req.json();
 
         if (res.sucesso) {

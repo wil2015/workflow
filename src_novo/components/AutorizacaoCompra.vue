@@ -92,7 +92,7 @@
 import { ref, onMounted, computed } from 'vue';
 
 const BASE_APACHE = 'http://localhost:8081/'; 
-const API_CONTROLLER = '/backend/api/autorizacao';
+const API_BASE = '/backend/api/autorizacao';
 
 const instanceId = ref(null);
 const documentos = ref([]);
@@ -120,7 +120,7 @@ onMounted(async () => {
 async function carregarLista() {
     loading.value = true;
     try {
-        const url = `${API_CONTROLLER}?acao=listar_documentos&instance_id=${instanceId.value}`;
+        const url = `${API_BASE}/${instanceId.value}/documentos`;
         const res = await fetch(url);
         const json = await res.json();
         
@@ -152,10 +152,9 @@ async function gerarDocumentos() {
     
     try {
         const form = new FormData();
-        form.append('instance_id', instanceId.value);
         form.append('id_usuario', 1);
 
-        const res = await fetch(`${API_CONTROLLER}?acao=gerar_autorizacoes`, { method: 'POST', body: form });
+        const res = await fetch(`${API_BASE}/${instanceId.value}/gerar`, { method: 'POST', body: form });
         const json = await res.json();
         
         if (json.erro) throw new Error(json.erro);
@@ -175,9 +174,8 @@ async function enviarEConcluir() {
     sending.value = true;
     try {
         const form = new FormData();
-        form.append('instance_id', instanceId.value);
         form.append('id_usuario', 1);
-        const res = await fetch(`${API_CONTROLLER}?acao=enviar_emails`, { method: 'POST', body: form });
+        const res = await fetch(`${API_BASE}/${instanceId.value}/enviar`, { method: 'POST', body: form });
         const json = await res.json();
         if (json.erro) throw new Error(json.erro);
         alert("Enviado!");

@@ -101,7 +101,7 @@ const dtOptions = {
     scrollY: 'calc(100vh - 240px)', 
     scrollCollapse: true,
     ajax: {
-        url: '/backend/api/fluxo?acao=listar_solicitacoes',
+        url: '/backend/api/fluxo/solicitacoes',
         data: (d) => { 
             d.instance_id = instanceId.value; 
         },
@@ -155,13 +155,12 @@ async function salvar() {
     if (listaIds.length === 0) return;
     
     const formData = new FormData();
-    formData.append('acao', 'vincular');
     formData.append('id_fluxo_definicao', fluxoId.value || 1);
     if (instanceId.value) formData.append('id_processo_instancia', instanceId.value);
     listaIds.forEach(id => formData.append('selecionados[]', id));
 
     try {
-        const res = await fetch('/backend/api/fluxo', { method: 'POST', body: formData });
+        const res = await fetch('/backend/api/fluxo/vincular', { method: 'POST', body: formData });
         const json = await res.json();
         if(json.sucesso) {
             alert(json.msg);
@@ -176,13 +175,12 @@ async function removerItem(item) {
     if(!confirm(`Remover item ${item.id_solicitacao_senior}?`)) return;
     const parts = item.id_unico.split('-');
     const formData = new FormData();
-    formData.append('acao', 'remover_item');
     formData.append('id_processo', instanceId.value);
     formData.append('num_solicitacao', parts[1]);
     formData.append('seq_solicitacao', parts[2]);
 
     try {
-        const res = await fetch('/backend/api/fluxo', { method: 'POST', body: formData });
+        const res = await fetch('/backend/api/fluxo/remover-item', { method: 'POST', body: formData });
         const json = await res.json();
         if(json.sucesso) dt.value.dt.ajax.reload(null, false);
         else alert('Erro: ' + json.erro);
@@ -191,11 +189,8 @@ async function removerItem(item) {
 
 async function excluirProcesso() {
     if(!confirm("Excluir PROCESSO INTEIRO?")) return;
-    const formData = new FormData();
-    formData.append('acao', 'cancelar_processo');
-    formData.append('id_processo', instanceId.value);
     try {
-        const res = await fetch('/backend/api/fluxo', { method: 'POST', body: formData });
+        const res = await fetch(`/backend/api/fluxo/processo/${instanceId.value}`, { method: 'DELETE' });
         const json = await res.json();
         if(json.sucesso) { alert('Excluído'); window.location.href='/'; }
     } catch (e) { alert('Erro'); }

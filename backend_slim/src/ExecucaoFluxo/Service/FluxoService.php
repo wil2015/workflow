@@ -165,21 +165,5 @@ class FluxoService
         return ['sucesso' => true];
     }
 
-    public function carregarDadosDashboard(): array
-    {
-        $fluxos = $this->repo->listarFluxosDisponiveis();
-        $rawProc = $this->repo->listarTodosProcessos();
-        $tarefas = [];
 
-        foreach ($rawProc as $r) {
-            $tarefas[] = [
-                'id' => $r['id'],
-                'nome_do_fluxo' => Formatador::utf8($r['nome_do_fluxo']),
-                'id_processo_senior' => $r['id_processo_senior'],
-                'data_formatada' => Formatador::dataHora($r['data_inicio']),
-                'status_atual' => $r['status_atual'],
-            ];
-        }
-        return ['fluxos' => $fluxos, 'tarefas' => $tarefas];
-    }
 }

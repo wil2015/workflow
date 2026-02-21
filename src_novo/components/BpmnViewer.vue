@@ -126,8 +126,7 @@ async function fecharModal() {
 // --- CARGA DE DADOS (URL CORRIGIDA) ---
 async function carregarProcessoExistente(id) {
     try {
-        // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const url = `/backend/api/fluxo?acao=ler_tarefa&id_instancia=${id}`;
+        const url = `/backend/api/fluxo/tarefa/${id}`;
         const res = await fetch(url);
         
         let json;
@@ -171,13 +170,11 @@ async function salvarDatas() {
     salvandoDatas.value = true;
     try {
         const formData = new FormData();
-        formData.append('acao', 'salvar_datas');
         formData.append('id_processo', instanceId.value);
         formData.append('data_cotacao', instancia.value.datas_editaveis.cotacao_iso || '');
         formData.append('data_recebimento', instancia.value.datas_editaveis.recebimento_iso || '');
 
-        // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const response = await fetch('/backend/api/fluxo', {
+        const response = await fetch('/backend/api/fluxo/datas', {
             method: 'POST',
             body: formData
         });

@@ -14,29 +14,55 @@ return function (App $app) {
     });
 
     // =====================================================================
-    // API Routes agrupadas sob /api
+    // API Routes - Single Action Handlers (RESTful)
     // =====================================================================
     $app->group('/api', function (RouteCollectorProxy $group) {
 
         // --- Dashboard ---
-        $group->map(['GET', 'POST'], '/dashboard', \Dashboard\Handler\DashboardHandler::class);
+        $group->get('/dashboard', \Dashboard\Handler\DashboardHomeHandler::class);
 
         // --- ExecucaoFluxo ---
-        $group->map(['GET', 'POST'], '/fluxo', \ExecucaoFluxo\Handler\FluxoHandler::class);
+        $group->group('/fluxo', function (RouteCollectorProxy $fluxo) {
+            $fluxo->get('/tarefa/{id}', \ExecucaoFluxo\Handler\LerTarefaHandler::class);
+            $fluxo->get('/solicitacoes', \ExecucaoFluxo\Handler\ListarSolicitacoesHandler::class);
+            $fluxo->post('/datas', \ExecucaoFluxo\Handler\SalvarDatasHandler::class);
+            $fluxo->post('/vincular', \ExecucaoFluxo\Handler\VincularItensHandler::class);
+            $fluxo->post('/remover-item', \ExecucaoFluxo\Handler\RemoverItemHandler::class);
+            $fluxo->delete('/processo/{id}', \ExecucaoFluxo\Handler\CancelarProcessoHandler::class);
+        });
 
         // --- Fornecedores ---
-        $group->map(['GET', 'POST'], '/fornecedores', \Fornecedores\Handler\FornecedoresHandler::class);
+        $group->group('/fornecedores', function (RouteCollectorProxy $forn) {
+            $forn->get('', \Fornecedores\Handler\ListarFornecedoresHandler::class);
+            $forn->post('', \Fornecedores\Handler\SalvarFornecedoresHandler::class);
+            $forn->delete('/{processo}/{fornecedor}', \Fornecedores\Handler\RemoverFornecedorHandler::class);
+        });
 
         // --- Cotacao ---
-        $group->map(['GET', 'POST'], '/cotacao', \Cotacao\Handler\CotacaoHandler::class);
+        $group->group('/cotacao', function (RouteCollectorProxy $cot) {
+            $cot->get('/itens/{processo}', \Cotacao\Handler\ListarItensCotacaoHandler::class);
+            $cot->get('/valores', \Cotacao\Handler\ListarCotacoesHandler::class);
+            $cot->post('/valores', \Cotacao\Handler\SalvarCotacaoHandler::class);
+        });
 
         // --- GradeComparativa ---
-        $group->map(['GET', 'POST'], '/grade', \GradeComparativa\Handler\GradeComparativaHandler::class);
+        $group->group('/grade', function (RouteCollectorProxy $grade) {
+            $grade->get('/{processo}', \GradeComparativa\Handler\CarregarGradeHandler::class);
+            $grade->post('/consolidar', \GradeComparativa\Handler\ConsolidarGradeHandler::class);
+        });
 
         // --- AutorizacaoCompra ---
-        $group->map(['GET', 'POST'], '/autorizacao', \AutorizacaoCompra\Handler\AutorizacaoCompraHandler::class);
+        $group->group('/autorizacao', function (RouteCollectorProxy $auth) {
+            $auth->get('/{processo}/documentos', \AutorizacaoCompra\Handler\ListarDocumentosHandler::class);
+            $auth->post('/{processo}/gerar', \AutorizacaoCompra\Handler\GerarAutorizacoesHandler::class);
+            $auth->post('/{processo}/enviar', \AutorizacaoCompra\Handler\EnviarEmailsHandler::class);
+        });
 
         // --- EmailFornecedores ---
-        $group->map(['GET', 'POST'], '/email-fornecedores', \EmailFornecedores\Handler\EmailFornecedoresHandler::class);
+        $group->group('/email-fornecedores', function (RouteCollectorProxy $email) {
+            $email->get('/{processo}', \EmailFornecedores\Handler\CarregarEmailsHandler::class);
+            $email->post('/{processo}', \EmailFornecedores\Handler\SalvarEmailsHandler::class);
+            $email->post('/email', \EmailFornecedores\Handler\AdicionarEmailHandler::class);
+        });
     });
 };
