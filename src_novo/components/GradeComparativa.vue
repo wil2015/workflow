@@ -109,7 +109,7 @@ const loading = ref(true);
 const salvando = ref(false);
 const dados = ref({ cabecalho: [], linhas: [], total_fmt: '0,00', total_raw: 0 });
 
-const API_URL = '/backend/modulos/GradeComparativa/GradeComparativaController.php';
+const API_URL = '/backend/api/grade';
 
 const nf = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function fmt(n) {

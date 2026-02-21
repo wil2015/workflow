@@ -61,17 +61,16 @@ services:
   backend_new:
     build: 
       context: .
-      dockerfile: Dockerfile_novo.php  # Isolamento do Servidor
+      dockerfile: Dockerfile_novo.php
     container_name: back_new
     volumes:
-      # MÁGICA 3: ONDE ESTÁ A PASTA BACKEND_NOVO
-      # Aqui garantimos que este container leia seus arquivos refatorados (JSON)
-      - ./backend_novo:/var/www/html/backend
-      # ADICIONE ESTA LINHA ABAIXO:
-      - ./public:/var/www/html/public
+      # Monta o backend_novo inteiro como raiz do projeto Mezzio
+      - ./backend_novo:/var/www/html
+      # Arquivos BPMN publicos
+      - ./public:/var/www/html/public/bpmn
+      # Storage para PDFs gerados
       - ./storage:/var/www/html/storage
-      
     ports:
       - "8081:80"
     command: >
-      sh -c "chmod -R 777 /var/www/html/storage && apache2-foreground"
+      sh -c "cd /var/www/html && composer install --no-interaction --prefer-dist 2>/dev/null || true && chmod -R 777 /var/www/html/storage 2>/dev/null || true && apache2-foreground"

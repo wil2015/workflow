@@ -127,7 +127,7 @@ async function fecharModal() {
 async function carregarProcessoExistente(id) {
     try {
         // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const url = `/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=ler_tarefa&id_instancia=${id}`;
+        const url = `/backend/api/fluxo?acao=ler_tarefa&id_instancia=${id}`;
         const res = await fetch(url);
         
         let json;
@@ -177,7 +177,7 @@ async function salvarDatas() {
         formData.append('data_recebimento', instancia.value.datas_editaveis.recebimento_iso || '');
 
         // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const response = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', {
+        const response = await fetch('/backend/api/fluxo', {
             method: 'POST',
             body: formData
         });

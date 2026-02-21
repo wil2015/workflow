@@ -65,7 +65,7 @@ function abrirProcesso(proc) {
 
 onMounted(async () => {
   try {
-    const res = await fetch('backend/modulos/Dashboard/DashboardController.php?acao=home');
+    const res = await fetch('/backend/api/dashboard?acao=home');
     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
     const json = await res.json();
     if (json.erro) throw new Error(json.erro);

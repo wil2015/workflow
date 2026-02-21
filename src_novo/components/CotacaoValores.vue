@@ -88,7 +88,7 @@ const loadingCotacao = ref(false);
 const salvando = ref(false);
 const modificado = ref(false);
 
-const API_URL = '/backend/modulos/Cotacao/CotacaoController.php';
+const API_URL = '/backend/api/cotacao';
 
 onMounted(() => {
     if (instanceId.value) {
