@@ -18,6 +18,7 @@ class GradeComparativaService extends BaseService
     }
 
     public function consolidarProcesso($idProcesso, $ofertas = []) {
+        // ... (Mantido igual: atualiza ofertas e chama procedure de escrita) ...
         $idProcesso = (int)$idProcesso;
         if ($idProcesso <= 0) throw new Exception('ID invalido.');
 
@@ -41,85 +42,66 @@ class GradeComparativaService extends BaseService
     }
 
     private function logicaDeMontagem($idProcesso) {
-        $participantes = $this->repo->buscarParticipantes($idProcesso);
-        $itens = $this->repo->buscarItensBasicos($idProcesso);
-        $ofertasBrutas = $this->repo->buscarTodasOfertas($idProcesso);
+        // 1. Busca TUDO processado via Procedure
+        $dadosRaw = $this->repo->buscarGradeSimulada($idProcesso);
         
-        $mapa = [];
-        foreach ($ofertasBrutas as $o) {
-            $key = $o['num_solicitacao'] . '-' . $o['seq_solicitacao'];
-            $fid = (int)$o['id_fornecedor_senior'];
-            $mapa[$key][$fid] = [
-                'oferta_id' => (int)$o['id'],
-                'valor' => (float)($o['valor_unitario'] ?? 0),
-                'atende' => ((int)($o['atende'] ?? 1)) === 1,
-                'justificativa' => $o['justificativa_da_recusa'] ?? '',
-            ];
-        }
-
-        $cabecalho = [];
-        foreach ($participantes as $p) {
-            $nomeFull = isset($p['nome']) ? trim($p['nome']) : 'Fornecedor';
-            $cabecalho[] = [
-                'id' => (int)$p['id'],
-                'nome_completo' => Formatador::utf8($nomeFull), 
-                'nome_curto' => Formatador::utf8(explode(' ', $nomeFull)[0])
-            ];
-        }
-
         $linhas = [];
+        $cabecalho = [];
+        $participantesMap = [];
         $totalGeral = 0.0;
-        foreach ($itens as $item) {
-            $chave = $item['num_solicitacao'] . '-' . $item['seq_solicitacao'];
-            $qtd = (float)$item['quantidade'] > 0 ? (float)$item['quantidade'] : 1.0;
-            $descSenior = $this->repo->buscarDescricaoSenior($item['num_solicitacao'], $item['seq_solicitacao']);
 
-            $ofertasItem = $mapa[$chave] ?? [];
-            $validos = [];
-            foreach ($ofertasItem as $d) {
-                if (($d['valor'] > 0) && $d['atende']) $validos[] = $d['valor'];
-            }
-            
-            $menor = !empty($validos) ? min($validos) : null;
-            if ($menor) $totalGeral += ($menor * $qtd);
-
-            $celulas = [];
-            foreach ($participantes as $p) {
-                $pid = (int)$p['id'];
-                $d = $ofertasItem[$pid] ?? null;
-                $val = $d ? $d['valor'] : 0.0;
-                $atende = $d ? $d['atende'] : true;
-                
-                $status = 'empty';
-                if ($val > 0) {
-                    if (!$atende) $status = 'rejected';
-                    elseif ($menor && abs($val - $menor) < 0.001) $status = 'winner';
-                    else $status = 'loser';
-                }
-
-                $celulas[$pid] = [
-                    'oferta_id' => $d ? $d['oferta_id'] : 0,
-                    'valor' => $val,
-                    'valor_fmt' => $val > 0 ? Formatador::moeda($val) : '-',
-                    'status' => $status,
-                    'atende' => $atende,
-                    'justificativa_da_recusa' => $d ? $d['justificativa'] : '',
+        // 2. Agrupa os dados planos em estrutura de Matriz (Pivot)
+        foreach ($dadosRaw as $r) {
+            // Constrói lista única de participantes para o cabeçalho
+            $fid = $r['id_fornecedor'];
+            if (!isset($participantesMap[$fid])) {
+                $participantesMap[$fid] = [
+                    'id' => $fid,
+                    'nome_completo' => Formatador::utf8($r['nome_do_fornecedor']),
+                    'nome_curto' => Formatador::utf8(explode(' ', $r['nome_do_fornecedor'])[0])
                 ];
             }
 
-            $linhas[] = [
-                'id_item' => (int)$item['id_item'],
-                'chave' => $chave,
-                'produto' => $descSenior ? Formatador::utf8($descSenior) : "Item $chave",
-                'qtd_fmt' => Formatador::numero($qtd), 
-                'melhor_fmt' => $menor ? Formatador::moeda($menor) : '-',
-                'celulas' => $celulas,
+            // Identificador do Item (Linha da Tabela)
+            $chaveItem = $r['num_solicitacao'] . '-' . $r['seq_solicitacao'];
+            
+            if (!isset($linhas[$chaveItem])) {
+                // Se é a primeira vez que vemos o item, buscamos descrição e inicializamos
+                $desc = $this->repo->buscarDescricaoSenior($r['num_solicitacao'], $r['seq_solicitacao']);
+                $qtd = (float)$r['quantidade'];
+                
+                $linhas[$chaveItem] = [
+                    'id_item' => $r['id_item'],
+                    'chave' => $chaveItem,
+                    'produto' => $desc ? Formatador::utf8($desc) : "Item $chaveItem",
+                    'qtd_fmt' => Formatador::numero($qtd),
+                    'melhor_fmt' => ($r['menor_valor'] > 0) ? Formatador::moeda((float)$r['menor_valor']) : '-',
+                    'celulas' => [] // Será preenchido abaixo
+                ];
+
+                // Somatória do Total Geral (Apenas 1 vez por item, se houver vencedor)
+                if ($r['menor_valor'] > 0) {
+                    $totalGeral += ($r['menor_valor'] * $qtd);
+                }
+            }
+
+            // Adiciona a Célula do Fornecedor na Linha
+            $linhas[$chaveItem]['celulas'][$fid] = [
+                'oferta_id' => $r['oferta_id'],
+                'valor' => (float)$r['valor'],
+                'valor_fmt' => ($r['valor'] > 0) ? Formatador::moeda((float)$r['valor']) : '-',
+                'status' => $r['status_calculado'], // Vem pronto do SQL!
+                'atende' => (bool)$r['atende'],
+                'justificativa_da_recusa' => Formatador::utf8($r['justificativa_da_recusa'])
             ];
         }
 
+        // Ordena participantes pelo nome (opcional, já vem do SQL mas garante chaves)
+        sort($participantesMap);
+
         return [
-            'cabecalho' => $cabecalho,
-            'linhas' => $linhas,
+            'cabecalho' => array_values($participantesMap),
+            'linhas' => array_values($linhas),
             'total_fmt' => Formatador::moeda($totalGeral),
         ];
     }
