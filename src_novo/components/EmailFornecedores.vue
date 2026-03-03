@@ -80,7 +80,7 @@ const salvando = ref(false);
 const salvandoLocal = ref(null);
 const listaFornecedores = ref([]);
 
-const API_URL = '/backend/modulos/EmailFornecedores/EmailFornecedoresController.php';
+const API_URL = '/backend/api/email-fornecedores';
 
 // Computed para mostrar quantos estão marcados no rodapé
 const totalSelecionados = computed(() => {

@@ -8,22 +8,22 @@ export default defineConfig(({ mode }) => {
     plugins: [vue()],
     server: {
       host: true,
-      port: 5173, // Internamente é sempre 5173
+      port: 5173,
       strictPort: true, 
       hmr: {
-        // O navegador conecta na porta que definimos no docker-compose
         clientPort: Number(env.VITE_CLIENT_PORT) || 5173 
       },
       proxy: {
-        '/backend': {
-          // Cada frontend fala com seu respectivo backend
-          target: env.VITE_API_URL || 'http://backend_legacy:80',
+        // Proxy para o backend Mezzio (todas as rotas /backend/api/*)
+        '/backend/api': {
+          target: env.VITE_API_URL || 'http://backend_new:80',
           changeOrigin: true,
         },
+        // Proxy legado (mantido para compatibilidade)
         '/backend': {
-        target: 'http://backend_new:80',
-        changeOrigin: true,
-      }
+          target: env.VITE_API_URL || 'http://backend_legacy:80',
+          changeOrigin: true,
+        }
       }
     }
   };
