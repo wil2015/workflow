@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 10pt; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 10px; }
+        .logo { font-weight: bold; font-size: 16pt; color: #003366; }
+        .sub-header { font-size: 8pt; margin-top: 5px; }
+        
+        .titulo { text-align: center; font-weight: bold; background-color: #f2f2f2; padding: 5px; border: 1px solid #000; margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: top; word-wrap: break-word; }
+        
+        .bg-gray { background-color: #f9f9f9; font-weight: bold; }
+        .col-desc { width: 25%; }
+        .col-forn { width: 25%; }
+        
+        .footer { margin-top: 40px; font-size: 9pt; }
+        .assinatura { margin-top: 50px; border-top: 1px solid #000; width: 300px; text-align: center; }
+        .iso { font-size: 7pt; text-align: right; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">FUNDUNESP</div>
+        <div class="sub-header">Certificada ISO 9001:2015</div>
+    </div>
+
+    <div class="titulo">
+        PESQUISA DE MERCADO – MODALIDADE: COMPRA DIRETA<br>
+        Processo Administrativo: {{ numero_processo }}
+    </div>
+
+    {% for id_item, item in itens %}
+    <table>
+        <thead>
+            <tr>
+                <th class="col-desc">Descrição</th>
+                {% for forn in item.fornecedores|slice(0, 3) %}
+                    <th class="col-forn">FORNECEDOR 0{{ loop.index }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="bg-gray">Dados do Fornecedor</td>
+                {% for forn in item.fornecedores|slice(0, 3) %}
+                    <td>
+                        <strong>{{ forn.nome }}</strong><br>
+                        CNPJ/CPF: {{ forn.documento }}<br>
+                        Data: {{ data_emissao }}
+                    </td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td rowspan="2" class="col-desc">
+                    {{ item.descricao }}
+                </td>
+                {% for forn in item.fornecedores|slice(0, 3) %}
+                    <td>
+                        Valor Unitário: R$ {{ forn.valor_unitario|number_format(2, ',', '.') }}
+                    </td>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for forn in item.fornecedores|slice(0, 3) %}
+                    <td class="bg-gray">
+                        Valor Total: R$ {{ forn.valor_total|number_format(2, ',', '.') }}
+                    </td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+
+    <div class="footer">
+        <p>Declaro que realizei a pesquisa acima descrita, responsabilizando-me pelas informações nela constantes.</p>
+        <p>São Paulo, {{ data_emissao }}.</p>
+        
+        <div class="assinatura">
+            <strong>{{ responsavel_nome|default('Clodoaldo S. Ferreira') }}</strong><br>
+            {{ responsavel_cargo|default('Comprador Chefe') }}
+        </div>
+    </div>
+
+    <div class="iso">
+        Rua Libero Badaró, 377 - 23º Andar - São Paulo - SP<br>
+        www.fundunesp.org.br - compras@fundunesp.org.br
+    </div>
+
+</body>
+</html>

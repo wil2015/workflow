@@ -112,9 +112,6 @@
     <bpmn:sequenceFlow id="Flow_0los709" sourceRef="Activity_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
     <bpmn:sequenceFlow id="Flow_1ub469b" name="Não" sourceRef="Gateway_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
     <bpmn:sequenceFlow id="Flow_1j64fy0" sourceRef="Activity_Grade" targetRef="Activity_pesquisa_de_mercado" />
-    <bpmn:callActivity id="Activity_pesquisa_de_mercado" name="Pesquisa de Mercado">
-      <bpmn:incoming>Flow_1j64fy0</bpmn:incoming>
-    </bpmn:callActivity>
     <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
       <bpmn:incoming>Flow_10</bpmn:incoming>
       <bpmn:outgoing>Flow_11</bpmn:outgoing>
@@ -122,6 +119,9 @@
     <bpmn:endEvent id="EndEvent_Conclusao" name="Processo Finalizado">
       <bpmn:incoming>Flow_11</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:userTask id="Activity_pesquisa_de_mercado" name="Pesquisa de Mercado">
+      <bpmn:incoming>Flow_1j64fy0</bpmn:incoming>
+    </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0x8l6g2">
@@ -197,9 +197,6 @@
         <dc:Bounds x="1220" y="210" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0itj70u_di" bpmnElement="Activity_pesquisa_de_mercado">
-        <dc:Bounds x="980" y="380" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_Pagar_di" bpmnElement="Activity_Pagar">
         <dc:Bounds x="1920" y="520" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -208,6 +205,9 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="2085" y="585" width="51" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_15zr9hd_di" bpmnElement="Activity_pesquisa_de_mercado">
+        <dc:Bounds x="980" y="380" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
         <di:waypoint x="288" y="140" />

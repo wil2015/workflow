@@ -8,6 +8,7 @@ import GradeComparativa from './GradeComparativa.vue';
 import DefaultTask      from './DefaultTask.vue';    
 import EmailFornecedores from './EmailFornecedores.vue';  
 import AutorizacaoCompra from './AutorizacaoCompra.vue';
+import PesquisaMercado from './PesquisaMercado.vue';
 
 export const taskMap = {
     // Verifica se os IDs aqui batem com o seu desenho no Camunda/BPMN:
@@ -17,6 +18,8 @@ export const taskMap = {
     'Activity_Grade':           GradeComparativa,
     'Event_AguardarOrcamentos': EmailFornecedores,
     'Activity_EnviarAutorizacao': AutorizacaoCompra,
+    'Activity_pesquisa_de_mercado': PesquisaMercado, 
+
 };
 
 export function getComponentForTask(taskId) {
