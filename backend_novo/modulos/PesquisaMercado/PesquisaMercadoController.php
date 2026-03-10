@@ -9,10 +9,12 @@ use Exception;
 
 class PesquisaMercadoController extends BaseController
 {
-    public function __construct($pdo)
+    // RECEBE A CONEXÃO SENIOR AQUI
+    public function __construct($pdo, $connSenior)
     {
-        parent::__construct($pdo);
-        $this->service = new PesquisaMercadoService($pdo);
+        parent::__construct($pdo, $connSenior);
+        // Passa ambas as conexões para o Service
+        $this->service = new PesquisaMercadoService($pdo, $connSenior);
     }
 
     protected function executarAcao(string $acao)
@@ -21,7 +23,7 @@ class PesquisaMercadoController extends BaseController
         if ($idProcesso === 0) throw new Exception("Processo inválido.");
 
         switch ($acao) {
-            case 'listar_documentos': // <-- ADICIONADO AQUI
+            case 'listar_documentos':
                 return $this->service->listarDocumentosGerados($idProcesso);
                 
             case 'gerar_pdf':
@@ -30,9 +32,9 @@ class PesquisaMercadoController extends BaseController
                 throw new Exception("Ação não permitida.");
         }
     }
-    
 }
 
-// Inicialização
+// Inicialização com os dois bancos
 $pdo = Database::getConexao();
-(new PesquisaMercadoController($pdo))->handleRequest();
+$senior = Database::getSenior();
+(new PesquisaMercadoController($pdo, $senior))->handleRequest();
