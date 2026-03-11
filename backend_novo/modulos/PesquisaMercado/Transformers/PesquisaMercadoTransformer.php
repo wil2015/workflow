@@ -1,7 +1,7 @@
 <?php
-namespace App\Modulos\PesquisaMercado\Handler;
+namespace App\Modulos\PesquisaMercado\Transformers;
 
-class PesquisaMercadoHandler
+class PesquisaMercadoTransformer
 {
     public function formatarParaTabela(array $dadosBrutos): array
     {
@@ -17,7 +17,6 @@ class PesquisaMercadoHandler
                 ];
             }
 
-            // Organiza conforme o PDF (Fornecedor, CNPJ, Valor)
             $itensAgrupados[$chave]['fornecedores'][] = [
                 'nome' => $linha['nome_do_fornecedor'],
                 'documento' => $linha['cnpj_cpf'],

@@ -2,7 +2,7 @@
 namespace App\Modulos\PesquisaMercado;
 
 use App\Core\BaseService;
-use App\Modulos\PesquisaMercado\Handler\PesquisaMercadoHandler;
+use App\Modulos\PesquisaMercado\Transformers\PesquisaMercadoTransformer;
 use App\Modulos\PesquisaMercado\Documentos\PesquisaMercadoDoc;
 use App\Core\Documentos\Engine\DocumentoEngine;
 use App\Core\Utils\Formatador; // Usa o mesmo formatador do módulo de Cotação
@@ -12,7 +12,7 @@ use Symfony\Component\Mailer\Transport;
 class PesquisaMercadoService extends BaseService
 {
     private $repo;
-    private $handler;
+    private $transformer;
 
     // RECEBE A CONEXÃO SENIOR AQUI
     public function __construct($pdo, $connSenior)
@@ -20,7 +20,7 @@ class PesquisaMercadoService extends BaseService
         parent::__construct($pdo, $connSenior);
         // Passa o $connSenior para o repositório funcionar
         $this->repo = new PesquisaMercadoRepo($pdo, $connSenior);
-        $this->handler = new PesquisaMercadoHandler();
+        $this->transformer = new PesquisaMercadoTransformer();
     }
 
     public function gerarRelatorioPesquisa(int $idProcesso, int $idUsuario)
@@ -40,7 +40,7 @@ class PesquisaMercadoService extends BaseService
         }
         
         // 2. Handler processa a lógica da tabela
-        $itensFormatados = $this->handler->formatarParaTabela($dadosBrutos);
+        $itensFormatados = $this->transformer->formatarParaTabela($dadosBrutos);
 
         // 3. Monta o Objeto de Documento
         $doc = new PesquisaMercadoDoc([
