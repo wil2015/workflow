@@ -5,24 +5,44 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Core\BaseController;
 use App\Config\Database;
+use App\Modulos\Dashboard\Handlers\HomeHandler;
 use Throwable;
 use Exception;
 
 class DashboardController extends BaseController
 {
+    private array $handlers = [];
+
     public function __construct($pdo)
     {
-        parent::__construct($pdo, null);
+        // O Dashboard local não acessa o Senior diretamente, então passamos null
+        parent::__construct($pdo, null); 
+        
         $repo = new DashboardRepo($pdo);
-        $this->service = new DashboardService($repo);
+        $service = new DashboardService($repo);
+
+        // Mapeamento limpo da rota para a classe de ação
+        $this->handlers = [
+            'home' => new HomeHandler($service),
+        ];
     }
 
-    protected function getAcaoPadrao() { return 'home'; }
+    // Mantém a excelente sacada de ter uma ação padrão caso o Vue não envie o '?acao='
+    protected function getAcaoPadrao() { 
+        return 'home'; 
+    }
 
     protected function executarAcao(string $acao)
     {
-        if ($acao === 'home') return $this->service->carregarHome();
-        throw new Exception("Ação inválida: $acao");
+        if (!isset($this->handlers[$acao])) {
+            throw new Exception("Ação desconhecida ou não implementada no Dashboard: " . $acao);
+        }
+
+        // DTO dinâmico: empacota tudo que a ação possa precisar no futuro
+        $payload = $this->params;
+
+        // Dispara a classe correta
+        return $this->handlers[$acao]->handle($payload);
     }
 }
 
