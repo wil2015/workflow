@@ -52,7 +52,7 @@ try {
             }
 
             // Insere Item
-            $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) VALUES (?, ?, ?)";
+            $sqlItem = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) VALUES (?, ?, ?, ?)";
             $stmtItem = $pdo->prepare($sqlItem);
 
             // GERA MATRIZ DE COTAÇÃO PARA ITENS NOVOS

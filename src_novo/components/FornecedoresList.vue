@@ -1,0 +1,159 @@
+<template>
+  <div class="fornecedores-wrapper">
+    <div class="header-actions">
+        <div class="titulo-box">
+            <h2>Selecionar Fornecedores</h2>
+            <p v-if="instanceId">Processo Workflow: <strong>#{{ instanceId }}</strong></p>
+        </div>
+    </div>
+
+    <div class="tabela-container">
+      <DataTable 
+        v-if="instanceId"
+        class="display"
+        :columns="columns" 
+        :options="dtOptions"
+        ref="dt"
+      >
+        <template #action="{ rowData }">
+            <div class="cell-center">
+                <input 
+                    type="checkbox" 
+                    class="chk-big"
+                    :checked="rowData.vinculado"
+                    @change="toggleFornecedor(rowData, $event)"
+                    :disabled="loadingId === rowData.cod"
+                />
+            </div>
+        </template>
+
+        <template #status="{ rowData }">
+            <span v-if="loadingId === rowData.cod" class="badge-loading">Processando...</span>
+            <span v-else-if="rowData.vinculado" class="badge-ok">Selecionado</span>
+            <span v-else class="badge-dispo">Disponível</span>
+        </template>
+      </DataTable>
+    </div>
+
+    <div class="footer-actions">
+        <button class="btn-fechar" @click="fechar">Concluir / Voltar</button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-dt';
+import 'datatables.net-dt/css/dataTables.dataTables.min.css';
+
+DataTable.use(DataTablesCore);
+
+const props = defineProps({ instanceId: String });
+const emit = defineEmits(['fechar']);
+
+const instanceId = ref(props.instanceId);
+const dt = ref(null);
+const loadingId = ref(null);
+
+const columns = [
+  { data: null, title: '#', orderable: false, width: '40px', render: '#action' },
+  { data: 'nome', title: 'Razão Social / Nome', render: (d, t, r) => `<strong>${d}</strong><br><small style="color:#666">Cód: ${r.cod}</small>` },
+  { data: 'doc', title: 'CNPJ / CPF' },
+  { data: 'cidade_uf', title: 'Cidade/UF' },
+  { data: null, title: 'Status', width: '100px', render: '#status' }
+];
+
+const dtOptions = {
+    language: { 
+        sSearch: "Pesquisar", 
+        sZeroRecords: "Nada encontrado", 
+        sProcessing: "Carregando...",
+        sEmptyTable: "Nenhum fornecedor disponível (ou erro de conexão)." 
+    },
+    pageLength: 10,
+    serverSide: true,
+    processing: true,
+    order: [[ 1, "asc" ]],
+    ajax: {
+        url: '/backend/api/fornecedores',
+        data: (d) => { 
+            d.instance_id = instanceId.value; 
+        },
+        // --- AQUI ESTÁ A CORREÇÃO: Tratamento de erro do DataTables ---
+        error: function (xhr, error, thrown) {
+            console.error("Erro DataTables:", xhr);
+            
+            let msg = "Erro desconhecido ao carregar fornecedores.";
+            
+            // Tenta ler o JSON de erro do PHP (mesmo com status 500)
+            if (xhr.responseJSON && xhr.responseJSON.erro) {
+                msg = xhr.responseJSON.erro;
+            } else if (xhr.responseText) {
+                try {
+                    const json = JSON.parse(xhr.responseText);
+                    if(json.erro) msg = json.erro;
+                } catch(e) {
+                    msg = "Erro fatal no servidor (Verifique o Console).";
+                }
+            }
+
+            alert("ERRO NO SISTEMA:\n" + msg);
+        }
+        // -------------------------------------------------------------
+    }
+};
+
+function fechar() {
+    emit('fechar');
+}
+
+async function toggleFornecedor(row, event) {
+    const isChecked = event.target.checked;
+    loadingId.value = row.cod; 
+    
+    try {
+        let req;
+        if (isChecked) {
+            const payload = {
+                id_processo: instanceId.value,
+                participantes: [row.json_full]
+            };
+            req = await fetch('/backend/api/fornecedores', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload) 
+            });
+        } else {
+            req = await fetch(`/backend/api/fornecedores/${instanceId.value}/${row.cod}`, { 
+                method: 'DELETE' 
+            });
+        }
+        const res = await req.json();
+
+        if (res.sucesso) {
+            dt.value.dt.ajax.reload(null, false);
+        } else {
+            throw new Error(res.erro || "Erro desconhecido.");
+        }
+    } catch (e) {
+        alert("Ops! " + e.message); 
+        event.target.checked = !isChecked;
+    } finally {
+        loadingId.value = null; 
+    }
+}
+</script>
+
+<style scoped>
+.fornecedores-wrapper { height: 100%; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
+.header-actions { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
+.tabela-container { flex: 1; padding: 20px; overflow-y: auto; }
+.footer-actions { padding: 15px; border-top: 1px solid #ddd; text-align: right; }
+.chk-big { transform: scale(1.3); cursor: pointer; }
+.cell-center { display: flex; justify-content: center; align-items: center; height: 100%; }
+.badge-ok { background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.badge-dispo { background: #e9ecef; color: #666; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+.badge-loading { background: #ffc107; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.btn-fechar { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+</style>

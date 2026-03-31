@@ -1,29 +1,76 @@
-version: '3'
+
 
 services:
-  # --- SERVIÇO 1: FRONTEND (Node/Vite) ---
-  frontend:
+  # =================================================================
+  # AMBIENTE LEGADO (Acesse em http://localhost:5173)
+  # =================================================================
+  frontend_legacy:
     image: node:24-alpine
-    container_name: app_frontend
+    container_name: front_legacy
     working_dir: /app
     volumes:
-      - ./:/app               # Sincroniza a pasta toda
-      - /app/node_modules     # Evita conflito de node_modules
+      - ./:/app
+      - /app/node_modules
     ports:
-      - "5173:5173"           # Porta do Vite
-    command: sh -c "npm install && npm run build && npm run dev -- --host"
+      - "5173:5173"
+    environment:
+      - VITE_CLIENT_PORT=5173
+      - VITE_API_URL=http://backend_legacy:80
+    command: sh -c "npm install && npm run dev -- --host"
     depends_on:
-      - backend
+      - backend_legacy
 
-  # --- SERVIÇO 2: BACKEND (Apache/PHP) ---
-  backend:
-    build:
+  backend_legacy:
+    build: 
       context: .
       dockerfile: Dockerfile.php
-    container_name: app_backend
+    container_name: back_legacy
     volumes:
-      # Mapeia APENAS a pasta backend para o Apache
-      # O Apache vai servir em: http://localhost:8080/backend/
       - ./backend:/var/www/html/backend
+      # ADICIONE ESTA LINHA ABAIXO:
+      - ./public:/var/www/html/public
     ports:
-      - "8080:80"             # Acessível externamente na 8080
+      - "8080:80"
+
+  # =================================================================
+  # AMBIENTE VUE (Acesse em http://localhost:5174)
+  # =================================================================
+  frontend_new:
+    image: node:24-alpine
+    container_name: front_new
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      
+      # MÁGICA 1: Substitui a pasta src pela src_novo
+      - ./src_novo:/app/src
+      
+      # MÁGICA 2: Substitui o index.html pelo index_novo.html
+      - ./index_novo.html:/app/index.html
+      
+    ports:
+      - "5174:5173"
+    environment:
+      - VITE_CLIENT_PORT=5174
+      - VITE_API_URL=http://backend_new:80
+    command: sh -c "npm install && npm run dev -- --host"
+    depends_on:
+      - backend_new
+
+  backend_new:
+    build: 
+      context: .
+      dockerfile: Dockerfile_novo.php
+    container_name: back_new
+    volumes:
+      # Monta o backend_novo inteiro como raiz do projeto Mezzio
+      - ./backend_novo:/var/www/html
+      # Arquivos BPMN publicos
+      - ./public:/var/www/html/public/bpmn
+      # Storage para PDFs gerados
+      - ./storage:/var/www/html/storage
+    ports:
+      - "8081:80"
+    command: >
+      sh -c "cd /var/www/html && composer install --no-interaction --prefer-dist 2>/dev/null || true && chmod -R 777 /var/www/html/storage 2>/dev/null || true && apache2-foreground"
