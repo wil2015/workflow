@@ -4,33 +4,6 @@ services:
   # =================================================================
   # AMBIENTE LEGADO (Acesse em http://localhost:5173)
   # =================================================================
-  frontend_legacy:
-    image: node:24-alpine
-    container_name: front_legacy
-    working_dir: /app
-    volumes:
-      - ./:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_CLIENT_PORT=5173
-      - VITE_API_URL=http://backend_legacy:80
-    command: sh -c "npm install && npm run dev -- --host"
-    depends_on:
-      - backend_legacy
-
-  backend_legacy:
-    build: 
-      context: .
-      dockerfile: Dockerfile.php
-    container_name: back_legacy
-    volumes:
-      - ./backend:/var/www/html/backend
-      # ADICIONE ESTA LINHA ABAIXO:
-      - ./public:/var/www/html/public
-    ports:
-      - "8080:80"
 
   # =================================================================
   # AMBIENTE VUE (Acesse em http://localhost:5174)
@@ -43,12 +16,7 @@ services:
       - ./:/app
       - /app/node_modules
       
-      # MÁGICA 1: Substitui a pasta src pela src_novo
-      - ./src_novo:/app/src
-      
-      # MÁGICA 2: Substitui o index.html pelo index_novo.html
-      - ./index_novo.html:/app/index.html
-      
+         
     ports:
       - "5174:5173"
     environment:
@@ -61,12 +29,12 @@ services:
   backend_new:
     build: 
       context: .
-      dockerfile: Dockerfile_novo.php  # Isolamento do Servidor
+      dockerfile: Dockerfile  # Isolamento do Servidor
     container_name: back_new
     volumes:
       # MÁGICA 3: ONDE ESTÁ A PASTA BACKEND_NOVO
       # Aqui garantimos que este container leia seus arquivos refatorados (JSON)
-      - ./backend_novo:/var/www/html/backend
+      - ./backend:/var/www/html/backend
       # ADICIONE ESTA LINHA ABAIXO:
       - ./public:/var/www/html/public
       - ./storage:/var/www/html/storage

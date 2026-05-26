@@ -1,55 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Sistema de Workflow</title>
-  <link rel="stylesheet" href="/src/style.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script type="module" src="http://localhost:5174/@vite/client"></script>
+    <script type="module" src="http://localhost:5174/src/main.js"></script>
 </head>
 <body>
-
-  <div id="dashboard-container" class="container">
-    <h1>Painel de Controle</h1>
-    
-    <div class="section">
-      <h2>Iniciar Novo Fluxo</h2>
-      <div id="lista-definicoes" class="cards-grid">
-        <p>Carregando fluxos...</p>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>Processos Recentes</h2>
-      <table id="tabela-instancias">
-      <thead>
-    <tr>
-      <th>ID (Wf)</th>
-      <th>Fluxo</th>
-      <th>Solicitação (Senior)</th> <th>Data Início</th>
-      <th>Status</th>
-      <th>Ação</th>
-    </tr>
-  </thead>
-        <tbody>
-          </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="viewer-container" class="hidden">
-    <div class="toolbar">
-      <button id="btn-voltar" class="btn-secondary">← Voltar ao Painel</button>
-      <span id="titulo-fluxo-atual">Visualizando Fluxo</span>
-    </div>
-    <div id="canvas"></div>
-  </div>
-
-  <div id="modal-overlay" class="hidden">
-    <div id="modal-content"><div id="modal-body"></div><span id="modal-close">x</span></div>
-  </div>
-
-  <script type="module" src="/src/main.js"></script>
+    <div id="app"></div>
+    <script>
+        // CORREÇÃO: Mudamos de 'area' para 'componente'
+        window.VIEW_DATA = {
+            componente: 'Dashboard.vue' 
+        };
+    </script>
 </body>
 </html>
