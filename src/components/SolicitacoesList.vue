@@ -1,9 +1,9 @@
 <template>
-  <div class="solicitacoes-wrapper">
+  <div class="ordens-compra-wrapper">
     <div class="header-actions">
       <div class="titulo-box">
         <h2 v-if="instanceId">Gerenciar Processo #{{ instanceId }}</h2>
-        <h2 v-else>Nova Solicitação de Compra</h2>
+        <h2 v-else>Nova Ordem de Compra</h2>
       </div>
     </div>
 
@@ -66,11 +66,11 @@ const columns = [
         }
     }
   },
-  { data: 'projeto', title: 'Projeto', width: '80px', className: 'dt-body-center' },
-  { data: 'data_solicitacao', title: 'Data', width: '90px', className: 'dt-body-center', render: d => d ? d.split('-').reverse().join('/') : '' },
-  { data: 'id_solicitacao_senior', title: 'Solicitação', width: '90px', className: 'dt-body-center bold-text' },
-  { data: 'descricao_produto', title: 'Produto / Descrição', 
-    render: (d,t,r) => `<div class="prod-desc">${d}</div><div class="prod-sub">${parseFloat(r.quantidade).toLocaleString('pt-BR')} ${r.unidade}</div>` 
+  { data: 'data_ordem_compra', title: 'Data OC', width: '90px', className: 'dt-body-center', render: d => d ? d.split('-').reverse().join('/') : '' },
+  { data: 'ordem_compra_label', title: 'Ordem de Compra', width: '105px', className: 'dt-body-center bold-text' },
+  { data: 'item_ordem_label', title: 'Item OC', width: '95px', className: 'dt-body-center' },
+  { data: 'descricao_item', title: 'Item / Descrição',
+    render: (d,t,r) => `<div class="prod-desc">${d}</div><div class="prod-sub">Cod. ${r.codigo_item || '-'} - Seq. ${r.sequencia_original || '-'} - ${parseFloat(r.quantidade).toLocaleString('pt-BR')}</div>`
   },
   { data: 'preco_unitario', title: 'Preço Unit.', width: '100px', className: 'dt-body-right', render: d => `R$ ${parseFloat(d).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` },
   { 
@@ -97,11 +97,11 @@ const dtOptions = {
     pageLength: 10,
     serverSide: true,
     processing: true,
-    order: [[ 6, "desc" ]],
+    order: [[ 2, "desc" ]],
     scrollY: 'calc(100vh - 240px)', 
     scrollCollapse: true,
     ajax: {
-        url: '/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=listar_solicitacoes',
+        url: '/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=listar_ordens_compra',
         data: (d) => { 
             d.instance_id = instanceId.value; 
         },
@@ -128,7 +128,7 @@ const dtOptions = {
             
             // Para o loading infinito
             // (Hack: força o processing a parar injetando HTML vazio ou recriando a tabela se necessário)
-            // Mas só o alert já resolve a sua solicitação de "ver o erro".
+            // Mas o alert ja resolve a necessidade de expor o erro.
         }
     },
     drawCallback: () => {
@@ -146,7 +146,7 @@ onMounted(() => {
   };
   window.remItem = (id) => {
      const parts = id.split('-'); 
-     removerItem({id_solicitacao_senior: `${parts[1]}-${parts[2]}`, id_unico: id});
+     removerItem({ordem_compra_label: `OC ${parts[1]} / item ${parts[2]}`, id_unico: id});
   };
 });
 
@@ -173,13 +173,13 @@ async function salvar() {
 }
 
 async function removerItem(item) {
-    if(!confirm(`Remover item ${item.id_solicitacao_senior}?`)) return;
+    if(!confirm(`Remover item ${item.ordem_compra_label}?`)) return;
     const parts = item.id_unico.split('-');
     const formData = new FormData();
     formData.append('acao', 'remover_item');
     formData.append('id_processo', instanceId.value);
-    formData.append('num_solicitacao', parts[1]);
-    formData.append('seq_solicitacao', parts[2]);
+    formData.append('numero_oc', parts[1]);
+    formData.append('sequencia_oc', parts[2]);
 
     try {
         const res = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', { method: 'POST', body: formData });
@@ -203,7 +203,7 @@ async function excluirProcesso() {
 </script>
 
 <style scoped>
-.solicitacoes-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
+.ordens-compra-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; font-family: 'Segoe UI', sans-serif; }
 .header-actions { padding: 15px 20px; background: #fff; border-bottom: 1px solid #ddd; }
 .titulo-box h2 { margin: 0; color: #333; font-size: 20px; font-weight: 700; }
 

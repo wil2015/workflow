@@ -8,7 +8,7 @@ use App\Config\Database;
 use App\Modulos\ExecucaoFluxo\Handlers\LerTarefaHandler;
 use App\Modulos\ExecucaoFluxo\Handlers\SalvarDatasHandler;
 use App\Modulos\ExecucaoFluxo\Handlers\VincularItensHandler;
-use App\Modulos\ExecucaoFluxo\Handlers\ListarSolicitacoesHandler;
+use App\Modulos\ExecucaoFluxo\Handlers\ListarOrdensCompraHandler;
 use App\Modulos\ExecucaoFluxo\Handlers\RemoverItemHandler;
 use App\Modulos\ExecucaoFluxo\Handlers\CancelarProcessoHandler;
 use App\Modulos\ExecucaoFluxo\Handlers\DashboardDataHandler;
@@ -31,7 +31,7 @@ class FluxoController extends BaseController
             'ler_tarefa'          => new LerTarefaHandler($service),
             'salvar_datas'        => new SalvarDatasHandler($service),
             'vincular'            => new VincularItensHandler($service),
-            'listar_solicitacoes' => new ListarSolicitacoesHandler($service),
+            'listar_ordens_compra' => new ListarOrdensCompraHandler($service),
             'remover_item'        => new RemoverItemHandler($service),
             'cancelar_processo'   => new CancelarProcessoHandler($service),
             'dashboard_data'      => new DashboardDataHandler($service),

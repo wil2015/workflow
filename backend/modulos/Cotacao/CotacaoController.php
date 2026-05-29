@@ -32,7 +32,7 @@ class CotacaoController extends BaseController
     {
         switch ($acao) {
             case 'listar_itens':
-                // Retorna os itens da solicitação com detalhes do Senior (descrição, unidade)
+                // Retorna os itens da OC com detalhes do Senior (descricao, unidade)
                 return $this->service->listarItensComDetalhes($this->params['instance_id'] ?? 0);
 
             case 'listar_cotacoes':

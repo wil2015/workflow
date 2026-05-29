@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.43.1">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0">
   <bpmn:collaboration id="Collaboration_0x8l6g2">
     <bpmn:participant id="Participant_Empresa" name="Fundunesp" processRef="Process_Compras" />
     <bpmn:participant id="Participant_Fornecedor" name="Fornecedor Externo" />
@@ -91,27 +91,10 @@
       <bpmn:incoming>Flow_9</bpmn:incoming>
       <bpmn:outgoing>Flow_10</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_AbrirSolicitacao" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_AbrirSolicitacao" targetRef="Activity_SelecionarSolicitacao" />
-    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_SelecionarSolicitacao" targetRef="Activity_SelecionarFornecedores" />
-    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_SelecionarFornecedores" targetRef="Event_AguardarOrcamentos" />
-    <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="Activity_ClassificarValores" />
-    <bpmn:sequenceFlow id="Flow_6" sourceRef="Activity_ClassificarValores" targetRef="Activity_Grade" />
-    <bpmn:sequenceFlow id="Flow_Assinando" sourceRef="Activity_Grade" targetRef="Gateway_AditivoQuantidade" />
-    <bpmn:sequenceFlow id="Flow_Enviar_ReceberAssinatura" sourceRef="Activity_EnviarAutorizacao" targetRef="Activity_ReceberAssinatura" />
-    <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
-    <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_Atesto" />
-    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_MemorandoOC" />
-    <bpmn:sequenceFlow id="Flow_10" sourceRef="Activity_MemorandoOC" targetRef="Activity_Pagar" />
-    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_Pagar" targetRef="EndEvent_Conclusao" />
     <bpmn:userTask id="Activity_AditivoQuantidade" name="Formalizar Aditivo (itens/quantidades)">
       <bpmn:incoming>Flow_00jnvli</bpmn:incoming>
       <bpmn:outgoing>Flow_0los709</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sequenceFlow id="Flow_00jnvli" name="Sim" sourceRef="Gateway_AditivoQuantidade" targetRef="Activity_AditivoQuantidade" />
-    <bpmn:sequenceFlow id="Flow_0los709" sourceRef="Activity_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
-    <bpmn:sequenceFlow id="Flow_1ub469b" name="Não" sourceRef="Gateway_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
-    <bpmn:sequenceFlow id="Flow_1j64fy0" sourceRef="Activity_Grade" targetRef="Activity_pesquisa_de_mercado" />
     <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
       <bpmn:incoming>Flow_10</bpmn:incoming>
       <bpmn:outgoing>Flow_11</bpmn:outgoing>
@@ -122,6 +105,23 @@
     <bpmn:userTask id="Activity_pesquisa_de_mercado" name="Pesquisa de Mercado">
       <bpmn:incoming>Flow_1j64fy0</bpmn:incoming>
     </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_AbrirSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_AbrirSolicitacao" targetRef="Activity_SelecionarSolicitacao" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Activity_SelecionarSolicitacao" targetRef="Activity_SelecionarFornecedores" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Activity_SelecionarFornecedores" targetRef="Event_AguardarOrcamentos" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="Activity_ClassificarValores" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Activity_ClassificarValores" targetRef="Activity_Grade" />
+    <bpmn:sequenceFlow id="Flow_Assinando" sourceRef="Activity_Grade" targetRef="Gateway_AditivoQuantidade" />
+    <bpmn:sequenceFlow id="Flow_1j64fy0" sourceRef="Activity_Grade" targetRef="Activity_pesquisa_de_mercado" />
+    <bpmn:sequenceFlow id="Flow_00jnvli" name="Sim" sourceRef="Gateway_AditivoQuantidade" targetRef="Activity_AditivoQuantidade" />
+    <bpmn:sequenceFlow id="Flow_1ub469b" name="Não" sourceRef="Gateway_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
+    <bpmn:sequenceFlow id="Flow_0los709" sourceRef="Activity_AditivoQuantidade" targetRef="Activity_EnviarAutorizacao" />
+    <bpmn:sequenceFlow id="Flow_Enviar_ReceberAssinatura" sourceRef="Activity_EnviarAutorizacao" targetRef="Activity_ReceberAssinatura" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_Atesto" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_MemorandoOC" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Activity_MemorandoOC" targetRef="Activity_Pagar" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_Pagar" targetRef="EndEvent_Conclusao" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0x8l6g2">
@@ -129,14 +129,14 @@
         <dc:Bounds x="160" y="80" width="2200" height="550" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
-        <dc:Bounds x="190" y="480" width="2170" height="150" />
+      <bpmndi:BPMNShape id="Lane_CCP_GAF_di" bpmnElement="Lane_CCP_GAF" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2170" height="120" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Compras_di" bpmnElement="Lane_Compras" isHorizontal="true">
         <dc:Bounds x="190" y="200" width="2170" height="280" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_CCP_GAF_di" bpmnElement="Lane_CCP_GAF" isHorizontal="true">
-        <dc:Bounds x="190" y="80" width="2170" height="120" />
+      <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
+        <dc:Bounds x="190" y="480" width="2170" height="150" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="252" y="122" width="36" height="36" />
@@ -183,7 +183,7 @@
       <bpmndi:BPMNShape id="Event_RecebeNF_di" bpmnElement="Event_RecebeNF">
         <dc:Bounds x="1682" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1673" y="345" width="55" height="27" />
+          <dc:Bounds x="1672" y="265" width="56" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_Atesto_di" bpmnElement="Activity_Atesto">
@@ -237,6 +237,30 @@
         <di:waypoint x="1080" y="320" />
         <di:waypoint x="1120" y="320" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1j64fy0_di" bpmnElement="Flow_1j64fy0">
+        <di:waypoint x="1030" y="360" />
+        <di:waypoint x="1030" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00jnvli_di" bpmnElement="Flow_00jnvli">
+        <di:waypoint x="1145" y="295" />
+        <di:waypoint x="1145" y="250" />
+        <di:waypoint x="1220" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1151" y="270" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ub469b_di" bpmnElement="Flow_1ub469b">
+        <di:waypoint x="1170" y="320" />
+        <di:waypoint x="1360" y="320" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1255" y="302" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0los709_di" bpmnElement="Flow_0los709">
+        <di:waypoint x="1320" y="250" />
+        <di:waypoint x="1410" y="250" />
+        <di:waypoint x="1410" y="280" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_Enviar_ReceberAssinatura_di" bpmnElement="Flow_Enviar_ReceberAssinatura">
         <di:waypoint x="1460" y="320" />
         <di:waypoint x="1520" y="320" />
@@ -261,54 +285,39 @@
         <di:waypoint x="2020" y="560" />
         <di:waypoint x="2092" y="560" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_00jnvli_di" bpmnElement="Flow_00jnvli">
-        <di:waypoint x="1145" y="295" />
-        <di:waypoint x="1145" y="250" />
-        <di:waypoint x="1220" y="250" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1151" y="270" width="19" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0los709_di" bpmnElement="Flow_0los709">
-        <di:waypoint x="1320" y="250" />
-        <di:waypoint x="1410" y="250" />
-        <di:waypoint x="1410" y="280" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1ub469b_di" bpmnElement="Flow_1ub469b">
-        <di:waypoint x="1170" y="320" />
-        <di:waypoint x="1360" y="320" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1255" y="302" width="21" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1j64fy0_di" bpmnElement="Flow_1j64fy0">
-        <di:waypoint x="1030" y="360" />
-        <di:waypoint x="1030" y="380" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_Fornecedor_di" bpmnElement="Participant_Fornecedor" isHorizontal="true">
-        <dc:Bounds x="160" y="650" width="2200" height="100" />
+        <dc:Bounds x="160" y="640" width="2200" height="100" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_EmailOrcamento_di" bpmnElement="Flow_EmailOrcamento">
         <di:waypoint x="550" y="360" />
-        <di:waypoint x="550" y="650" />
+        <di:waypoint x="550" y="640" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="528" y="490" width="75" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_RecebeOrcamento_di" bpmnElement="Flow_RecebeOrcamento">
-        <di:waypoint x="710" y="650" />
+        <di:waypoint x="710" y="640" />
         <di:waypoint x="710" y="338" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="698" y="479" width="55" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_EnviaAutorizacao_di" bpmnElement="Flow_EnviaAutorizacao">
         <di:waypoint x="1410" y="360" />
-        <di:waypoint x="1410" y="650" />
+        <di:waypoint x="1410" y="640" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1388" y="490" width="74" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_Notificacao1doc_di" bpmnElement="Flow_Notificacao1doc">
-        <di:waypoint x="1570" y="650" />
+        <di:waypoint x="1570" y="640" />
         <di:waypoint x="1570" y="360" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1541" y="495" width="88" height="27" />
+          <dc:Bounds x="1544" y="490" width="82" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_RecebeNF_di" bpmnElement="Flow_RecebeNF">
-        <di:waypoint x="1700" y="650" />
+        <di:waypoint x="1700" y="640" />
         <di:waypoint x="1700" y="338" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

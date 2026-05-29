@@ -3,6 +3,7 @@
 namespace App\Modulos\Cotacao;
 
 use App\Core\BaseRepository;
+use App\Modulos\ExecucaoFluxo\Query\ListarOrdensCompraQuery;
 use PDO;
 class CotacaoRepo extends BaseRepository
 {
@@ -14,7 +15,7 @@ class CotacaoRepo extends BaseRepository
 
     public function buscarDetalheSenior($num, $seq) {
         if (!$this->connSenior) return null;
-        $stmt = $this->connSenior->prepare("SELECT cplpro, qtdsol, unimed FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?");
+        $stmt = $this->connSenior->prepare(ListarOrdensCompraQuery::detalheSql());
         $stmt->execute([$num, $seq]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }

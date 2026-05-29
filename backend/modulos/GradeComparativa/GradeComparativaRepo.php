@@ -2,6 +2,7 @@
 namespace App\Modulos\GradeComparativa;
 
 use App\Core\BaseRepository;
+use App\Modulos\ExecucaoFluxo\Query\ListarOrdensCompraQuery;
 use PDO;
 
 class GradeComparativaRepo extends BaseRepository
@@ -21,7 +22,7 @@ class GradeComparativaRepo extends BaseRepository
     public function buscarDescricaoSenior($num, $seq) {
         if (!$this->connSenior) return null;
         try {
-            $stmt = $this->connSenior->prepare("SELECT cplpro FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?");
+            $stmt = $this->connSenior->prepare(ListarOrdensCompraQuery::detalheSql());
             $stmt->execute([$num, $seq]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ? $row['cplpro'] : null;

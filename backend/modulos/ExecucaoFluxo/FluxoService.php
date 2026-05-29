@@ -81,23 +81,23 @@ class FluxoService extends BaseService
         $selecionados = $dados['selecionados'] ?? [];
         if (empty($selecionados)) throw new Exception("Nenhum item selecionado.");
 
-        $mapaSolicitacoes = [];
+        $mapaOrdensCompra = [];
         foreach ($selecionados as $itemKey) {
             $parts = explode('-', $itemKey);
             if (count($parts) < 3) continue;
-            $mapaSolicitacoes[$parts[1]][] = $parts[2];
+            $mapaOrdensCompra[$parts[1]][] = $parts[2];
         }
 
         $itensProcessados = 0;
-        foreach ($mapaSolicitacoes as $numsol => $listaSeqs) {
+        foreach ($mapaOrdensCompra as $numeroOc => $listaSeqs) {
             if (!$idProcesso) {
-                $existente = $this->repo->buscarIdPorSolicitacao($numsol);
-                $idProcesso = $existente ?: $this->repo->criarProcesso($numsol, $idFluxo);
+                $existente = $this->repo->buscarIdPorOrdemCompra($numeroOc);
+                $idProcesso = $existente ?: $this->repo->criarProcessoPorOrdemCompra($numeroOc, $idFluxo);
             }
-            foreach ($listaSeqs as $seq) {
-                $qtdSenior = $this->repo->buscarQuantidadeSenior($numsol, $seq);
-                if ($this->repo->adicionarItem($idProcesso, $numsol, $seq, $qtdSenior)) {
-                    $this->repo->inicializarCotacao($idProcesso, $numsol, $seq);
+            foreach ($listaSeqs as $sequenciaOc) {
+                $qtdSenior = $this->repo->buscarQuantidadeOrdemCompra($numeroOc, $sequenciaOc);
+                if ($this->repo->adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $qtdSenior)) {
+                    $this->repo->inicializarCotacao($idProcesso, $numeroOc, $sequenciaOc);
                     $itensProcessados++;
                 }
             }
@@ -105,15 +105,15 @@ class FluxoService extends BaseService
         return ['sucesso' => true, 'msg' => "$itensProcessados itens vinculados!", 'id_processo' => $idProcesso];
     }
 
-    public function listarSolicitacoesSenior($params) 
+    public function listarOrdensCompraSenior($params)
     {
         $start = (int)($params['start'] ?? 0);
         $length = (int)($params['length'] ?? 10);
         $search = $params['search']['value'] ?? '';
         $instance_id = (int)($params['instance_id'] ?? 0);
         
-        $colMap = [1 => 'numprj', 2 => 'datsol', 3 => 'numsol', 4 => 'cplpro', 5 => 'presol', 6 => 'peso_ordenacao'];
-        $campoOrdenacao = $colMap[$params['order'][0]['column'] ?? 1] ?? 'numprj';
+        $colMap = [1 => 'data_geracao', 2 => 'numero_oc', 3 => 'tipo_item', 4 => 'descricao_item', 5 => 'preco_unitario', 6 => 'peso_ordenacao'];
+        $campoOrdenacao = $colMap[$params['order'][0]['column'] ?? 2] ?? 'numero_oc';
         $dirSQL = ($params['order'][0]['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
 
         $ocupados = $this->repo->buscarItensOcupados(); 
@@ -121,37 +121,54 @@ class FluxoService extends BaseService
         
         foreach ($ocupados as $row) {
             $n = (int)$row['num_solicitacao']; $s = (int)$row['seq_solicitacao'];
-            $sqlCond = "(CAST(numsol AS INT) = $n AND CAST(seqsol AS INT) = $s)";
+            $sqlCond = "(oc.numero_oc = $n AND oc.sequencia_workflow = $s)";
             $mapaDonos["$n-$s"] = $row['id_processo_instancia'];
             if ($instance_id && $row['id_processo_instancia'] == $instance_id) $meusItens[] = $sqlCond;
             else $bloqueados[] = $sqlCond;
         }
 
-        $resultado = $this->repo->buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados);
+        $resultado = $this->repo->buscarOrdensCompraSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados);
         $data = [];
         foreach ($resultado['dados'] as $row) {
-            $n = (int)$row['numsol']; $s = (int)$row['seqsol'];
+            $numeroOc = (int)$row['numero_oc']; $sequenciaOc = (int)$row['sequencia_workflow'];
             $peso = (int)$row['peso_ordenacao'];
             $status = ($peso === 2) ? 'vinculado' : (($peso === 1) ? 'bloqueado' : 'disponivel');
+            $dataGeracao = $row['data_geracao'] ?? null;
+            $dataGeracaoIso = null;
+            if ($dataGeracao instanceof DateTime) {
+                $dataGeracaoIso = $dataGeracao->format('Y-m-d');
+            } elseif (is_string($dataGeracao)) {
+                $timestamp = strtotime($dataGeracao);
+                $dataGeracaoIso = $timestamp ? date('Y-m-d', $timestamp) : null;
+            }
             
+            $tipoItem = strtoupper((string)($row['tipo_item'] ?? ''));
+            $tipoItemLabel = $tipoItem === 'SERVICO' ? 'Servico' : 'Produto';
+            $sequenciaOriginal = (int)($row['sequencia_original'] ?? $sequenciaOc);
+
             $data[] = [
-                'id_unico' => $row['codemp'] . '-' . $n . '-' . $s,
-                'projeto' => trim((string)$row['numprj']),
-                'data_solicitacao' => ($row['datsol'] instanceof DateTime) ? $row['datsol']->format('Y-m-d') : null,
-                'id_solicitacao_senior' => "$n-$s",
-                'descricao_produto' => Formatador::utf8($row['cplpro']),
-                'quantidade' => (float)$row['qtdsol'],
-                'preco_unitario' => (float)$row['presol'],
-                'unidade' => trim($row['unimed']),
+                'id_unico' => $row['codemp'] . '-' . $numeroOc . '-' . $sequenciaOc,
+                'projeto' => trim((string)$row['tipo_item']),
+                'tipo_item' => Formatador::utf8($row['tipo_item'] ?? ''),
+                'codigo_item' => trim((string)($row['codigo_item'] ?? '')),
+                'sequencia_original' => $sequenciaOriginal,
+                'data_ordem_compra' => $dataGeracaoIso,
+                'numero_oc' => $numeroOc,
+                'sequencia_oc' => $sequenciaOc,
+                'ordem_compra_label' => (string)$numeroOc,
+                'item_ordem_label' => "$tipoItemLabel $sequenciaOriginal",
+                'descricao_item' => Formatador::utf8($row['descricao_item']),
+                'quantidade' => (float)$row['quantidade'],
+                'preco_unitario' => (float)$row['preco_unitario'],
                 'status' => $status,
-                'proc_bloqueador' => ($status === 'bloqueado') ? ($mapaDonos["$n-$s"] ?? '?') : ''
+                'proc_bloqueador' => ($status === 'bloqueado') ? ($mapaDonos["$numeroOc-$sequenciaOc"] ?? '?') : ''
             ];
         }
         return ["draw" => (int)($params['draw'] ?? 1), "recordsTotal" => $resultado['total'], "recordsFiltered" => $resultado['total'], "data" => $data];
     }
 
     public function removerItem($id, $num, $seq) {
-        $this->repo->removerItemCompleto($id, $num, $seq);
+        $this->repo->removerItemOrdemCompra($id, $num, $seq);
         return ['sucesso' => true];
     }
     

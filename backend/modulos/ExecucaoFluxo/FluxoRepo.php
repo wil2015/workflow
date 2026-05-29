@@ -1,13 +1,11 @@
 <?php
-/*require_once __DIR__ . '/../../core/BaseRepository.php';
-// Importa o Query Object
-require_once __DIR__ . '/Query/ListarSolicitacoesQuery.php'; */
+/*require_once __DIR__ . '/../../core/BaseRepository.php'; */
 
 
 namespace App\Modulos\ExecucaoFluxo;
 
 use App\Core\BaseRepository;
-use App\Modulos\ExecucaoFluxo\Query\ListarSolicitacoesQuery; // Importando classe da subpasta
+use App\Modulos\ExecucaoFluxo\Query\ListarOrdensCompraQuery;
 use PDO;
 class FluxoRepo extends BaseRepository
 {
@@ -15,20 +13,20 @@ class FluxoRepo extends BaseRepository
     //  MÉTODOS SQL SERVER (Senior Sapiens)
     // =========================================================================
 
-    public function buscarQuantidadeSenior($numSol, $seqSol) {
+    public function buscarQuantidadeOrdemCompra($numeroOc, $sequenciaOc) {
         if (!$this->connSenior) return 1.0;
-        $sql = "SELECT qtdsol FROM Sapiens.sapiens.e405sol WHERE numsol = ? AND seqsol = ?";
+        $sql = ListarOrdensCompraQuery::detalheSql();
         $stmt = $this->connSenior->prepare($sql);
-        $stmt->execute([$numSol, $seqSol]);
+        $stmt->execute([$numeroOc, $sequenciaOc]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['qtdsol'] : 1.0;
     }
 
     // --- USO DO QUERY OBJECT ---
-    public function buscarSolicitacoesSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados) {
+    public function buscarOrdensCompraSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados) {
         $this->checkSenior();
 
-        $query = new ListarSolicitacoesQuery($this->connSenior);
+        $query = new ListarOrdensCompraQuery($this->connSenior);
         $query->configurarRegras($meusItens, $bloqueados);
         $query->aplicarBusca($search);
 
@@ -49,9 +47,9 @@ class FluxoRepo extends BaseRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function buscarIdPorSolicitacao($numSol) {
+    public function buscarIdPorOrdemCompra($numeroOc) {
         $stmt = $this->pdo->prepare("SELECT id FROM processos_instancia WHERE id_processo_senior = ? LIMIT 1");
-        $stmt->execute([$numSol]);
+        $stmt->execute([$numeroOc]);
         return $stmt->fetchColumn();
     }
     
@@ -73,31 +71,31 @@ class FluxoRepo extends BaseRepository
 
     // --- ESCRITA ---
 
-    public function criarProcesso($numSol, $idFluxo) {
+    public function criarProcessoPorOrdemCompra($numeroOc, $idFluxo) {
         $sql = "INSERT INTO processos_instancia (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
                 VALUES (:num, :num, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':num' => $numSol, ':fluxo' => $idFluxo]);
+        $stmt->execute([':num' => $numeroOc, ':fluxo' => $idFluxo]);
         return $this->pdo->lastInsertId();
     }
 
-    public function adicionarItem($idProcesso, $numSol, $seqSol, $qtd) {
+    public function adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $qtd) {
         $sql = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) 
                 VALUES (:id, :num, :seq, :qtd)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':id' => $idProcesso, ':num' => $numSol, ':seq' => $seqSol, ':qtd' => $qtd]);
+        $stmt->execute([':id' => $idProcesso, ':num' => $numeroOc, ':seq' => $sequenciaOc, ':qtd' => $qtd]);
         return $stmt->rowCount() > 0;
     }
 
-    public function inicializarCotacao($idProcesso, $numSol, $seqSol) {
+    public function inicializarCotacao($idProcesso, $numeroOc, $sequenciaOc) {
         $sql = "INSERT IGNORE INTO licitacao_itens_ofertados (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
                 SELECT ?, ?, ?, id_fornecedor_senior, NULL FROM licitacao_participantes WHERE id_processo_instancia = ?";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$idProcesso, $numSol, $seqSol, $idProcesso]);
+        $stmt->execute([$idProcesso, $numeroOc, $sequenciaOc, $idProcesso]);
     }
 
-    public function removerItemCompleto($idProcesso, $numSol, $seqSol) {
-        $params = [':id' => $idProcesso, ':num' => $numSol, ':seq' => $seqSol];
+    public function removerItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc) {
+        $params = [':id' => $idProcesso, ':num' => $numeroOc, ':seq' => $sequenciaOc];
         $this->pdo->prepare("DELETE FROM licitacao_itens_ofertados WHERE id_processo_instancia = :id AND num_solicitacao = :num AND seq_solicitacao = :seq")->execute($params);
         $this->pdo->prepare("DELETE FROM processos_itens WHERE id_processo_instancia = :id AND num_solicitacao = :num AND seq_solicitacao = :seq")->execute($params);
     }
