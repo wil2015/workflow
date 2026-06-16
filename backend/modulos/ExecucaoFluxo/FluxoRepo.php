@@ -107,18 +107,4 @@ class FluxoRepo extends BaseRepository
         $this->pdo->prepare("DELETE FROM processos_instancia WHERE id = :id")->execute($params);
     }
 
-    public function atualizarDatasPrevisao($idProcesso, $dtCotacao, $dtRecebimento) {
-        $sql = "UPDATE processos_instancia 
-                SET 
-                    data_esperada_da_cotacao = :dt_cot,
-                    data_esperada_do_recebimento = :dt_rec
-                WHERE id = :id";
-        
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([
-            ':dt_cot' => $dtCotacao,
-            ':dt_rec' => $dtRecebimento,
-            ':id'     => $idProcesso
-        ]);
-    }
 }

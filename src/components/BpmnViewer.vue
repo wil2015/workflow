@@ -1,34 +1,16 @@
 <template>
   <div class="bpmn-wrapper">
-    
     <div class="top-bar">
       <div class="left">
         <button class="btn-voltar" @click="voltar">
-           ← Voltar
+          &larr; Voltar
         </button>
       </div>
       <div class="center">
         <span class="titulo">{{ titulo }}</span>
         <span v-if="fluxoId" class="badge-id">Fluxo ID: {{ fluxoId }}</span>
       </div>
-      <div class="right"></div> 
-    </div>
-
-    <div class="info-bar" v-if="instancia && instancia.datas_editaveis">
-        <div class="info-item">
-            <label>Prev. Cotação:</label>
-            <input type="date" v-model="instancia.datas_editaveis.cotacao_iso">
-        </div>
-        <div class="info-item">
-            <label>Prev. Entrega:</label>
-            <input type="date" v-model="instancia.datas_editaveis.recebimento_iso">
-        </div>
-        <div class="info-item">
-            <button class="btn-salvar-datas" @click="salvarDatas" :disabled="salvandoDatas">
-                <span v-if="salvandoDatas">...</span>
-                <span v-else>💾 Salvar Prazos</span>
-            </button>
-        </div>
+      <div class="right"></div>
     </div>
 
     <div ref="canvasRef" class="canvas-container"></div>
@@ -37,17 +19,16 @@
       <div class="modal-content">
         <button class="modal-close" @click="fecharModal" title="Fechar">&times;</button>
         <div class="modal-body">
-            <component 
-                v-if="componenteAtual"
-                :is="componenteAtual"
-                :instance-id="instanceId"
-                :task-id="taskIdAtual"
-                @fechar="fecharModal"
-            />
+          <component
+            v-if="componenteAtual"
+            :is="componenteAtual"
+            :instance-id="instanceId"
+            :task-id="taskIdAtual"
+            @fechar="fecharModal"
+          />
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -67,178 +48,119 @@ const instanceId = ref(null);
 const fluxoId = ref(null);
 const novoXml = ref(null);
 
-// Estados para dados e edição
-const instancia = ref(null);
-const salvandoDatas = ref(false);
-
 let viewer = null;
 
 onMounted(async () => {
-    const params = new URLSearchParams(window.location.search);
-    instanceId.value = params.get('instance_id');
-    novoXml.value = params.get('novo');
-    fluxoId.value = params.get('fluxo_id');
+  const params = new URLSearchParams(window.location.search);
+  instanceId.value = params.get('instance_id');
+  novoXml.value = params.get('novo');
+  fluxoId.value = params.get('fluxo_id');
 
-    if (!instanceId.value && window.VIEW_DATA) {
-        instanceId.value = window.VIEW_DATA.instance_id;
+  if (!instanceId.value && window.VIEW_DATA) {
+    instanceId.value = window.VIEW_DATA.instance_id;
+  }
+
+  viewer = new BpmnNavigatedViewer({ container: canvasRef.value });
+  const eventBus = viewer.get('eventBus');
+
+  eventBus.on('element.click', (e) => {
+    const type = e.element.type;
+    if (type.toLowerCase().includes('task') || type.toLowerCase().includes('catchevent')) {
+      clicarTarefa(e.element.id);
     }
+  });
 
-    viewer = new BpmnNavigatedViewer({ container: canvasRef.value });
-    const eventBus = viewer.get('eventBus');
-    
-    eventBus.on('element.click', (e) => {
-        const type = e.element.type;
-        if (type.toLowerCase().includes('task') || type.toLowerCase().includes('catchevent'))  {
-            clicarTarefa(e.element.id);
-        }
-    });
-
-    if (instanceId.value) {
-        await carregarProcessoExistente(instanceId.value);
-    } else if (novoXml.value) {
-        titulo.value = "Iniciando Novo Processo";
-        await carregarDiagrama(novoXml.value);
-        setTimeout(() => { clicarTarefa('Activity_SelecionarSolicitacao'); }, 500); 
-    } else {
-        window.location.href = '/';
-    }
+  if (instanceId.value) {
+    await carregarProcessoExistente(instanceId.value);
+  } else if (novoXml.value) {
+    titulo.value = 'Iniciando Novo Processo';
+    await carregarDiagrama(novoXml.value);
+    setTimeout(() => { clicarTarefa('Activity_SelecionarSolicitacao'); }, 500);
+  } else {
+    window.location.href = '/';
+  }
 });
 
 function clicarTarefa(taskId) {
-    if (!instanceId.value && !taskId.includes('Solicitacao')) {
-         alert("Salve o processo primeiro.");
-         return; 
-    }
-    const componenteEncontrado = getComponentForTask(taskId);
-    if (!componenteEncontrado) return; 
+  if (!instanceId.value && !taskId.includes('Solicitacao')) {
+    alert('Salve o processo primeiro.');
+    return;
+  }
 
-    componenteAtual.value = componenteEncontrado;
-    taskIdAtual.value = taskId;
-    modalAberto.value = true;
+  const componenteEncontrado = getComponentForTask(taskId);
+  if (!componenteEncontrado) return;
+
+  componenteAtual.value = componenteEncontrado;
+  taskIdAtual.value = taskId;
+  modalAberto.value = true;
 }
 
 async function fecharModal() {
-    modalAberto.value = false;
-    componenteAtual.value = null; 
-    if(instanceId.value) await carregarProcessoExistente(instanceId.value);
+  modalAberto.value = false;
+  componenteAtual.value = null;
+  if (instanceId.value) await carregarProcessoExistente(instanceId.value);
 }
 
-// --- CARGA DE DADOS (URL CORRIGIDA) ---
 async function carregarProcessoExistente(id) {
-    try {
-        // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const url = `/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=ler_tarefa&id_instancia=${id}`;
-        const res = await fetch(url);
-        
-        let json;
-        try { json = await res.json(); } catch (e) {}
+  try {
+    const url = `/backend/modulos/ExecucaoFluxo/FluxoController.php?acao=ler_tarefa&id_instancia=${id}`;
+    const res = await fetch(url);
 
-        if (!res.ok) {
-            if (json && json.erro) throw new Error(json.erro);
-            if (res.status === 404) {
-                alert("Processo não encontrado.");
-                window.location.href = '/';
-                return;
-            }
-            throw new Error(`Erro HTTP ${res.status}`);
-        }
-        if (json && json.erro) throw new Error(json.erro);
+    let json;
+    try { json = await res.json(); } catch (e) {}
 
-        fluxoId.value = json.fluxo_id; 
-        titulo.value = `Processo #${id} - ${json.nome_fluxo}`;
-        
-        // Dados para edição de datas
-        instancia.value = json.instancia;
-
-        if (json.arquivo_xml) await carregarDiagrama(json.arquivo_xml);
-
-        if (viewer && json.tarefa && json.tarefa.id_xml) {
-            const canvas = viewer.get('canvas');
-            canvas.addMarker(json.tarefa.id_xml, 'highlight-current');
-        }
-    } catch (e) {
-        console.error(e);
-        alert("ERRO NO SISTEMA:\n" + e.message);
-        if (e.message.includes('não encontrado')) window.location.href = '/';
-        else titulo.value = "Erro: " + e.message;
+    if (!res.ok) {
+      if (json && json.erro) throw new Error(json.erro);
+      if (res.status === 404) {
+        alert('Processo nao encontrado.');
+        window.location.href = '/';
+        return;
+      }
+      throw new Error(`Erro HTTP ${res.status}`);
     }
-}
+    if (json && json.erro) throw new Error(json.erro);
 
-// --- SALVAR DATAS (URL CORRIGIDA) ---
-async function salvarDatas() {
-    if (!instancia.value) return;
-    
-    salvandoDatas.value = true;
-    try {
-        const formData = new FormData();
-        formData.append('acao', 'salvar_datas');
-        formData.append('id_processo', instanceId.value);
-        formData.append('data_cotacao', instancia.value.datas_editaveis.cotacao_iso || '');
-        formData.append('data_recebimento', instancia.value.datas_editaveis.recebimento_iso || '');
+    fluxoId.value = json.fluxo_id;
+    titulo.value = `Processo #${id} - ${json.nome_fluxo}`;
 
-        // [CORREÇÃO] Caminho ajustado para ExecucaoFluxo
-        const response = await fetch('/backend/modulos/ExecucaoFluxo/FluxoController.php', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const json = await response.json();
-        
-        if (json.sucesso) {
-            alert('Datas atualizadas com sucesso!');
-        } else {
-            alert('Erro: ' + (json.erro || 'Erro desconhecido'));
-        }
-    } catch (e) {
-        alert('Erro de conexão ao salvar datas.');
-        console.error(e);
-    } finally {
-        salvandoDatas.value = false;
+    if (json.arquivo_xml) await carregarDiagrama(json.arquivo_xml);
+
+    if (viewer && json.tarefa && json.tarefa.id_xml) {
+      const canvas = viewer.get('canvas');
+      canvas.addMarker(json.tarefa.id_xml, 'highlight-current');
     }
+  } catch (e) {
+    console.error(e);
+    alert('ERRO NO SISTEMA:\n' + e.message);
+    if (e.message.includes('nao encontrado')) window.location.href = '/';
+    else titulo.value = 'Erro: ' + e.message;
+  }
 }
 
 async function carregarDiagrama(xmlName) {
-    try {
-        const res = await fetch('/public/' + xmlName); 
-        const xml = await res.text();
-        await viewer.importXML(xml);
-        viewer.get('canvas').zoom('fit-viewport');
-    } catch (err) { console.error(err); }
+  try {
+    const res = await fetch('/public/' + xmlName);
+    const xml = await res.text();
+    await viewer.importXML(xml);
+    viewer.get('canvas').zoom('fit-viewport');
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function voltar() {
-    window.location.href = '/'; 
+  window.location.href = '/';
 }
 </script>
 
 <style scoped>
 .bpmn-wrapper { height: 100vh; display: flex; flex-direction: column; background: #fff; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
 
-.top-bar { 
-    height: 50px; background: #fff; border-bottom: 1px solid #e0e0e0; 
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; 
+.top-bar {
+  height: 50px; background: #fff; border-bottom: 1px solid #e0e0e0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10;
 }
-
-/* Barra de Informações/Datas */
-.info-bar {
-    background: #f8f9fa; border-bottom: 1px solid #e0e0e0;
-    padding: 8px 20px; display: flex; align-items: center; gap: 20px;
-    z-index: 9;
-}
-.info-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.info-item label { font-weight: 600; color: #555; }
-.info-item input { 
-    border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; 
-    font-size: 13px; color: #333;
-}
-.btn-salvar-datas {
-    background: #10b981; color: white; border: none; padding: 5px 12px;
-    border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12px;
-    transition: 0.2s;
-}
-.btn-salvar-datas:hover { background: #059669; }
-.btn-salvar-datas:disabled { background: #ccc; cursor: not-allowed; }
 
 .btn-voltar { cursor: pointer; border: 1px solid #d1d5db; background: #f9fafb; padding: 6px 12px; border-radius: 6px; font-weight: 600; color: #374151; }
 .btn-voltar:hover { background: #e5e7eb; }
@@ -248,13 +170,12 @@ function voltar() {
 
 .canvas-container { flex: 1; background: #f3f4f6; position: relative; }
 
-/* Modal Styles */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; }
 .modal-content { background: white; width: 95%; height: 95%; max-width: 1400px; border-radius: 8px; position: relative; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
 .modal-close { position: absolute; top: -12px; right: -12px; width: 32px; height: 32px; border-radius: 50%; background: #ef4444; color: white; border: 2px solid #fff; font-size: 20px; cursor: pointer; z-index: 1001; display: flex; align-items: center; justify-content: center; }
 .modal-body { flex: 1; overflow: hidden; border-radius: 8px; background: #fff; display: flex; flex-direction: column; }
 
 :deep(.highlight-current:not(.djs-connection) .djs-visual > :nth-child(1)) {
-    stroke: #10b981 !important; stroke-width: 3px !important; fill: #ecfdf5 !important;
+  stroke: #10b981 !important; stroke-width: 3px !important; fill: #ecfdf5 !important;
 }
 </style>

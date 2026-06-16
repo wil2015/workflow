@@ -24,14 +24,12 @@ class DashboardService extends BaseService
         $instancias = array_map(function($i) {
             $ano = !empty($i['ano_do_processo']) ? $i['ano_do_processo'] : date('Y');
             return [
-                'id' => $i['id'], 
+                'id' => $i['id'],
                 'nome_do_fluxo' => Formatador::utf8($i['nome_do_fluxo']),
                 'id_processo_senior' => $i['id_processo_senior'],
                 'data_formatada' => Formatador::dataHora($i['data_inicio']),
                 'status_atual' => $i['status_atual'],
-                'id_visual' => $i['id'] . '/' . $ano,
-                'prev_cotacao' => Formatador::data($i['data_esperada_da_cotacao']),
-                'prev_entrega' => Formatador::data($i['data_esperada_do_recebimento'])
+                'id_visual' => $i['id'] . '/' . $ano
             ];
         }, $instancias);
 

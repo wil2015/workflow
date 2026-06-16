@@ -1,0 +1,1261 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.1
+2 info using node@v24.11.0
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\wilson.alves\Documents\workflow\.npmrc
+5 silly config load:file:C:\Users\wilson.alves\.npmrc
+6 silly config load:file:C:\Users\wilson.alves\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm install
+8 verbose argv "install" "--cache" ".\\.npm-cache"
+9 verbose logfile logs-max:10 dir:C:\Users\wilson.alves\Documents\workflow\.npm-cache\_logs\2026-06-16T14_05_25_714Z-
+10 verbose logfile C:\Users\wilson.alves\Documents\workflow\.npm-cache\_logs\2026-06-16T14_05_25_714Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 silly idealTree buildDeps
+14 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with EACCES
+15 silly reify mark retired [
+15 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\array-move'
+15 silly reify ]
+16 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\atoa' ]
+17 silly reify mark retired [
+17 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\big.js'
+17 silly reify ]
+18 silly reify mark retired [
+18 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\bpmn-js'
+18 silly reify ]
+19 silly reify mark retired [
+19 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\bpmn-moddle'
+19 silly reify ]
+20 silly reify mark retired [
+20 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\classnames'
+20 silly reify ]
+21 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\clsx' ]
+22 silly reify mark retired [
+22 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\codemirror'
+22 silly reify ]
+23 silly reify mark retired [
+23 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\component-event'
+23 silly reify ]
+24 silly reify mark retired [
+24 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\contra'
+24 silly reify ]
+25 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\crelt' ]
+26 silly reify mark retired [
+26 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\csstype'
+26 silly reify ]
+27 silly reify mark retired [
+27 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net'
+27 silly reify ]
+28 silly reify mark retired [
+28 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-dt'
+28 silly reify ]
+29 silly reify mark retired [
+29 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-responsive'
+29 silly reify ]
+30 silly reify mark retired [
+30 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-responsive-dt'
+30 silly reify ]
+31 silly reify mark retired [
+31 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\diagram-js'
+31 silly reify ]
+32 silly reify mark retired [
+32 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-vue3'
+32 silly reify ]
+33 silly reify mark retired [
+33 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\diagram-js-direct-editing'
+33 silly reify ]
+34 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\didi' ]
+35 silly reify mark retired [
+35 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\domify'
+35 silly reify ]
+36 silly reify mark retired [
+36 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\downloadjs'
+36 silly reify ]
+37 silly reify mark retired [
+37 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\dompurify'
+37 silly reify ]
+38 silly reify mark retired [
+38 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\entities'
+38 silly reify ]
+39 silly reify mark retired [
+39 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\esbuild'
+39 silly reify ]
+40 silly reify mark retired [
+40 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\estree-walker'
+40 silly reify ]
+41 silly reify mark retired [
+41 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\feelers'
+41 silly reify ]
+42 silly reify mark retired [
+42 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\feelin'
+42 silly reify ]
+43 silly reify mark retired [
+43 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\file-drops'
+43 silly reify ]
+44 silly reify mark retired [
+44 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\flatpickr'
+44 silly reify ]
+45 silly reify mark retired [
+45 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\focus-trap'
+45 silly reify ]
+46 silly reify mark retired [
+46 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\fsevents'
+46 silly reify ]
+47 silly reify mark retired [
+47 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\hammerjs'
+47 silly reify ]
+48 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\htm' ]
+49 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\ids' ]
+50 silly reify mark retired [
+50 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\inherits-browser'
+50 silly reify ]
+51 silly reify mark retired [
+51 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\jquery'
+51 silly reify ]
+52 silly reify mark retired [
+52 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\lezer-feel'
+52 silly reify ]
+53 silly reify mark retired [
+53 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\lodash'
+53 silly reify ]
+54 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\luxon' ]
+55 silly reify mark retired [
+55 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\magic-string'
+55 silly reify ]
+56 silly reify mark retired [
+56 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\marked'
+56 silly reify ]
+57 silly reify mark retired [
+57 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\min-dash'
+57 silly reify ]
+58 silly reify mark retired [
+58 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\min-dom'
+58 silly reify ]
+59 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\mitt' ]
+60 silly reify mark retired [
+60 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\moddle'
+60 silly reify ]
+61 silly reify mark retired [
+61 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\moddle-xml'
+61 silly reify ]
+62 silly reify mark retired [
+62 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\nanoid'
+62 silly reify ]
+63 silly reify mark retired [
+63 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\object-refs'
+63 silly reify ]
+64 silly reify mark retired [
+64 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\path-intersection'
+64 silly reify ]
+65 silly reify mark retired [
+65 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\picocolors'
+65 silly reify ]
+66 silly reify mark retired [
+66 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\postcss'
+66 silly reify ]
+67 silly reify mark retired [
+67 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\preact'
+67 silly reify ]
+68 silly reify mark retired [
+68 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\rollup'
+68 silly reify ]
+69 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\saxen' ]
+70 silly reify mark retired [
+70 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\source-map-js'
+70 silly reify ]
+71 silly reify mark retired [
+71 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\style-mod'
+71 silly reify ]
+72 silly reify mark retired [
+72 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\tabbable'
+72 silly reify ]
+73 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\ticky' ]
+74 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\vite' ]
+75 silly reify mark retired [
+75 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\tiny-svg'
+75 silly reify ]
+76 silly reify mark retired [ 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\vue' ]
+77 silly reify mark retired [
+77 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\w3c-keyname'
+77 silly reify ]
+78 silly reify mark retired [
+78 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\helper-string-parser'
+78 silly reify ]
+79 silly reify mark retired [
+79 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\helper-validator-identifier'
+79 silly reify ]
+80 silly reify mark retired [
+80 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\parser'
+80 silly reify ]
+81 silly reify mark retired [
+81 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\types'
+81 silly reify ]
+82 silly reify mark retired [
+82 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\cm-theme'
+82 silly reify ]
+83 silly reify mark retired [
+83 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\diagram-js-ui'
+83 silly reify ]
+84 silly reify mark retired [
+84 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\draggle'
+84 silly reify ]
+85 silly reify mark retired [
+85 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\feel-lint'
+85 silly reify ]
+86 silly reify mark retired [
+86 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\feel-editor'
+86 silly reify ]
+87 silly reify mark retired [
+87 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js'
+87 silly reify ]
+88 silly reify mark retired [
+88 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-carbon-styles'
+88 silly reify ]
+89 silly reify mark retired [
+89 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-editor'
+89 silly reify ]
+90 silly reify mark retired [
+90 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-playground'
+90 silly reify ]
+91 silly reify mark retired [
+91 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-viewer'
+91 silly reify ]
+92 silly reify mark retired [
+92 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\lang-feel'
+92 silly reify ]
+93 silly reify mark retired [
+93 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\lezer-feel'
+93 silly reify ]
+94 silly reify mark retired [
+94 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\properties-panel'
+94 silly reify ]
+95 silly reify mark retired [
+95 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@camunda\\feel-builtins'
+95 silly reify ]
+96 silly reify mark retired [
+96 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\grid'
+96 silly reify ]
+97 silly reify mark retired [
+97 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\icons'
+97 silly reify ]
+98 silly reify mark retired [
+98 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\layout'
+98 silly reify ]
+99 silly reify mark retired [
+99 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\autocomplete'
+99 silly reify ]
+100 silly reify mark retired [
+100 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\commands'
+100 silly reify ]
+101 silly reify mark retired [
+101 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\lang-json'
+101 silly reify ]
+102 silly reify mark retired [
+102 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\language'
+102 silly reify ]
+103 silly reify mark retired [
+103 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\lint'
+103 silly reify ]
+104 silly reify mark retired [
+104 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\search'
+104 silly reify ]
+105 silly reify mark retired [
+105 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\state'
+105 silly reify ]
+106 silly reify mark retired [
+106 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\view'
+106 silly reify ]
+107 silly reify mark retired [
+107 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\aix-ppc64'
+107 silly reify ]
+108 silly reify mark retired [
+108 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm'
+108 silly reify ]
+109 silly reify mark retired [
+109 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm64'
+109 silly reify ]
+110 silly reify mark retired [
+110 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-x64'
+110 silly reify ]
+111 silly reify mark retired [
+111 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-arm64'
+111 silly reify ]
+112 silly reify mark retired [
+112 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-x64'
+112 silly reify ]
+113 silly reify mark retired [
+113 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-arm64'
+113 silly reify ]
+114 silly reify mark retired [
+114 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-x64'
+114 silly reify ]
+115 silly reify mark retired [
+115 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm'
+115 silly reify ]
+116 silly reify mark retired [
+116 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ia32'
+116 silly reify ]
+117 silly reify mark retired [
+117 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-loong64'
+117 silly reify ]
+118 silly reify mark retired [
+118 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm64'
+118 silly reify ]
+119 silly reify mark retired [
+119 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ppc64'
+119 silly reify ]
+120 silly reify mark retired [
+120 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-mips64el'
+120 silly reify ]
+121 silly reify mark retired [
+121 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-riscv64'
+121 silly reify ]
+122 silly reify mark retired [
+122 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-s390x'
+122 silly reify ]
+123 silly reify mark retired [
+123 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-x64'
+123 silly reify ]
+124 silly reify mark retired [
+124 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\netbsd-x64'
+124 silly reify ]
+125 silly reify mark retired [
+125 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\openbsd-x64'
+125 silly reify ]
+126 silly reify mark retired [
+126 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\sunos-x64'
+126 silly reify ]
+127 silly reify mark retired [
+127 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-arm64'
+127 silly reify ]
+128 silly reify mark retired [
+128 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-ia32'
+128 silly reify ]
+129 silly reify mark retired [
+129 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-x64'
+129 silly reify ]
+130 silly reify mark retired [
+130 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@ibm\\telemetry-js'
+130 silly reify ]
+131 silly reify mark retired [
+131 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@jridgewell\\sourcemap-codec'
+131 silly reify ]
+132 silly reify mark retired [
+132 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\common'
+132 silly reify ]
+133 silly reify mark retired [
+133 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\highlight'
+133 silly reify ]
+134 silly reify mark retired [
+134 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\json'
+134 silly reify ]
+135 silly reify mark retired [
+135 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\lr'
+135 silly reify ]
+136 silly reify mark retired [
+136 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\markdown'
+136 silly reify ]
+137 silly reify mark retired [
+137 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@marijn\\find-cluster-break'
+137 silly reify ]
+138 silly reify mark retired [
+138 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm-eabi'
+138 silly reify ]
+139 silly reify mark retired [
+139 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm64'
+139 silly reify ]
+140 silly reify mark retired [
+140 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-arm64'
+140 silly reify ]
+141 silly reify mark retired [
+141 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-x64'
+141 silly reify ]
+142 silly reify mark retired [
+142 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-arm64'
+142 silly reify ]
+143 silly reify mark retired [
+143 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-x64'
+143 silly reify ]
+144 silly reify mark retired [
+144 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-gnueabihf'
+144 silly reify ]
+145 silly reify mark retired [
+145 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-musleabihf'
+145 silly reify ]
+146 silly reify mark retired [
+146 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-gnu'
+146 silly reify ]
+147 silly reify mark retired [
+147 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-musl'
+147 silly reify ]
+148 silly reify mark retired [
+148 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-loong64-gnu'
+148 silly reify ]
+149 silly reify mark retired [
+149 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-ppc64-gnu'
+149 silly reify ]
+150 silly reify mark retired [
+150 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-gnu'
+150 silly reify ]
+151 silly reify mark retired [
+151 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-musl'
+151 silly reify ]
+152 silly reify mark retired [
+152 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-s390x-gnu'
+152 silly reify ]
+153 silly reify mark retired [
+153 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-gnu'
+153 silly reify ]
+154 silly reify mark retired [
+154 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-musl'
+154 silly reify ]
+155 silly reify mark retired [
+155 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-openharmony-arm64'
+155 silly reify ]
+156 silly reify mark retired [
+156 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-arm64-msvc'
+156 silly reify ]
+157 silly reify mark retired [
+157 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-ia32-msvc'
+157 silly reify ]
+158 silly reify mark retired [
+158 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-x64-gnu'
+158 silly reify ]
+159 silly reify mark retired [
+159 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-x64-msvc'
+159 silly reify ]
+160 silly reify mark retired [
+160 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\estree'
+160 silly reify ]
+161 silly reify mark retired [
+161 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\trusted-types'
+161 silly reify ]
+162 silly reify mark retired [
+162 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vitejs\\plugin-vue'
+162 silly reify ]
+163 silly reify mark retired [
+163 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-core'
+163 silly reify ]
+164 silly reify mark retired [
+164 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-dom'
+164 silly reify ]
+165 silly reify mark retired [
+165 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-sfc'
+165 silly reify ]
+166 silly reify mark retired [
+166 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-ssr'
+166 silly reify ]
+167 silly reify mark retired [
+167 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\reactivity'
+167 silly reify ]
+168 silly reify mark retired [
+168 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\runtime-core'
+168 silly reify ]
+169 silly reify mark retired [
+169 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\runtime-dom'
+169 silly reify ]
+170 silly reify mark retired [
+170 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\server-renderer'
+170 silly reify ]
+171 silly reify mark retired [
+171 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\shared'
+171 silly reify ]
+172 silly reify moves {
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\array-move': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.array-move-7slzPcPH',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\atoa': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.atoa-B8skjY6j',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\big.js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.big.js-7BGTlZMd',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\bpmn-js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.bpmn-js-4a5YxCR8',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\bpmn-moddle': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.bpmn-moddle-DX2uPWnH',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\classnames': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.classnames-E1J9UqSa',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\clsx': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.clsx-BjNjNVGl',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\codemirror': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.codemirror-IbPE6hvS',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\component-event': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.component-event-O6JBp9DF',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\contra': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.contra-X9ceDtsn',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\crelt': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.crelt-sHaYKc3l',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\csstype': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.csstype-juu8yMAJ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.datatables.net-OUYSx8ci',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-dt': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.datatables.net-dt-037KkWoN',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-responsive': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.datatables.net-responsive-ZbkhfReZ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-responsive-dt': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.datatables.net-responsive-dt-ewcOdqPg',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\diagram-js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.diagram-js-S84N1CqZ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\datatables.net-vue3': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.datatables.net-vue3-CxBMQuAB',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\diagram-js-direct-editing': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.diagram-js-direct-editing-wfqHxFvq',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\didi': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.didi-4JWNDioG',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\domify': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.domify-vvbPzmRy',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\downloadjs': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.downloadjs-wSQGQDJB',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\dompurify': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.dompurify-LUeyInPh',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\entities': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.entities-ao2t3yVx',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\esbuild': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.esbuild-EIokEPCo',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\estree-walker': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.estree-walker-uOo0JKmj',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\feelers': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.feelers-9Q4gR2o0',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\feelin': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.feelin-ZujjUnWK',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\file-drops': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.file-drops-B82Lgi9a',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\flatpickr': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.flatpickr-ezwQnuLv',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\focus-trap': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.focus-trap-3RrHzlTB',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\fsevents': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.fsevents-U1RWsRsl',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\hammerjs': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.hammerjs-IscO3l2T',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\htm': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.htm-KKlUmWFE',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\ids': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.ids-CUk3sj37',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\inherits-browser': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.inherits-browser-JpIllPe9',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\jquery': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.jquery-FBoXtniJ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\lezer-feel': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.lezer-feel-lyLHgs7O',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\lodash': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.lodash-NSUhopYm',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\luxon': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.luxon-sLWeSoaj',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\magic-string': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.magic-string-ztavsHYr',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\marked': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.marked-KE2EUewN',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\min-dash': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.min-dash-tU9rDfDJ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\min-dom': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.min-dom-CtRujdVf',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\mitt': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.mitt-Ui1ny7Yt',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\moddle': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.moddle-Rst9zb0D',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\moddle-xml': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.moddle-xml-vf9wElLV',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\nanoid': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.nanoid-zpcnMTak',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\object-refs': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.object-refs-ThiSi4Gd',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\path-intersection': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.path-intersection-bveZMd0g',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\picocolors': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.picocolors-qLsNkacl',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\postcss': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.postcss-hYlEBumL',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\preact': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.preact-aApXqt7f',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\rollup': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.rollup-3Do6SxFf',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\saxen': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.saxen-IWZHuStk',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\source-map-js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.source-map-js-AQxte0nb',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\style-mod': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.style-mod-l3Vm4ePi',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\tabbable': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.tabbable-yePsznIJ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\ticky': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.ticky-5IBhUKRh',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\vite': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.vite-RC7BRCtp',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\tiny-svg': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.tiny-svg-Trf7h6Tk',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\vue': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.vue-DW2Z5tN8',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\w3c-keyname': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\.w3c-keyname-MdTFWiKu',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\helper-string-parser': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\.helper-string-parser-pTSGGVnP',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\helper-validator-identifier': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\.helper-validator-identifier-oRK8DHCE',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\parser': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\.parser-pajT8gvd',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\types': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@babel\\.types-sflCrhwk',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\cm-theme': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.cm-theme-nmHLQmxX',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\diagram-js-ui': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.diagram-js-ui-OSY3dai5',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\draggle': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.draggle-nJojbb4x',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\feel-lint': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.feel-lint-uECe4AFB',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\feel-editor': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.feel-editor-krFckmzA',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.form-js-sMRacKg6',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-carbon-styles': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.form-js-carbon-styles-uSTHPi0R',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-editor': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.form-js-editor-bw4ShTu6',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-playground': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.form-js-playground-93BK0sda',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\form-js-viewer': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.form-js-viewer-n5eAseCh',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\lang-feel': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.lang-feel-MyQBf0OB',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\lezer-feel': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.lezer-feel-J4HgW8aN',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\properties-panel': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@bpmn-io\\.properties-panel-VD2X9Tkp',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@camunda\\feel-builtins': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@camunda\\.feel-builtins-EW5tPYDS',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\grid': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\.grid-PPdaFZJA',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\icons': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\.icons-WQC9GLi0',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\layout': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@carbon\\.layout-F3jRbIDE',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\autocomplete': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.autocomplete-u8TngqKL',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\commands': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.commands-KHub8NVO',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\lang-json': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.lang-json-oaqUUB2p',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\language': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.language-6f2lSCKD',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\lint': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.lint-QAG2AYK2',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\search': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.search-A64rRp0g',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\state': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.state-a4jUBC1x',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\view': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@codemirror\\.view-7pECzoKw',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\aix-ppc64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.aix-ppc64-5sFepIfo',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.android-arm-qrCLP0az',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.android-arm64-SHkOh8su',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.darwin-x64-F4HlfwFP',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.darwin-arm64-6xEMzseg',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.freebsd-x64-lcX36Sgi',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.freebsd-arm64-nWPe2SvQ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.android-x64-4qXKeyBj',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-arm-AmKpQ01q',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ia32': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-ia32-cwB3kEBZ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-loong64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-loong64-o8PGcFBi',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-arm64-QWZnFKdV',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ppc64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-ppc64-uYMmB5JI',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-mips64el': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-mips64el-6C0472ZR',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-riscv64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-riscv64-JJDrgttR',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-s390x': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-s390x-4TWGaIIf',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.linux-x64-a84frpCu',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\netbsd-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.netbsd-x64-ujJ2aCug',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\openbsd-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.openbsd-x64-gScpt1gx',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\sunos-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.sunos-x64-S8bGxczh',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.win32-arm64-bw8dkF97',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-ia32': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.win32-ia32-MT1kqvO0',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\.win32-x64-ZqP4JcVA',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@ibm\\telemetry-js': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@ibm\\.telemetry-js-CPU5ZeNa',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@jridgewell\\sourcemap-codec': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@jridgewell\\.sourcemap-codec-6SL6Ez1U',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\common': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\.common-6cBdCijv',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\highlight': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\.highlight-G1jCdr7J',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\json': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\.json-RSkQKcUI',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\lr': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\.lr-Y1twZS7T',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\markdown': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@lezer\\.markdown-HpsZYFdL',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@marijn\\find-cluster-break': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@marijn\\.find-cluster-break-QiMpm1Wa',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm-eabi': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-android-arm-eabi-TcgQ7icU',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-android-arm64-JwHiIJvA',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-darwin-arm64-QlXLEfYR',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-darwin-x64-QYPCj8OX',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-freebsd-arm64-DzTrimq4',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-x64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-freebsd-x64-cxEf9VV5',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-gnueabihf': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-arm-gnueabihf-1KbtIYg6',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-musleabihf': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-arm-musleabihf-os0DVxJG',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-arm64-gnu-SoCxL7xP',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-musl': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-arm64-musl-8KvlNSBM',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-loong64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-loong64-gnu-GjVR9YLK',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-ppc64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-ppc64-gnu-SM6EQlEg',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-riscv64-gnu-Am9zy0WC',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-musl': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-riscv64-musl-LXg77Ib8',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-s390x-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-s390x-gnu-NDVNYeNS',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-x64-gnu-zmMTv6gy',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-musl': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-linux-x64-musl-KCXTBZ6M',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-openharmony-arm64': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-openharmony-arm64-lANFfVIS',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-arm64-msvc': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-win32-arm64-msvc-WAFvEmRz',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-ia32-msvc': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-win32-ia32-msvc-dp4EVBs9',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-x64-gnu': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-win32-x64-gnu-NIbjy1sE',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-x64-msvc': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\.rollup-win32-x64-msvc-hyxEsNUI',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\estree': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\.estree-XKR7ovLx',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\trusted-types': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\.trusted-types-q3usJ3br',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vitejs\\plugin-vue': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vitejs\\.plugin-vue-iG5HxViZ',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-core': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.compiler-core-xcORYwnW',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-dom': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.compiler-dom-8qv2i2N6',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-sfc': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.compiler-sfc-MCbbwPN2',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\compiler-ssr': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.compiler-ssr-0qMZLhJ5',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\reactivity': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.reactivity-DQfzVhMp',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\runtime-core': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.runtime-core-2QuNOsVg',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\runtime-dom': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.runtime-dom-q9zYUfDa',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\server-renderer': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.server-renderer-EKmc6zpu',
+172 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\shared': 'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@vue\\.shared-jzj5Gzya'
+172 silly reify }
+173 silly audit bulk request {
+173 silly audit   '@babel/helper-string-parser': [ '7.27.1' ],
+173 silly audit   '@babel/helper-validator-identifier': [ '7.28.5' ],
+173 silly audit   '@babel/parser': [ '7.28.5' ],
+173 silly audit   '@babel/types': [ '7.28.5' ],
+173 silly audit   '@bpmn-io/cm-theme': [ '0.1.0-alpha.2' ],
+173 silly audit   '@bpmn-io/diagram-js-ui': [ '0.2.3' ],
+173 silly audit   '@bpmn-io/draggle': [ '4.1.2' ],
+173 silly audit   '@bpmn-io/feel-editor': [ '2.0.0' ],
+173 silly audit   '@bpmn-io/feel-lint': [ '3.0.0', '1.4.0' ],
+173 silly audit   '@bpmn-io/form-js': [ '1.18.0' ],
+173 silly audit   '@bpmn-io/form-js-carbon-styles': [ '1.18.0' ],
+173 silly audit   '@bpmn-io/form-js-editor': [ '1.18.0' ],
+173 silly audit   '@bpmn-io/form-js-playground': [ '1.18.0' ],
+173 silly audit   '@bpmn-io/form-js-viewer': [ '1.18.0' ],
+173 silly audit   '@bpmn-io/lang-feel': [ '3.0.0' ],
+173 silly audit   '@bpmn-io/lezer-feel': [ '2.0.0' ],
+173 silly audit   '@bpmn-io/properties-panel': [ '3.35.1' ],
+173 silly audit   '@camunda/feel-builtins': [ '0.2.0' ],
+173 silly audit   '@carbon/grid': [ '11.46.0' ],
+173 silly audit   '@carbon/icons': [ '11.71.0' ],
+173 silly audit   '@carbon/layout': [ '11.44.0' ],
+173 silly audit   '@codemirror/autocomplete': [ '6.20.0' ],
+173 silly audit   '@codemirror/commands': [ '6.10.1' ],
+173 silly audit   '@codemirror/lang-json': [ '6.0.2' ],
+173 silly audit   '@codemirror/language': [ '6.12.1' ],
+173 silly audit   '@codemirror/lint': [ '6.9.2' ],
+173 silly audit   '@codemirror/search': [ '6.5.11' ],
+173 silly audit   '@codemirror/state': [ '6.5.3' ],
+173 silly audit   '@codemirror/view': [ '6.39.8' ],
+173 silly audit   '@esbuild/aix-ppc64': [ '0.21.5' ],
+173 silly audit   '@esbuild/android-arm': [ '0.21.5' ],
+173 silly audit   '@esbuild/android-arm64': [ '0.21.5' ],
+173 silly audit   '@esbuild/android-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/darwin-arm64': [ '0.21.5' ],
+173 silly audit   '@esbuild/darwin-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/freebsd-arm64': [ '0.21.5' ],
+173 silly audit   '@esbuild/freebsd-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-arm': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-arm64': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-ia32': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-loong64': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-mips64el': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-ppc64': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-riscv64': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-s390x': [ '0.21.5' ],
+173 silly audit   '@esbuild/linux-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/netbsd-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/openbsd-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/sunos-x64': [ '0.21.5' ],
+173 silly audit   '@esbuild/win32-arm64': [ '0.21.5' ],
+173 silly audit   '@esbuild/win32-ia32': [ '0.21.5' ],
+173 silly audit   '@esbuild/win32-x64': [ '0.21.5' ],
+173 silly audit   '@ibm/telemetry-js': [ '1.10.2' ],
+173 silly audit   '@jridgewell/sourcemap-codec': [ '1.5.5' ],
+173 silly audit   '@lezer/common': [ '1.5.0' ],
+173 silly audit   '@lezer/highlight': [ '1.2.3' ],
+173 silly audit   '@lezer/json': [ '1.0.3' ],
+173 silly audit   '@lezer/lr': [ '1.4.5' ],
+173 silly audit   '@lezer/markdown': [ '1.6.2' ],
+173 silly audit   '@marijn/find-cluster-break': [ '1.0.2' ],
+173 silly audit   '@rollup/rollup-android-arm-eabi': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-android-arm64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-darwin-arm64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-darwin-x64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-freebsd-arm64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-freebsd-x64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-arm-gnueabihf': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-arm-musleabihf': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-arm64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-arm64-musl': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-loong64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-ppc64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-riscv64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-riscv64-musl': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-s390x-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-x64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-linux-x64-musl': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-openharmony-arm64': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-win32-arm64-msvc': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-win32-ia32-msvc': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-win32-x64-gnu': [ '4.54.0' ],
+173 silly audit   '@rollup/rollup-win32-x64-msvc': [ '4.54.0' ],
+173 silly audit   '@types/estree': [ '1.0.8' ],
+173 silly audit   '@types/trusted-types': [ '2.0.7' ],
+173 silly audit   '@vitejs/plugin-vue': [ '5.2.4' ],
+173 silly audit   '@vue/compiler-core': [ '3.5.26' ],
+173 silly audit   '@vue/compiler-dom': [ '3.5.26' ],
+173 silly audit   '@vue/compiler-sfc': [ '3.5.26' ],
+173 silly audit   '@vue/compiler-ssr': [ '3.5.26' ],
+173 silly audit   '@vue/reactivity': [ '3.5.26' ],
+173 silly audit   '@vue/runtime-core': [ '3.5.26' ],
+173 silly audit   '@vue/runtime-dom': [ '3.5.26' ],
+173 silly audit   '@vue/server-renderer': [ '3.5.26' ],
+173 silly audit   '@vue/shared': [ '3.5.26' ],
+173 silly audit   'array-move': [ '4.0.0' ],
+173 silly audit   atoa: [ '1.0.0' ],
+173 silly audit   'big.js': [ '7.0.1' ],
+173 silly audit   'bpmn-js': [ '14.2.0' ],
+173 silly audit   'bpmn-moddle': [ '8.1.0' ],
+173 silly audit   classnames: [ '2.5.1' ],
+173 silly audit   clsx: [ '2.1.1' ],
+173 silly audit   codemirror: [ '6.0.2' ],
+173 silly audit   'component-event': [ '0.2.1' ],
+173 silly audit   contra: [ '1.9.4' ],
+173 silly audit   crelt: [ '1.0.6' ],
+173 silly audit   csstype: [ '3.2.3' ],
+173 silly audit   'datatables.net': [ '2.3.6' ],
+173 silly audit   'datatables.net-dt': [ '2.3.6' ],
+173 silly audit   'datatables.net-responsive': [ '3.0.7' ],
+173 silly audit   'datatables.net-responsive-dt': [ '3.0.7' ],
+173 silly audit   'datatables.net-vue3': [ '3.0.4' ],
+173 silly audit   'diagram-js': [ '12.8.1' ],
+173 silly audit   'diagram-js-direct-editing': [ '2.1.2' ],
+173 silly audit   didi: [ '9.0.2', '10.2.2' ],
+173 silly audit   domify: [ '1.4.2', '2.0.0' ],
+173 silly audit   dompurify: [ '3.3.1' ],
+173 silly audit   downloadjs: [ '1.4.7' ],
+173 silly audit   entities: [ '7.0.0' ],
+173 silly audit   esbuild: [ '0.21.5' ],
+173 silly audit   'estree-walker': [ '2.0.2' ],
+173 silly audit   feelers: [ '1.4.0' ],
+173 silly audit   feelin: [ '3.2.0', '4.6.0' ],
+173 silly audit   'min-dom': [ '5.1.2', '4.2.1' ],
+173 silly audit   'file-drops': [ '0.6.2' ],
+173 silly audit   flatpickr: [ '4.6.13' ],
+173 silly audit   'focus-trap': [ '7.7.0' ],
+173 silly audit   fsevents: [ '2.3.3' ],
+173 silly audit   hammerjs: [ '2.0.8' ],
+173 silly audit   htm: [ '3.1.1' ],
+173 silly audit   ids: [ '1.0.5' ],
+173 silly audit   'inherits-browser': [ '0.1.0' ],
+173 silly audit   jquery: [ '3.7.1' ],
+173 silly audit   'lezer-feel': [ '1.9.0' ],
+173 silly audit   lodash: [ '4.17.21' ],
+173 silly audit   luxon: [ '3.7.2' ],
+173 silly audit   'magic-string': [ '0.30.21' ],
+173 silly audit   marked: [ '16.4.2' ],
+173 silly audit   'min-dash': [ '4.2.3' ],
+173 silly audit   mitt: [ '3.0.1' ],
+173 silly audit   moddle: [ '6.2.3' ],
+173 silly audit   'moddle-xml': [ '10.1.0' ],
+173 silly audit   nanoid: [ '3.3.11' ],
+173 silly audit   'object-refs': [ '0.3.0' ],
+173 silly audit   'path-intersection': [ '2.2.1' ],
+173 silly audit   picocolors: [ '1.1.1' ],
+173 silly audit   postcss: [ '8.5.6' ],
+173 silly audit   preact: [ '10.28.1' ],
+173 silly audit   rollup: [ '4.54.0' ],
+173 silly audit   saxen: [ '8.1.2' ],
+173 silly audit   'source-map-js': [ '1.2.1' ],
+173 silly audit   'style-mod': [ '4.1.3' ],
+173 silly audit   tabbable: [ '6.3.0' ],
+173 silly audit   ticky: [ '1.0.1' ],
+173 silly audit   'tiny-svg': [ '3.1.3' ],
+173 silly audit   vite: [ '5.4.21' ],
+173 silly audit   vue: [ '3.5.26' ],
+173 silly audit   'w3c-keyname': [ '2.2.8' ]
+173 silly audit }
+174 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-win32-ia32-msvc
+175 silly reify mark deleted [
+175 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-ia32-msvc'
+175 silly reify ]
+176 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-win32-arm64-msvc
+177 silly reify mark deleted [
+177 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-win32-arm64-msvc'
+177 silly reify ]
+178 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-openharmony-arm64
+179 silly reify mark deleted [
+179 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-openharmony-arm64'
+179 silly reify ]
+180 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-x64-musl
+181 silly reify mark deleted [
+181 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-musl'
+181 silly reify ]
+182 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-x64-gnu
+183 silly reify mark deleted [
+183 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-x64-gnu'
+183 silly reify ]
+184 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-s390x-gnu
+185 silly reify mark deleted [
+185 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-s390x-gnu'
+185 silly reify ]
+186 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-riscv64-musl
+187 silly reify mark deleted [
+187 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-musl'
+187 silly reify ]
+188 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-riscv64-gnu
+189 silly reify mark deleted [
+189 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-riscv64-gnu'
+189 silly reify ]
+190 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-ppc64-gnu
+191 silly reify mark deleted [
+191 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-ppc64-gnu'
+191 silly reify ]
+192 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-loong64-gnu
+193 silly reify mark deleted [
+193 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-loong64-gnu'
+193 silly reify ]
+194 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-arm64-musl
+195 silly reify mark deleted [
+195 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-musl'
+195 silly reify ]
+196 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-arm64-gnu
+197 silly reify mark deleted [
+197 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm64-gnu'
+197 silly reify ]
+198 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-arm-musleabihf
+199 silly reify mark deleted [
+199 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-musleabihf'
+199 silly reify ]
+200 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-linux-arm-gnueabihf
+201 silly reify mark deleted [
+201 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-linux-arm-gnueabihf'
+201 silly reify ]
+202 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-freebsd-x64
+203 silly reify mark deleted [
+203 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-x64'
+203 silly reify ]
+204 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-freebsd-arm64
+205 silly reify mark deleted [
+205 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-freebsd-arm64'
+205 silly reify ]
+206 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-darwin-x64
+207 silly reify mark deleted [
+207 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-x64'
+207 silly reify ]
+208 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-darwin-arm64
+209 silly reify mark deleted [
+209 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-darwin-arm64'
+209 silly reify ]
+210 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-android-arm64
+211 silly reify mark deleted [
+211 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm64'
+211 silly reify ]
+212 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@rollup\rollup-android-arm-eabi
+213 silly reify mark deleted [
+213 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@rollup\\rollup-android-arm-eabi'
+213 silly reify ]
+214 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\win32-ia32
+215 silly reify mark deleted [
+215 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-ia32'
+215 silly reify ]
+216 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\win32-arm64
+217 silly reify mark deleted [
+217 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\win32-arm64'
+217 silly reify ]
+218 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\sunos-x64
+219 silly reify mark deleted [
+219 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\sunos-x64'
+219 silly reify ]
+220 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\openbsd-x64
+221 silly reify mark deleted [
+221 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\openbsd-x64'
+221 silly reify ]
+222 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\netbsd-x64
+223 silly reify mark deleted [
+223 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\netbsd-x64'
+223 silly reify ]
+224 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-x64
+225 silly reify mark deleted [
+225 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-x64'
+225 silly reify ]
+226 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-s390x
+227 silly reify mark deleted [
+227 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-s390x'
+227 silly reify ]
+228 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-riscv64
+229 silly reify mark deleted [
+229 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-riscv64'
+229 silly reify ]
+230 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-mips64el
+231 silly reify mark deleted [
+231 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-mips64el'
+231 silly reify ]
+232 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-ppc64
+233 silly reify mark deleted [
+233 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ppc64'
+233 silly reify ]
+234 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-arm64
+235 silly reify mark deleted [
+235 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm64'
+235 silly reify ]
+236 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-loong64
+237 silly reify mark deleted [
+237 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-loong64'
+237 silly reify ]
+238 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-ia32
+239 silly reify mark deleted [
+239 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-ia32'
+239 silly reify ]
+240 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\linux-arm
+241 silly reify mark deleted [
+241 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\linux-arm'
+241 silly reify ]
+242 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\android-x64
+243 silly reify mark deleted [
+243 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-x64'
+243 silly reify ]
+244 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\freebsd-arm64
+245 silly reify mark deleted [
+245 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-arm64'
+245 silly reify ]
+246 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\freebsd-x64
+247 silly reify mark deleted [
+247 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\freebsd-x64'
+247 silly reify ]
+248 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\darwin-arm64
+249 silly reify mark deleted [
+249 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-arm64'
+249 silly reify ]
+250 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\darwin-x64
+251 silly reify mark deleted [
+251 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\darwin-x64'
+251 silly reify ]
+252 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\android-arm64
+253 silly reify mark deleted [
+253 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm64'
+253 silly reify ]
+254 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\android-arm
+255 silly reify mark deleted [
+255 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\android-arm'
+255 silly reify ]
+256 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@esbuild\aix-ppc64
+257 silly reify mark deleted [
+257 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@esbuild\\aix-ppc64'
+257 silly reify ]
+258 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\fsevents
+259 silly reify mark deleted [
+259 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\fsevents'
+259 silly reify ]
+260 http cache @vue/shared@https://registry.npmjs.org/@vue/shared/-/shared-3.5.26.tgz 2ms (cache hit)
+261 http cache @vue/runtime-core@https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.26.tgz 0ms (cache hit)
+262 http cache @vue/server-renderer@https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.26.tgz 0ms (cache hit)
+263 http cache @vue/runtime-dom@https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.26.tgz 0ms (cache hit)
+264 http cache @vue/reactivity@https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.26.tgz 0ms (cache hit)
+265 http cache @vue/compiler-ssr@https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.26.tgz 0ms (cache hit)
+266 http cache @vue/compiler-sfc@https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.26.tgz 0ms (cache hit)
+267 http cache @vue/compiler-dom@https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz 0ms (cache hit)
+268 http cache @vitejs/plugin-vue@https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz 0ms (cache hit)
+269 http cache @vue/compiler-core@https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.26.tgz 0ms (cache hit)
+270 http cache @types/trusted-types@https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz 0ms (cache hit)
+271 http cache @types/estree@https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz 0ms (cache hit)
+272 http cache @lezer/markdown@https://registry.npmjs.org/@lezer/markdown/-/markdown-1.6.2.tgz 0ms (cache hit)
+273 http cache @marijn/find-cluster-break@https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.2.tgz 0ms (cache hit)
+274 http cache @rollup/rollup-win32-x64-msvc@https://registry.npmjs.org/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.54.0.tgz 0ms (cache hit)
+275 http cache @lezer/lr@https://registry.npmjs.org/@lezer/lr/-/lr-1.4.5.tgz 0ms (cache hit)
+276 http cache @rollup/rollup-win32-x64-gnu@https://registry.npmjs.org/@rollup/rollup-win32-x64-gnu/-/rollup-win32-x64-gnu-4.54.0.tgz 0ms (cache hit)
+277 http cache @lezer/common@https://registry.npmjs.org/@lezer/common/-/common-1.5.0.tgz 0ms (cache hit)
+278 http cache @lezer/json@https://registry.npmjs.org/@lezer/json/-/json-1.0.3.tgz 0ms (cache hit)
+279 http cache @lezer/highlight@https://registry.npmjs.org/@lezer/highlight/-/highlight-1.2.3.tgz 0ms (cache hit)
+280 http cache @jridgewell/sourcemap-codec@https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz 0ms (cache hit)
+281 http cache @esbuild/win32-x64@https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz 0ms (cache hit)
+282 http cache @ibm/telemetry-js@https://registry.npmjs.org/@ibm/telemetry-js/-/telemetry-js-1.10.2.tgz 0ms (cache hit)
+283 http cache @codemirror/state@https://registry.npmjs.org/@codemirror/state/-/state-6.5.3.tgz 0ms (cache hit)
+284 http cache @codemirror/view@https://registry.npmjs.org/@codemirror/view/-/view-6.39.8.tgz 0ms (cache hit)
+285 http cache @codemirror/search@https://registry.npmjs.org/@codemirror/search/-/search-6.5.11.tgz 0ms (cache hit)
+286 http cache @codemirror/language@https://registry.npmjs.org/@codemirror/language/-/language-6.12.1.tgz 0ms (cache hit)
+287 http cache @codemirror/commands@https://registry.npmjs.org/@codemirror/commands/-/commands-6.10.1.tgz 0ms (cache hit)
+288 http cache @codemirror/autocomplete@https://registry.npmjs.org/@codemirror/autocomplete/-/autocomplete-6.20.0.tgz 0ms (cache hit)
+289 http cache @carbon/layout@https://registry.npmjs.org/@carbon/layout/-/layout-11.44.0.tgz 0ms (cache hit)
+290 http cache @carbon/grid@https://registry.npmjs.org/@carbon/grid/-/grid-11.46.0.tgz 0ms (cache hit)
+291 http cache @carbon/icons@https://registry.npmjs.org/@carbon/icons/-/icons-11.71.0.tgz 0ms (cache hit)
+292 http cache @bpmn-io/properties-panel@https://registry.npmjs.org/@bpmn-io/properties-panel/-/properties-panel-3.35.1.tgz 0ms (cache hit)
+293 http cache @camunda/feel-builtins@https://registry.npmjs.org/@camunda/feel-builtins/-/feel-builtins-0.2.0.tgz 0ms (cache hit)
+294 http cache @bpmn-io/lezer-feel@https://registry.npmjs.org/@bpmn-io/lezer-feel/-/lezer-feel-2.0.0.tgz 0ms (cache hit)
+295 http cache @bpmn-io/lang-feel@https://registry.npmjs.org/@bpmn-io/lang-feel/-/lang-feel-3.0.0.tgz 0ms (cache hit)
+296 http cache @bpmn-io/form-js-viewer@https://registry.npmjs.org/@bpmn-io/form-js-viewer/-/form-js-viewer-1.18.0.tgz 2ms (cache hit)
+297 http cache @bpmn-io/form-js-editor@https://registry.npmjs.org/@bpmn-io/form-js-editor/-/form-js-editor-1.18.0.tgz 0ms (cache hit)
+298 http cache @bpmn-io/form-js-playground@https://registry.npmjs.org/@bpmn-io/form-js-playground/-/form-js-playground-1.18.0.tgz 0ms (cache hit)
+299 http cache @bpmn-io/form-js-carbon-styles@https://registry.npmjs.org/@bpmn-io/form-js-carbon-styles/-/form-js-carbon-styles-1.18.0.tgz 0ms (cache hit)
+300 http cache @bpmn-io/form-js@https://registry.npmjs.org/@bpmn-io/form-js/-/form-js-1.18.0.tgz 0ms (cache hit)
+301 http cache @bpmn-io/feel-editor@https://registry.npmjs.org/@bpmn-io/feel-editor/-/feel-editor-2.0.0.tgz 0ms (cache hit)
+302 http cache @bpmn-io/feel-lint@https://registry.npmjs.org/@bpmn-io/feel-lint/-/feel-lint-3.0.0.tgz 0ms (cache hit)
+303 http cache @bpmn-io/draggle@https://registry.npmjs.org/@bpmn-io/draggle/-/draggle-4.1.2.tgz 0ms (cache hit)
+304 http cache @babel/types@https://registry.npmjs.org/@babel/types/-/types-7.28.5.tgz 1ms (cache hit)
+305 http cache @bpmn-io/cm-theme@https://registry.npmjs.org/@bpmn-io/cm-theme/-/cm-theme-0.1.0-alpha.2.tgz 0ms (cache hit)
+306 http cache w3c-keyname@https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz 0ms (cache hit)
+307 http cache @babel/parser@https://registry.npmjs.org/@babel/parser/-/parser-7.28.5.tgz 0ms (cache hit)
+308 http cache @babel/helper-validator-identifier@https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.28.5.tgz 0ms (cache hit)
+309 http cache @babel/helper-string-parser@https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.27.1.tgz 0ms (cache hit)
+310 http cache vue@https://registry.npmjs.org/vue/-/vue-3.5.26.tgz 0ms (cache hit)
+311 http cache tiny-svg@https://registry.npmjs.org/tiny-svg/-/tiny-svg-3.1.3.tgz 0ms (cache hit)
+312 http cache ticky@https://registry.npmjs.org/ticky/-/ticky-1.0.1.tgz 0ms (cache hit)
+313 http cache @bpmn-io/diagram-js-ui@https://registry.npmjs.org/@bpmn-io/diagram-js-ui/-/diagram-js-ui-0.2.3.tgz 0ms (cache hit)
+314 http cache vite@https://registry.npmjs.org/vite/-/vite-5.4.21.tgz 0ms (cache hit)
+315 http cache saxen@https://registry.npmjs.org/saxen/-/saxen-8.1.2.tgz 0ms (cache hit)
+316 http cache tabbable@https://registry.npmjs.org/tabbable/-/tabbable-6.3.0.tgz 0ms (cache hit)
+317 http cache source-map-js@https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz 0ms (cache hit)
+318 http cache rollup@https://registry.npmjs.org/rollup/-/rollup-4.54.0.tgz 0ms (cache hit)
+319 http cache preact@https://registry.npmjs.org/preact/-/preact-10.28.1.tgz 0ms (cache hit)
+320 http cache picocolors@https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz 0ms (cache hit)
+321 http cache postcss@https://registry.npmjs.org/postcss/-/postcss-8.5.6.tgz 0ms (cache hit)
+322 http cache object-refs@https://registry.npmjs.org/object-refs/-/object-refs-0.3.0.tgz 0ms (cache hit)
+323 http cache path-intersection@https://registry.npmjs.org/path-intersection/-/path-intersection-2.2.1.tgz 0ms (cache hit)
+324 http cache nanoid@https://registry.npmjs.org/nanoid/-/nanoid-3.3.11.tgz 0ms (cache hit)
+325 http cache moddle-xml@https://registry.npmjs.org/moddle-xml/-/moddle-xml-10.1.0.tgz 0ms (cache hit)
+326 http cache mitt@https://registry.npmjs.org/mitt/-/mitt-3.0.1.tgz 0ms (cache hit)
+327 http cache moddle@https://registry.npmjs.org/moddle/-/moddle-6.2.3.tgz 1ms (cache hit)
+328 http cache min-dom@https://registry.npmjs.org/min-dom/-/min-dom-4.2.1.tgz 0ms (cache hit)
+329 http cache marked@https://registry.npmjs.org/marked/-/marked-16.4.2.tgz 0ms (cache hit)
+330 http cache luxon@https://registry.npmjs.org/luxon/-/luxon-3.7.2.tgz 0ms (cache hit)
+331 http cache magic-string@https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz 0ms (cache hit)
+332 http cache lodash@https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz 0ms (cache hit)
+333 http cache jquery@https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz 0ms (cache hit)
+334 http cache min-dash@https://registry.npmjs.org/min-dash/-/min-dash-4.2.3.tgz 0ms (cache hit)
+335 http cache lezer-feel@https://registry.npmjs.org/lezer-feel/-/lezer-feel-1.9.0.tgz 0ms (cache hit)
+336 http cache inherits-browser@https://registry.npmjs.org/inherits-browser/-/inherits-browser-0.1.0.tgz 0ms (cache hit)
+337 http cache @codemirror/lint@https://registry.npmjs.org/@codemirror/lint/-/lint-6.9.2.tgz 1ms (cache hit)
+338 http cache ids@https://registry.npmjs.org/ids/-/ids-1.0.5.tgz 0ms (cache hit)
+339 http cache htm@https://registry.npmjs.org/htm/-/htm-3.1.1.tgz 0ms (cache hit)
+340 http cache hammerjs@https://registry.npmjs.org/hammerjs/-/hammerjs-2.0.8.tgz 0ms (cache hit)
+341 http cache file-drops@https://registry.npmjs.org/file-drops/-/file-drops-0.6.2.tgz 0ms (cache hit)
+342 http cache flatpickr@https://registry.npmjs.org/flatpickr/-/flatpickr-4.6.13.tgz 0ms (cache hit)
+343 http cache focus-trap@https://registry.npmjs.org/focus-trap/-/focus-trap-7.7.0.tgz 0ms (cache hit)
+344 http cache feelin@https://registry.npmjs.org/feelin/-/feelin-4.6.0.tgz 0ms (cache hit)
+345 http cache feelers@https://registry.npmjs.org/feelers/-/feelers-1.4.0.tgz 0ms (cache hit)
+346 http cache estree-walker@https://registry.npmjs.org/estree-walker/-/estree-walker-2.0.2.tgz 0ms (cache hit)
+347 http cache entities@https://registry.npmjs.org/entities/-/entities-7.0.0.tgz 1ms (cache hit)
+348 http cache esbuild@https://registry.npmjs.org/esbuild/-/esbuild-0.21.5.tgz 0ms (cache hit)
+349 http cache dompurify@https://registry.npmjs.org/dompurify/-/dompurify-3.3.1.tgz 0ms (cache hit)
+350 http cache downloadjs@https://registry.npmjs.org/downloadjs/-/downloadjs-1.4.7.tgz 0ms (cache hit)
+351 http cache didi@https://registry.npmjs.org/didi/-/didi-10.2.2.tgz 0ms (cache hit)
+352 http cache diagram-js-direct-editing@https://registry.npmjs.org/diagram-js-direct-editing/-/diagram-js-direct-editing-2.1.2.tgz 0ms (cache hit)
+353 http cache datatables.net-vue3@https://registry.npmjs.org/datatables.net-vue3/-/datatables.net-vue3-3.0.4.tgz 0ms (cache hit)
+354 http cache datatables.net-dt@https://registry.npmjs.org/datatables.net-dt/-/datatables.net-dt-2.3.6.tgz 0ms (cache hit)
+355 http cache domify@https://registry.npmjs.org/domify/-/domify-1.4.2.tgz 0ms (cache hit)
+356 http cache datatables.net-responsive-dt@https://registry.npmjs.org/datatables.net-responsive-dt/-/datatables.net-responsive-dt-3.0.7.tgz 0ms (cache hit)
+357 http cache datatables.net@https://registry.npmjs.org/datatables.net/-/datatables.net-2.3.6.tgz 0ms (cache hit)
+358 http cache csstype@https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz 0ms (cache hit)
+359 http cache datatables.net-responsive@https://registry.npmjs.org/datatables.net-responsive/-/datatables.net-responsive-3.0.7.tgz 3ms (cache hit)
+360 http cache crelt@https://registry.npmjs.org/crelt/-/crelt-1.0.6.tgz 0ms (cache hit)
+361 http cache @codemirror/lang-json@https://registry.npmjs.org/@codemirror/lang-json/-/lang-json-6.0.2.tgz 0ms (cache hit)
+362 http cache codemirror@https://registry.npmjs.org/codemirror/-/codemirror-6.0.2.tgz 0ms (cache hit)
+363 http cache component-event@https://registry.npmjs.org/component-event/-/component-event-0.2.1.tgz 0ms (cache hit)
+364 http cache clsx@https://registry.npmjs.org/clsx/-/clsx-2.1.1.tgz 0ms (cache hit)
+365 http cache diagram-js@https://registry.npmjs.org/diagram-js/-/diagram-js-12.8.1.tgz 0ms (cache hit)
+366 http cache contra@https://registry.npmjs.org/contra/-/contra-1.9.4.tgz 0ms (cache hit)
+367 http cache bpmn-js@https://registry.npmjs.org/bpmn-js/-/bpmn-js-14.2.0.tgz 0ms (cache hit)
+368 http cache classnames@https://registry.npmjs.org/classnames/-/classnames-2.5.1.tgz 0ms (cache hit)
+369 http cache big.js@https://registry.npmjs.org/big.js/-/big.js-7.0.1.tgz 0ms (cache hit)
+370 http cache @bpmn-io/feel-lint@https://registry.npmjs.org/@bpmn-io/feel-lint/-/feel-lint-1.4.0.tgz 0ms (cache hit)
+371 http cache feelin@https://registry.npmjs.org/feelin/-/feelin-3.2.0.tgz 0ms (cache hit)
+372 http cache min-dom@https://registry.npmjs.org/min-dom/-/min-dom-5.1.2.tgz 0ms (cache hit)
+373 http cache didi@https://registry.npmjs.org/didi/-/didi-9.0.2.tgz 0ms (cache hit)
+374 http cache domify@https://registry.npmjs.org/domify/-/domify-2.0.0.tgz 0ms (cache hit)
+375 http cache bpmn-moddle@https://registry.npmjs.org/bpmn-moddle/-/bpmn-moddle-8.1.0.tgz 0ms (cache hit)
+376 http cache style-mod@https://registry.npmjs.org/style-mod/-/style-mod-4.1.3.tgz 0ms (cache hit)
+377 silly tarball no local data for @vue/shared@https://registry.npmjs.org/@vue/shared/-/shared-3.5.26.tgz. Extracting by manifest.
+378 silly tarball no local data for @vue/runtime-core@https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.26.tgz. Extracting by manifest.
+379 silly tarball no local data for @vue/server-renderer@https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.26.tgz. Extracting by manifest.
+380 silly tarball no local data for @vue/runtime-dom@https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.26.tgz. Extracting by manifest.
+381 silly tarball no local data for @vue/reactivity@https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.26.tgz. Extracting by manifest.
+382 silly tarball no local data for @vue/compiler-ssr@https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.26.tgz. Extracting by manifest.
+383 silly tarball no local data for @vue/compiler-sfc@https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.26.tgz. Extracting by manifest.
+384 silly tarball no local data for @vue/compiler-dom@https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz. Extracting by manifest.
+385 silly tarball no local data for @vitejs/plugin-vue@https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz. Extracting by manifest.
+386 silly tarball no local data for @vue/compiler-core@https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.26.tgz. Extracting by manifest.
+387 silly tarball no local data for @types/trusted-types@https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz. Extracting by manifest.
+388 silly tarball no local data for @types/estree@https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz. Extracting by manifest.
+389 silly tarball no local data for @lezer/markdown@https://registry.npmjs.org/@lezer/markdown/-/markdown-1.6.2.tgz. Extracting by manifest.
+390 silly tarball no local data for @marijn/find-cluster-break@https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.2.tgz. Extracting by manifest.
+391 silly tarball no local data for @rollup/rollup-win32-x64-msvc@https://registry.npmjs.org/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.54.0.tgz. Extracting by manifest.
+392 silly tarball no local data for @lezer/lr@https://registry.npmjs.org/@lezer/lr/-/lr-1.4.5.tgz. Extracting by manifest.
+393 silly tarball no local data for @rollup/rollup-win32-x64-gnu@https://registry.npmjs.org/@rollup/rollup-win32-x64-gnu/-/rollup-win32-x64-gnu-4.54.0.tgz. Extracting by manifest.
+394 silly tarball no local data for @lezer/common@https://registry.npmjs.org/@lezer/common/-/common-1.5.0.tgz. Extracting by manifest.
+395 silly tarball no local data for @lezer/json@https://registry.npmjs.org/@lezer/json/-/json-1.0.3.tgz. Extracting by manifest.
+396 silly tarball no local data for @lezer/highlight@https://registry.npmjs.org/@lezer/highlight/-/highlight-1.2.3.tgz. Extracting by manifest.
+397 silly tarball no local data for @jridgewell/sourcemap-codec@https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz. Extracting by manifest.
+398 silly tarball no local data for @esbuild/win32-x64@https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz. Extracting by manifest.
+399 silly tarball no local data for @ibm/telemetry-js@https://registry.npmjs.org/@ibm/telemetry-js/-/telemetry-js-1.10.2.tgz. Extracting by manifest.
+400 silly tarball no local data for @codemirror/state@https://registry.npmjs.org/@codemirror/state/-/state-6.5.3.tgz. Extracting by manifest.
+401 silly tarball no local data for @codemirror/view@https://registry.npmjs.org/@codemirror/view/-/view-6.39.8.tgz. Extracting by manifest.
+402 silly tarball no local data for @codemirror/search@https://registry.npmjs.org/@codemirror/search/-/search-6.5.11.tgz. Extracting by manifest.
+403 http cache atoa@https://registry.npmjs.org/atoa/-/atoa-1.0.0.tgz 0ms (cache hit)
+404 silly tarball no local data for @codemirror/language@https://registry.npmjs.org/@codemirror/language/-/language-6.12.1.tgz. Extracting by manifest.
+405 http cache array-move@https://registry.npmjs.org/array-move/-/array-move-4.0.0.tgz 0ms (cache hit)
+406 silly tarball no local data for @codemirror/commands@https://registry.npmjs.org/@codemirror/commands/-/commands-6.10.1.tgz. Extracting by manifest.
+407 silly tarball no local data for @codemirror/autocomplete@https://registry.npmjs.org/@codemirror/autocomplete/-/autocomplete-6.20.0.tgz. Extracting by manifest.
+408 silly tarball no local data for @carbon/layout@https://registry.npmjs.org/@carbon/layout/-/layout-11.44.0.tgz. Extracting by manifest.
+409 silly tarball no local data for @carbon/grid@https://registry.npmjs.org/@carbon/grid/-/grid-11.46.0.tgz. Extracting by manifest.
+410 silly tarball no local data for @carbon/icons@https://registry.npmjs.org/@carbon/icons/-/icons-11.71.0.tgz. Extracting by manifest.
+411 silly tarball no local data for @bpmn-io/properties-panel@https://registry.npmjs.org/@bpmn-io/properties-panel/-/properties-panel-3.35.1.tgz. Extracting by manifest.
+412 silly tarball no local data for @camunda/feel-builtins@https://registry.npmjs.org/@camunda/feel-builtins/-/feel-builtins-0.2.0.tgz. Extracting by manifest.
+413 silly tarball no local data for @bpmn-io/lezer-feel@https://registry.npmjs.org/@bpmn-io/lezer-feel/-/lezer-feel-2.0.0.tgz. Extracting by manifest.
+414 silly tarball no local data for @bpmn-io/lang-feel@https://registry.npmjs.org/@bpmn-io/lang-feel/-/lang-feel-3.0.0.tgz. Extracting by manifest.
+415 silly tarball no local data for @bpmn-io/form-js-viewer@https://registry.npmjs.org/@bpmn-io/form-js-viewer/-/form-js-viewer-1.18.0.tgz. Extracting by manifest.
+416 silly tarball no local data for @bpmn-io/form-js-editor@https://registry.npmjs.org/@bpmn-io/form-js-editor/-/form-js-editor-1.18.0.tgz. Extracting by manifest.
+417 silly tarball no local data for @bpmn-io/form-js-playground@https://registry.npmjs.org/@bpmn-io/form-js-playground/-/form-js-playground-1.18.0.tgz. Extracting by manifest.
+418 silly tarball no local data for @bpmn-io/form-js-carbon-styles@https://registry.npmjs.org/@bpmn-io/form-js-carbon-styles/-/form-js-carbon-styles-1.18.0.tgz. Extracting by manifest.
+419 silly tarball no local data for @bpmn-io/form-js@https://registry.npmjs.org/@bpmn-io/form-js/-/form-js-1.18.0.tgz. Extracting by manifest.
+420 silly tarball no local data for @bpmn-io/feel-editor@https://registry.npmjs.org/@bpmn-io/feel-editor/-/feel-editor-2.0.0.tgz. Extracting by manifest.
+421 silly tarball no local data for @bpmn-io/feel-lint@https://registry.npmjs.org/@bpmn-io/feel-lint/-/feel-lint-3.0.0.tgz. Extracting by manifest.
+422 silly tarball no local data for @bpmn-io/draggle@https://registry.npmjs.org/@bpmn-io/draggle/-/draggle-4.1.2.tgz. Extracting by manifest.
+423 silly tarball no local data for @babel/types@https://registry.npmjs.org/@babel/types/-/types-7.28.5.tgz. Extracting by manifest.
+424 silly tarball no local data for @bpmn-io/cm-theme@https://registry.npmjs.org/@bpmn-io/cm-theme/-/cm-theme-0.1.0-alpha.2.tgz. Extracting by manifest.
+425 silly tarball no local data for w3c-keyname@https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz. Extracting by manifest.
+426 silly tarball no local data for @babel/parser@https://registry.npmjs.org/@babel/parser/-/parser-7.28.5.tgz. Extracting by manifest.
+427 silly tarball no local data for @babel/helper-validator-identifier@https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.28.5.tgz. Extracting by manifest.
+428 silly tarball no local data for @babel/helper-string-parser@https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.27.1.tgz. Extracting by manifest.
+429 silly tarball no local data for vue@https://registry.npmjs.org/vue/-/vue-3.5.26.tgz. Extracting by manifest.
+430 silly tarball no local data for tiny-svg@https://registry.npmjs.org/tiny-svg/-/tiny-svg-3.1.3.tgz. Extracting by manifest.
+431 silly tarball no local data for ticky@https://registry.npmjs.org/ticky/-/ticky-1.0.1.tgz. Extracting by manifest.
+432 silly tarball no local data for @bpmn-io/diagram-js-ui@https://registry.npmjs.org/@bpmn-io/diagram-js-ui/-/diagram-js-ui-0.2.3.tgz. Extracting by manifest.
+433 silly tarball no local data for vite@https://registry.npmjs.org/vite/-/vite-5.4.21.tgz. Extracting by manifest.
+434 silly tarball no local data for saxen@https://registry.npmjs.org/saxen/-/saxen-8.1.2.tgz. Extracting by manifest.
+435 silly tarball no local data for tabbable@https://registry.npmjs.org/tabbable/-/tabbable-6.3.0.tgz. Extracting by manifest.
+436 silly tarball no local data for source-map-js@https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz. Extracting by manifest.
+437 silly tarball no local data for rollup@https://registry.npmjs.org/rollup/-/rollup-4.54.0.tgz. Extracting by manifest.
+438 silly tarball no local data for preact@https://registry.npmjs.org/preact/-/preact-10.28.1.tgz. Extracting by manifest.
+439 silly tarball no local data for picocolors@https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz. Extracting by manifest.
+440 silly tarball no local data for postcss@https://registry.npmjs.org/postcss/-/postcss-8.5.6.tgz. Extracting by manifest.
+441 silly tarball no local data for object-refs@https://registry.npmjs.org/object-refs/-/object-refs-0.3.0.tgz. Extracting by manifest.
+442 silly tarball no local data for path-intersection@https://registry.npmjs.org/path-intersection/-/path-intersection-2.2.1.tgz. Extracting by manifest.
+443 silly tarball no local data for nanoid@https://registry.npmjs.org/nanoid/-/nanoid-3.3.11.tgz. Extracting by manifest.
+444 silly tarball no local data for moddle-xml@https://registry.npmjs.org/moddle-xml/-/moddle-xml-10.1.0.tgz. Extracting by manifest.
+445 silly tarball no local data for mitt@https://registry.npmjs.org/mitt/-/mitt-3.0.1.tgz. Extracting by manifest.
+446 silly tarball no local data for moddle@https://registry.npmjs.org/moddle/-/moddle-6.2.3.tgz. Extracting by manifest.
+447 silly tarball no local data for min-dom@https://registry.npmjs.org/min-dom/-/min-dom-4.2.1.tgz. Extracting by manifest.
+448 silly tarball no local data for marked@https://registry.npmjs.org/marked/-/marked-16.4.2.tgz. Extracting by manifest.
+449 silly tarball no local data for luxon@https://registry.npmjs.org/luxon/-/luxon-3.7.2.tgz. Extracting by manifest.
+450 silly tarball no local data for magic-string@https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz. Extracting by manifest.
+451 silly tarball no local data for lodash@https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz. Extracting by manifest.
+452 silly tarball no local data for jquery@https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz. Extracting by manifest.
+453 silly tarball no local data for min-dash@https://registry.npmjs.org/min-dash/-/min-dash-4.2.3.tgz. Extracting by manifest.
+454 silly tarball no local data for lezer-feel@https://registry.npmjs.org/lezer-feel/-/lezer-feel-1.9.0.tgz. Extracting by manifest.
+455 silly tarball no local data for inherits-browser@https://registry.npmjs.org/inherits-browser/-/inherits-browser-0.1.0.tgz. Extracting by manifest.
+456 silly tarball no local data for @codemirror/lint@https://registry.npmjs.org/@codemirror/lint/-/lint-6.9.2.tgz. Extracting by manifest.
+457 silly tarball no local data for ids@https://registry.npmjs.org/ids/-/ids-1.0.5.tgz. Extracting by manifest.
+458 silly tarball no local data for htm@https://registry.npmjs.org/htm/-/htm-3.1.1.tgz. Extracting by manifest.
+459 silly tarball no local data for hammerjs@https://registry.npmjs.org/hammerjs/-/hammerjs-2.0.8.tgz. Extracting by manifest.
+460 silly tarball no local data for file-drops@https://registry.npmjs.org/file-drops/-/file-drops-0.6.2.tgz. Extracting by manifest.
+461 silly tarball no local data for flatpickr@https://registry.npmjs.org/flatpickr/-/flatpickr-4.6.13.tgz. Extracting by manifest.
+462 silly tarball no local data for focus-trap@https://registry.npmjs.org/focus-trap/-/focus-trap-7.7.0.tgz. Extracting by manifest.
+463 silly tarball no local data for feelin@https://registry.npmjs.org/feelin/-/feelin-4.6.0.tgz. Extracting by manifest.
+464 silly tarball no local data for feelers@https://registry.npmjs.org/feelers/-/feelers-1.4.0.tgz. Extracting by manifest.
+465 silly tarball no local data for estree-walker@https://registry.npmjs.org/estree-walker/-/estree-walker-2.0.2.tgz. Extracting by manifest.
+466 silly tarball no local data for entities@https://registry.npmjs.org/entities/-/entities-7.0.0.tgz. Extracting by manifest.
+467 silly tarball no local data for esbuild@https://registry.npmjs.org/esbuild/-/esbuild-0.21.5.tgz. Extracting by manifest.
+468 silly tarball no local data for dompurify@https://registry.npmjs.org/dompurify/-/dompurify-3.3.1.tgz. Extracting by manifest.
+469 silly tarball no local data for downloadjs@https://registry.npmjs.org/downloadjs/-/downloadjs-1.4.7.tgz. Extracting by manifest.
+470 silly tarball no local data for didi@https://registry.npmjs.org/didi/-/didi-10.2.2.tgz. Extracting by manifest.
+471 silly tarball no local data for diagram-js-direct-editing@https://registry.npmjs.org/diagram-js-direct-editing/-/diagram-js-direct-editing-2.1.2.tgz. Extracting by manifest.
+472 silly tarball no local data for datatables.net-vue3@https://registry.npmjs.org/datatables.net-vue3/-/datatables.net-vue3-3.0.4.tgz. Extracting by manifest.
+473 silly tarball no local data for datatables.net-dt@https://registry.npmjs.org/datatables.net-dt/-/datatables.net-dt-2.3.6.tgz. Extracting by manifest.
+474 silly tarball no local data for domify@https://registry.npmjs.org/domify/-/domify-1.4.2.tgz. Extracting by manifest.
+475 silly tarball no local data for datatables.net-responsive-dt@https://registry.npmjs.org/datatables.net-responsive-dt/-/datatables.net-responsive-dt-3.0.7.tgz. Extracting by manifest.
+476 silly tarball no local data for datatables.net@https://registry.npmjs.org/datatables.net/-/datatables.net-2.3.6.tgz. Extracting by manifest.
+477 silly tarball no local data for csstype@https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz. Extracting by manifest.
+478 silly tarball no local data for datatables.net-responsive@https://registry.npmjs.org/datatables.net-responsive/-/datatables.net-responsive-3.0.7.tgz. Extracting by manifest.
+479 silly tarball no local data for crelt@https://registry.npmjs.org/crelt/-/crelt-1.0.6.tgz. Extracting by manifest.
+480 silly tarball no local data for @codemirror/lang-json@https://registry.npmjs.org/@codemirror/lang-json/-/lang-json-6.0.2.tgz. Extracting by manifest.
+481 silly tarball no local data for codemirror@https://registry.npmjs.org/codemirror/-/codemirror-6.0.2.tgz. Extracting by manifest.
+482 silly tarball no local data for component-event@https://registry.npmjs.org/component-event/-/component-event-0.2.1.tgz. Extracting by manifest.
+483 silly tarball no local data for clsx@https://registry.npmjs.org/clsx/-/clsx-2.1.1.tgz. Extracting by manifest.
+484 silly tarball no local data for diagram-js@https://registry.npmjs.org/diagram-js/-/diagram-js-12.8.1.tgz. Extracting by manifest.
+485 silly tarball no local data for contra@https://registry.npmjs.org/contra/-/contra-1.9.4.tgz. Extracting by manifest.
+486 silly tarball no local data for bpmn-js@https://registry.npmjs.org/bpmn-js/-/bpmn-js-14.2.0.tgz. Extracting by manifest.
+487 silly tarball no local data for classnames@https://registry.npmjs.org/classnames/-/classnames-2.5.1.tgz. Extracting by manifest.
+488 silly tarball no local data for big.js@https://registry.npmjs.org/big.js/-/big.js-7.0.1.tgz. Extracting by manifest.
+489 silly tarball no local data for @bpmn-io/feel-lint@https://registry.npmjs.org/@bpmn-io/feel-lint/-/feel-lint-1.4.0.tgz. Extracting by manifest.
+490 silly tarball no local data for feelin@https://registry.npmjs.org/feelin/-/feelin-3.2.0.tgz. Extracting by manifest.
+491 silly tarball no local data for min-dom@https://registry.npmjs.org/min-dom/-/min-dom-5.1.2.tgz. Extracting by manifest.
+492 silly tarball no local data for didi@https://registry.npmjs.org/didi/-/didi-9.0.2.tgz. Extracting by manifest.
+493 silly tarball no local data for domify@https://registry.npmjs.org/domify/-/domify-2.0.0.tgz. Extracting by manifest.
+494 silly tarball no local data for bpmn-moddle@https://registry.npmjs.org/bpmn-moddle/-/bpmn-moddle-8.1.0.tgz. Extracting by manifest.
+495 silly tarball no local data for style-mod@https://registry.npmjs.org/style-mod/-/style-mod-4.1.3.tgz. Extracting by manifest.
+496 silly tarball no local data for atoa@https://registry.npmjs.org/atoa/-/atoa-1.0.0.tgz. Extracting by manifest.
+497 silly tarball no local data for array-move@https://registry.npmjs.org/array-move/-/array-move-4.0.0.tgz. Extracting by manifest.
+498 verbose audit error FetchError: request to https://registry.npmjs.org/-/npm/v1/security/advisories/bulk failed, reason: 
+498 verbose audit error     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+498 verbose audit error     at ClientRequest.emit (node:events:508:28)
+498 verbose audit error     at emitErrorEvent (node:_http_client:107:11)
+498 verbose audit error     at _destroy (node:_http_client:954:9)
+498 verbose audit error     at onSocketNT (node:_http_client:974:5)
+498 verbose audit error     at process.processTicksAndRejections (node:internal/process/task_queues:91:21) {
+498 verbose audit error   code: 'EACCES',
+498 verbose audit error   errno: 'EACCES',
+498 verbose audit error   type: 'system'
+498 verbose audit error }
+499 silly audit error undefined
+500 silly audit report null
+501 http fetch GET https://registry.npmjs.org/@vue/shared/-/shared-3.5.26.tgz attempt 1 failed with EACCES
+502 http fetch GET https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.26.tgz attempt 1 failed with EACCES
+503 http fetch GET https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.26.tgz attempt 1 failed with EACCES
+504 http fetch GET https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.26.tgz attempt 1 failed with EACCES
+505 http fetch GET https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.26.tgz attempt 1 failed with EACCES
+506 http fetch GET https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.26.tgz attempt 1 failed with EACCES
+507 http fetch GET https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.26.tgz attempt 1 failed with EACCES
+508 http fetch GET https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz attempt 1 failed with EACCES
+509 http fetch GET https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz attempt 1 failed with EACCES
+510 http fetch GET https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.26.tgz attempt 1 failed with EACCES
+511 http fetch GET https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz attempt 1 failed with EACCES
+512 http fetch GET https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz attempt 1 failed with EACCES
+513 http fetch GET https://registry.npmjs.org/@lezer/markdown/-/markdown-1.6.2.tgz attempt 1 failed with EACCES
+514 http fetch GET https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.2.tgz attempt 1 failed with EACCES
+515 http fetch GET https://registry.npmjs.org/npm attempt 2 failed with EACCES
+516 http fetch GET https://registry.npmjs.org/@vue/shared/-/shared-3.5.26.tgz attempt 2 failed with EACCES
+517 http fetch GET https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.26.tgz attempt 2 failed with EACCES
+518 http fetch GET https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.26.tgz attempt 2 failed with EACCES
+519 http fetch GET https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.26.tgz attempt 2 failed with EACCES
+520 http fetch GET https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.26.tgz attempt 2 failed with EACCES
+521 http fetch GET https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.26.tgz attempt 2 failed with EACCES
+522 http fetch GET https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.26.tgz attempt 2 failed with EACCES
+523 http fetch GET https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz attempt 2 failed with EACCES
+524 http fetch GET https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz attempt 2 failed with EACCES
+525 http fetch GET https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.26.tgz attempt 2 failed with EACCES
+526 http fetch GET https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz attempt 2 failed with EACCES
+527 http fetch GET https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz attempt 2 failed with EACCES
+528 http fetch GET https://registry.npmjs.org/@lezer/markdown/-/markdown-1.6.2.tgz attempt 2 failed with EACCES
+529 http fetch GET https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.2.tgz attempt 2 failed with EACCES
+530 http fetch GET https://registry.npmjs.org/npm attempt 3 failed with EACCES
+531 http fetch GET https://registry.npmjs.org/@vue/shared/-/shared-3.5.26.tgz attempt 3 failed with EACCES
+532 http fetch GET https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.26.tgz attempt 3 failed with EACCES
+533 http fetch GET https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.26.tgz attempt 3 failed with EACCES
+534 http fetch GET https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.26.tgz attempt 3 failed with EACCES
+535 http fetch GET https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.26.tgz attempt 3 failed with EACCES
+536 http fetch GET https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.26.tgz attempt 3 failed with EACCES
+537 http fetch GET https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.26.tgz attempt 3 failed with EACCES
+538 http fetch GET https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.26.tgz attempt 3 failed with EACCES
+539 http fetch GET https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz attempt 3 failed with EACCES
+540 http fetch GET https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.26.tgz attempt 3 failed with EACCES
+541 http fetch GET https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz attempt 3 failed with EACCES
+542 verbose reify failed optional dependency C:\Users\wilson.alves\Documents\workflow\node_modules\@types\trusted-types
+543 silly reify mark deleted [
+543 silly reify   'C:\\Users\\wilson.alves\\Documents\\workflow\\node_modules\\@types\\trusted-types'
+543 silly reify ]
+544 http fetch GET https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz attempt 3 failed with EACCES
+545 http fetch GET https://registry.npmjs.org/@lezer/markdown/-/markdown-1.6.2.tgz attempt 3 failed with EACCES
+546 http fetch GET https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.2.tgz attempt 3 failed with EACCES
+547 verbose cwd C:\Users\wilson.alves\Documents\workflow
+548 verbose os Windows_NT 10.0.26200
+549 verbose node v24.11.0
+550 verbose npm  v11.6.1
+551 error Exit handler never called!
+552 error This is an error with npm itself. Please report this error at:
+553 error   <https://github.com/npm/cli/issues>
+554 verbose exit 1
+555 verbose code 1
+556 error A complete log of this run can be found in: C:\Users\wilson.alves\Documents\workflow\.npm-cache\_logs\2026-06-16T14_05_25_714Z-debug-0.log

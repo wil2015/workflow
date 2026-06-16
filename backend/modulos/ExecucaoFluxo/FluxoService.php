@@ -11,38 +11,28 @@ class FluxoService extends BaseService
     private $repo;
     private $pathPublic;
 
-    public function __construct(FluxoRepo $repo) 
+    public function __construct(FluxoRepo $repo)
     {
         $this->repo = $repo;
         $this->pathPublic = dirname(__DIR__, 3) . '/public';
     }
 
-    public function carregarPassoAtual($idInstancia) 
+    public function carregarPassoAtual($idInstancia)
     {
         $instancia = $this->repo->getInstanciaCompleta($idInstancia);
-        if (!$instancia) return ['erro' => "Processo #$idInstancia não encontrado."];
+        if (!$instancia) return ['erro' => "Processo #$idInstancia nao encontrado."];
 
         $instancia['id_visual'] = $instancia['id'] . '/' . ($instancia['ano_do_processo'] ?? date('Y'));
-        
-        $dtCot = $instancia['data_esperada_da_cotacao'];
-        $dtRec = $instancia['data_esperada_do_recebimento'];
-        
-        $instancia['datas_editaveis'] = [
-            'cotacao_iso' => $dtCot, 
-            'recebimento_iso' => $dtRec,
-            'cotacao_fmt' => Formatador::data($dtCot),
-            'recebimento_fmt' => Formatador::data($dtRec)
-        ];
 
         $nomeArquivo = !empty($instancia['arquivo_xml']) ? $instancia['arquivo_xml'] : 'compra_direta.xml';
         $caminhoCompleto = $this->pathPublic . '/' . $nomeArquivo;
-        
-        $tituloTarefa = 'Visualização';
+
+        $tituloTarefa = 'Visualizacao';
         if (file_exists($caminhoCompleto)) {
             $xml = simplexml_load_file($caminhoCompleto);
             $xml->registerXPathNamespace('bpmn', 'http://www.omg.org/spec/BPMN/20100524/MODEL');
-            $passoAtualId = $instancia['etapa_bpmn_atual']; 
-            $nodes = $xml->xpath("//bpmn:userTask[@id='$passoAtualId']");
+            $passoAtualId = $instancia['etapa_bpmn_atual'];
+            $nodes = $xml->xpath("//*[@id='$passoAtualId']");
             if (empty($nodes)) $nodes = $xml->xpath("//bpmn:startEvent");
             if (!empty($nodes)) $tituloTarefa = (string)$nodes[0]['name'];
         }
@@ -51,33 +41,17 @@ class FluxoService extends BaseService
             'instancia' => $instancia,
             'fluxo_id' => $instancia['id_fluxo_definicao'],
             'nome_fluxo' => $instancia['nome_do_fluxo'],
-            'arquivo_xml' => $nomeArquivo, 
+            'arquivo_xml' => $nomeArquivo,
             'tarefa' => ['titulo' => $tituloTarefa, 'id_xml' => $instancia['etapa_bpmn_atual']]
         ];
     }
 
-    public function salvarDatasPrevisao($dados) 
-    {
-        $id = $dados['id_processo'] ?? null;
-        $dtCot = $dados['data_cotacao'] ?? null;
-        $dtRec = $dados['data_recebimento'] ?? null;
-
-        if (!$id) throw new Exception("ID obrigatório.");
-        $hoje = date('Y-m-d');
-        if ($dtCot && $dtCot < $hoje) throw new Exception("Cotação menor que hoje.");
-        if ($dtRec && $dtRec < $hoje) throw new Exception("Entrega menor que hoje.");
-        if ($dtCot && $dtRec && $dtRec < $dtCot) throw new Exception("Entrega menor que Cotação.");
-
-        $this->repo->atualizarDatasPrevisao($id, $dtCot, $dtRec);
-        return ['sucesso' => true, 'msg' => 'Datas atualizadas!'];
-    }
-
-    public function vincularItens($dados) 
+    public function vincularItens($dados)
     {
         $idFluxo = $dados['id_fluxo_definicao'] ?? 1;
         $idProcesso = $dados['id_processo_instancia'] ?? null;
         if ($idProcesso === 'null' || empty($idProcesso)) $idProcesso = null;
-        
+
         $selecionados = $dados['selecionados'] ?? [];
         if (empty($selecionados)) throw new Exception("Nenhum item selecionado.");
 
@@ -111,16 +85,19 @@ class FluxoService extends BaseService
         $length = (int)($params['length'] ?? 10);
         $search = $params['search']['value'] ?? '';
         $instance_id = (int)($params['instance_id'] ?? 0);
-        
+
         $colMap = [1 => 'data_geracao', 2 => 'numero_oc', 3 => 'tipo_item', 4 => 'descricao_item', 5 => 'preco_unitario', 6 => 'peso_ordenacao'];
         $campoOrdenacao = $colMap[$params['order'][0]['column'] ?? 2] ?? 'numero_oc';
         $dirSQL = ($params['order'][0]['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
 
-        $ocupados = $this->repo->buscarItensOcupados(); 
-        $meusItens = []; $bloqueados = []; $mapaDonos = [];
-        
+        $ocupados = $this->repo->buscarItensOcupados();
+        $meusItens = [];
+        $bloqueados = [];
+        $mapaDonos = [];
+
         foreach ($ocupados as $row) {
-            $n = (int)$row['num_solicitacao']; $s = (int)$row['seq_solicitacao'];
+            $n = (int)$row['num_solicitacao'];
+            $s = (int)$row['seq_solicitacao'];
             $sqlCond = "(oc.numero_oc = $n AND oc.sequencia_workflow = $s)";
             $mapaDonos["$n-$s"] = $row['id_processo_instancia'];
             if ($instance_id && $row['id_processo_instancia'] == $instance_id) $meusItens[] = $sqlCond;
@@ -130,7 +107,8 @@ class FluxoService extends BaseService
         $resultado = $this->repo->buscarOrdensCompraSeniorRaw($start, $length, $search, $campoOrdenacao, $dirSQL, $meusItens, $bloqueados);
         $data = [];
         foreach ($resultado['dados'] as $row) {
-            $numeroOc = (int)$row['numero_oc']; $sequenciaOc = (int)$row['sequencia_workflow'];
+            $numeroOc = (int)$row['numero_oc'];
+            $sequenciaOc = (int)$row['sequencia_workflow'];
             $peso = (int)$row['peso_ordenacao'];
             $status = ($peso === 2) ? 'vinculado' : (($peso === 1) ? 'bloqueado' : 'disponivel');
             $dataGeracao = $row['data_geracao'] ?? null;
@@ -141,7 +119,7 @@ class FluxoService extends BaseService
                 $timestamp = strtotime($dataGeracao);
                 $dataGeracaoIso = $timestamp ? date('Y-m-d', $timestamp) : null;
             }
-            
+
             $tipoItem = strtoupper((string)($row['tipo_item'] ?? ''));
             $tipoItemLabel = $tipoItem === 'SERVICO' ? 'Servico' : 'Produto';
             $sequenciaOriginal = (int)($row['sequencia_original'] ?? $sequenciaOc);
@@ -171,7 +149,7 @@ class FluxoService extends BaseService
         $this->repo->removerItemOrdemCompra($id, $num, $seq);
         return ['sucesso' => true];
     }
-    
+
     public function cancelarProcesso($id) {
         $this->repo->excluirProcesso($id);
         return ['sucesso' => true];
@@ -181,11 +159,11 @@ class FluxoService extends BaseService
         $fluxos = $this->repo->listarFluxosDisponiveis();
         $rawProc = $this->repo->listarTodosProcessos();
         $tarefas = [];
-        
+
         foreach($rawProc as $r) {
             $tarefas[] = [
                 'id' => $r['id'],
-                'nome_do_fluxo' => Formatador::utf8($r['nome_do_fluxo']), 
+                'nome_do_fluxo' => Formatador::utf8($r['nome_do_fluxo']),
                 'id_processo_senior' => $r['id_processo_senior'],
                 'data_formatada' => Formatador::dataHora($r['data_inicio']),
                 'status_atual' => $r['status_atual']

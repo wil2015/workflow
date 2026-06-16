@@ -9,6 +9,7 @@ import DefaultTask      from './DefaultTask.vue';
 import EmailFornecedores from './EmailFornecedores.vue';  
 import AutorizacaoCompra from './AutorizacaoCompra.vue';
 import PesquisaMercado from './PesquisaMercado.vue';
+import Parametros from './Parametros/Parametros.vue';
 
 export const taskMap = {
     // Verifica se os IDs aqui batem com o seu desenho no Camunda/BPMN:
@@ -19,6 +20,7 @@ export const taskMap = {
     'Event_AguardarOrcamentos': EmailFornecedores,
     'Activity_EnviarAutorizacao': AutorizacaoCompra,
     'Activity_pesquisa_de_mercado': PesquisaMercado, 
+    'Activity_parametros': Parametros,
 
 };
 
