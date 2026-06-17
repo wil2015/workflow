@@ -46,7 +46,7 @@ class GradeComparativaRepo extends BaseRepository
     }
     
     public function contarItensGrade($idProcesso) {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM grade_de_custos WHERE id_instancia_processo = ?");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM grade_de_custos WHERE id_processo_instancia = ?");
         $stmt->execute([$idProcesso]);
         return $stmt->fetchColumn();
     }

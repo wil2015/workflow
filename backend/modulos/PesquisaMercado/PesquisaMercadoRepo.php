@@ -26,9 +26,9 @@ class PesquisaMercadoRepo extends BaseRepository
                 
                 INNER JOIN licitacao_participantes p 
                     ON g.id_fornecedor_senior = p.id_fornecedor_senior 
-                   AND g.id_instancia_processo = p.id_processo_instancia
+                   AND g.id_processo_instancia = p.id_processo_instancia
                    
-                WHERE g.id_instancia_processo = ?
+                WHERE g.id_processo_instancia = ?
                 ORDER BY g.id_item ASC, g.valor_cotado ASC";
 
         $stmt = $this->pdo->prepare($sql);
@@ -56,7 +56,7 @@ class PesquisaMercadoRepo extends BaseRepository
 
     public function verificarSeExisteVencedor(int $idProcesso): bool
     {
-        $sql = "SELECT 1 FROM grade_de_custos WHERE id_instancia_processo = ? AND vencedor = 1 LIMIT 1";
+        $sql = "SELECT 1 FROM grade_de_custos WHERE id_processo_instancia = ? AND vencedor = 1 LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$idProcesso]);
         return (bool) $stmt->fetchColumn();
