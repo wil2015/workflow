@@ -7,14 +7,15 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         td, th { border: 1px solid #ccc; padding: 6px; }
         th { background-color: #f8f9fa; }
+        .total { text-align: right; margin-top: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
     <h2 class="titulo">Autorização de Compra</h2>
-    
+
     <p><strong>Fornecedor:</strong> {{ fornecedor_nome }} ({{ fornecedor_cnpj }})</p>
     <p><strong>Processo:</strong> {{ numero_processo }}</p>
-    
+
     <h3>Itens Autorizados</h3>
     <table>
         <thead>
@@ -30,11 +31,19 @@
             <tr>
                 <td>{{ item.descricao }}</td>
                 <td>{{ item.quantidade }}</td>
-                <td>R$ {{ item.valor }}</td>
-                <td>R$ {{ item.valor_total }}</td>
+                <td>{{ item.valor }}</td>
+                <td>{{ item.valor_total }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <p class="total">Valor total: {{ valor_total_pedido }}</p>
+
+    <h3>Condições Complementares</h3>
+    <p><strong>Prazo:</strong> informar prazo de entrega/execução.</p>
+    <p><strong>Garantia:</strong> informar garantia, quando aplicável.</p>
+    <p><strong>Regime de entrega/execução:</strong> informar se será integral, parcelado, contínuo etc.</p>
+    <p><strong>Observações:</strong> inserir demais condições específicas deste processo.</p>
 </body>
 </html>

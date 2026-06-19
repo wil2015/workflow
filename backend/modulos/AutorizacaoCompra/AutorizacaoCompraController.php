@@ -26,8 +26,30 @@ class AutorizacaoCompraController extends BaseController
         if ($idProcesso === 0) throw new Exception("ID do processo obrigatório.");
 
         switch ($acao) {
+            // Novo fluxo: monta o HTML pelo Twig e devolve para edição no Tiptap.
+            // Mantive gerar_autorizacoes como alias para não quebrar chamadas antigas,
+            // mas ele não gera mais o PDF diretamente.
+            case 'preparar_autorizacoes':
             case 'gerar_autorizacoes':
-                return $this->service->gerarDocumentosOficiais($idProcesso, $idUsuario);
+                return $this->service->prepararDocumentosParaEdicao($idProcesso, $idUsuario);
+
+            // Segundo passo: recebe o HTML editado no Tiptap e só então emite o PDF.
+            case 'emitir_autorizacao_editada':
+                $idAutorizacao = $this->getParam('id_autorizacao', 0, 'int');
+                $htmlDocumento = $this->getParam('html_documento', '', 'string');
+
+                if ($idAutorizacao === 0) throw new Exception("ID da autorização obrigatório.");
+                if (trim($htmlDocumento) === '') throw new Exception("HTML do documento obrigatório.");
+
+                return $this->atomic(fn() =>
+                    $this->service->emitirDocumentoEditado(
+                        $idProcesso,
+                        $idUsuario,
+                        $idAutorizacao,
+                        $htmlDocumento
+                    )
+                );
+
             case 'enviar_emails':
                 return $this->atomic(fn() => $this->service->enviarEmailsEConcluir($idProcesso, $idUsuario));
             case 'listar_documentos':

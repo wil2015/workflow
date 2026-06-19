@@ -7,6 +7,7 @@ use Twig\Loader\FilesystemLoader;
 use Mpdf\Mpdf;
 use Symfony\Component\Mime\Email;
 use App\Core\Documentos\Interfaces\DocumentoInterface; // Importando a interface do seu próprio projeto
+use Exception;
 
 class DocumentoEngine {
     private $mailer;
