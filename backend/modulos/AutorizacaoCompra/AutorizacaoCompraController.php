@@ -31,7 +31,8 @@ class AutorizacaoCompraController extends BaseController
             // mas ele não gera mais o PDF diretamente.
             case 'preparar_autorizacoes':
             case 'gerar_autorizacoes':
-                return $this->service->prepararDocumentosParaEdicao($idProcesso, $idUsuario);
+                $idAutorizacao = $this->getParam('id_autorizacao', 0, 'int');
+                return $this->service->prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao);
 
             // Segundo passo: recebe o HTML editado no Tiptap e só então emite o PDF.
             case 'emitir_autorizacao_editada':

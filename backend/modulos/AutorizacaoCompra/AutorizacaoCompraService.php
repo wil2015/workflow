@@ -23,12 +23,61 @@ class AutorizacaoCompraService extends BaseService
 
     public function listarDocumentosGerados($idProcesso) {
         $docs = $this->repo->listarDocumentosPorProcesso($idProcesso);
+
+        // IDs das autorizacoes que existem HOJE no snapshot do processo.
+        // Esses IDs devem ser a fonte de verdade para o botao Revisar / Emitir.
+        $autorizacoesAtuais = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+        $idsAtuais = array_map(fn($linha) => (int)$linha['id'], $autorizacoesAtuais);
+        $idsAtuaisMap = array_flip($idsAtuais);
+
+        $documentosPorAutorizacao = [];
+
         foreach ($docs as &$doc) {
             $pathLimpo = ltrim(str_replace(['/public/', 'public/'], '', $doc['caminho_arquivo'] ?? ''), '/');
             $doc['existe_fisicamente'] = file_exists('/var/www/html/' . $pathLimpo);
+
+            // Exemplo de arquivo: auth_42_20260618193416.pdf -> id_autorizacao = 42
+            $fonteNome = ($doc['nome_arquivo'] ?? '') . ' ' . ($doc['caminho_arquivo'] ?? '');
+            $idDocAutorizacao = 0;
+            if (preg_match('/auth_(\d+)/i', $fonteNome, $m)) {
+                $idDocAutorizacao = (int)$m[1];
+            }
+
+            $doc['id_autorizacao'] = $idDocAutorizacao ?: null;
+            $doc['id_autorizacao_valido'] = $idDocAutorizacao > 0 && isset($idsAtuaisMap[$idDocAutorizacao]);
+
+            // Como a consulta dos documentos vem em ordem decrescente de criacao,
+            // o primeiro documento encontrado por autorizacao tende a ser o mais recente.
+            if ($doc['id_autorizacao_valido'] && !isset($documentosPorAutorizacao[$idDocAutorizacao])) {
+                $documentosPorAutorizacao[$idDocAutorizacao] = $doc;
+            }
+        }
+        unset($doc);
+
+        $autorizacoesResumo = [];
+        foreach ($autorizacoesAtuais as $auth) {
+            $idAutorizacao = (int)$auth['id'];
+            $forn = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
+            $docAtual = $documentosPorAutorizacao[$idAutorizacao] ?? null;
+
+            $autorizacoesResumo[] = [
+                'id_autorizacao' => $idAutorizacao,
+                'id_fornecedor' => (int)$auth['id_fornecedor'],
+                'fornecedor_nome' => $forn['nomfor'] ?? ('Fornecedor ' . $auth['id_fornecedor']),
+                'fornecedor_cnpj' => $forn['cgccpf'] ?? '',
+                'valor_total_pedido' => (float)($auth['valor_total_pedido'] ?? 0),
+                'documento' => $docAtual,
+            ];
         }
 
-        return $docs;
+        return [
+            'sucesso' => true,
+            'documentos' => $docs,
+            'autorizacoes' => $autorizacoesResumo,
+            // Mantem a tela operacional mesmo quando so ha PDFs antigos.
+            // Nesse caso o front mostra os PDFs como historico e oferece preparar novamente.
+            'tem_cotacao' => !empty($autorizacoesResumo) || !empty($docs),
+        ];
     }
 
     /**
@@ -36,11 +85,32 @@ class AutorizacaoCompraService extends BaseService
      * Gera o snapshot e renderiza o Twig como HTML inicial,
      * mas NÃO chama o DocumentoEngine para criar PDF.
      */
-    public function prepararDocumentosParaEdicao($idProcesso, $idUsuario) {
+    public function prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao = 0) {
         $idProcesso = (int)$idProcesso;
-        $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
+        $idAutorizacao = (int)$idAutorizacao;
 
-        $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+        if ($idAutorizacao > 0) {
+            // IMPORTANTE:
+            // Ao revisar uma autorizacao ja listada, nao execute a procedure novamente.
+            // A procedure pode recriar o snapshot e alterar os IDs; isso faz o PDF auth_42
+            // apontar para uma autorizacao que acabou de ser apagada/recriada.
+            $auth = $this->repo->buscarAutorizacaoPorId($idProcesso, $idAutorizacao);
+            if (!$auth) {
+                $idsAtuais = array_map(
+                    fn($linha) => (int)$linha['id'],
+                    $this->repo->buscarAutorizacoesGeradas($idProcesso)
+                );
+                $detalhe = empty($idsAtuais) ? 'Nenhuma autorizacao atual encontrada.' : 'Autorizacoes atuais: ' . implode(', ', $idsAtuais) . '.';
+                throw new Exception("Autorizacao #{$idAutorizacao} nao encontrada para este processo. {$detalhe}");
+            }
+            $autorizacoes = [$auth];
+        } else {
+            // Sem uma autorizacao especifica, estamos preparando/atualizando o conjunto do processo.
+            // Neste caso a geracao do snapshot continua correta.
+            $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
+            $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+        }
+
         if (empty($autorizacoes)) throw new Exception("Nenhuma autorização gerada.");
 
         $documentos = [];

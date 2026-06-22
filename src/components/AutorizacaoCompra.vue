@@ -107,47 +107,110 @@
         </div>
       </div>
 
-      <div v-else-if="documentos.length > 0" class="docs-list">
+      <div v-else-if="autorizacoes.length > 0 || documentos.length > 0" class="docs-list">
         <div v-if="temArquivoQuebrado" class="alert-warning">
-          ⚠️ <strong>Atenção:</strong> Arquivos físicos não encontrados.
+          ⚠️ <strong>Atenção:</strong> Alguns PDFs do histórico não foram encontrados fisicamente.
         </div>
         <div v-else class="alert-success">
-          ✅ <strong>Sucesso!</strong> Documentos disponíveis.
+          ✅ <strong>Sucesso!</strong> Dados disponíveis para revisão.
         </div>
 
-        <table class="table-docs">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Arquivo</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="doc in documentos" :key="doc.id">
-              <td>{{ formatData(doc.criado_em) }}</td>
-              <td>
-                <span class="file-name">📄 {{ doc.nome_arquivo }}</span>
-              </td>
-              <td>
-                <a v-if="doc.existe_fisicamente" :href="montarLink(doc.caminho_arquivo)" target="_blank" class="btn-view">
-                  👁️ Visualizar PDF
-                </a>
-                <span v-else class="badge-error">❌ Perdido</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div v-if="podeGerar" class="regenerate-area" :class="{ 'highlight-warning': temArquivoQuebrado }">
-          <div class="regenerate-info">
-            <p>Atualizar documentos?</p>
-            <small>Será aberta a tela de edição antes de emitir o PDF.</small>
+        <section class="auth-section">
+          <div class="section-title-row">
+            <div>
+              <h3>Autorizações do processo</h3>
+              <small>Use esta lista para revisar a autorização correta. Ela vem da tabela atual de autorizações, não do nome do PDF.</small>
+            </div>
+            <button v-if="podeGerar" type="button" class="btn-secondary" :disabled="sending" @click="prepararEdicao()">
+              🔄 Preparar todas
+            </button>
           </div>
-          <button @click="prepararEdicao" class="btn-warning-action">
-            ✏️ Revisar e Emitir Novamente
-          </button>
-        </div>
+
+          <table v-if="autorizacoes.length > 0" class="table-docs">
+            <thead>
+              <tr>
+                <th>Autorização</th>
+                <th>Fornecedor</th>
+                <th>Valor</th>
+                <th>PDF atual</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="auth in autorizacoes" :key="auth.id_autorizacao">
+                <td>#{{ auth.id_autorizacao }}</td>
+                <td>
+                  <strong>{{ auth.fornecedor_nome }}</strong>
+                  <div v-if="auth.fornecedor_cnpj" class="muted-small">{{ auth.fornecedor_cnpj }}</div>
+                </td>
+                <td>{{ formatMoeda(auth.valor_total_pedido) }}</td>
+                <td>
+                  <a
+                    v-if="auth.documento && auth.documento.existe_fisicamente"
+                    :href="montarLink(auth.documento.caminho_arquivo)"
+                    target="_blank"
+                    class="btn-view"
+                  >
+                    👁️ Visualizar PDF
+                  </a>
+                  <span v-else class="badge-muted">Sem PDF emitido</span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn-edit-doc"
+                    :disabled="sending"
+                    @click="prepararEdicao(auth)"
+                  >
+                    ✏️ Revisar / Emitir
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div v-else class="regenerate-area highlight-warning">
+            <div class="regenerate-info">
+              <p>Nenhuma autorização atual encontrada no snapshot.</p>
+              <small>Há PDFs no histórico, mas os IDs deles podem não existir mais. Clique em <strong>Preparar todas</strong> para recriar/preparar as autorizações atuais do processo.</small>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="documentos.length > 0" class="history-section">
+          <h3>Histórico de PDFs emitidos</h3>
+          <table class="table-docs">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Arquivo</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="doc in documentos" :key="doc.id">
+                <td>{{ formatData(doc.criado_em) }}</td>
+                <td>
+                  <span class="file-name">📄 {{ doc.nome_arquivo }}</span>
+                </td>
+                <td>
+                  <span v-if="doc.id_autorizacao_valido" class="badge-ok">Autorização atual #{{ doc.id_autorizacao }}</span>
+                  <span v-else-if="doc.id_autorizacao" class="badge-muted">Histórico antigo #{{ doc.id_autorizacao }}</span>
+                  <span v-else class="badge-muted">Sem vínculo identificado</span>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a v-if="doc.existe_fisicamente" :href="montarLink(doc.caminho_arquivo)" target="_blank" class="btn-view">
+                      👁️ Visualizar PDF
+                    </a>
+                    <span v-else class="badge-error">❌ Perdido</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
         <div class="actions-footer">
           <button @click="enviarEConcluir" class="btn-finish" :disabled="sending || temArquivoQuebrado">
@@ -189,6 +252,7 @@ const API_CONTROLLER = '/backend/modulos/AutorizacaoCompra/AutorizacaoCompraCont
 
 const instanceId = ref(null);
 const documentos = ref([]);
+const autorizacoes = ref([]);
 const documentosEdicao = ref([]);
 const documentoAtual = ref(null);
 const indiceDocumentoAtual = ref(0);
@@ -258,10 +322,12 @@ async function carregarLista() {
 
     if (Array.isArray(json)) {
       documentos.value = json;
+      autorizacoes.value = [];
       podeGerar.value = true;
     } else {
       documentos.value = json.documentos || [];
-      podeGerar.value = json.tem_cotacao ?? true;
+      autorizacoes.value = json.autorizacoes || [];
+      podeGerar.value = json.tem_cotacao ?? (documentos.value.length > 0 || autorizacoes.value.length > 0);
     }
   } catch (e) {
     console.error(e);
@@ -271,16 +337,41 @@ async function carregarLista() {
   }
 }
 
-async function prepararEdicao() {
+function extrairIdAutorizacao(doc) {
+  if (!doc) return 0;
+
+  if (doc.id_autorizacao) {
+    return Number(doc.id_autorizacao) || 0;
+  }
+
+  if (doc.id) {
+    return Number(doc.id) || 0;
+  }
+
+  const fonte = `${doc.nome_arquivo || ''} ${doc.caminho_arquivo || ''}`;
+  const match = fonte.match(/auth_(\d+)/i);
+
+  return match ? Number(match[1]) : 0;
+}
+
+async function prepararEdicao(docLista = null) {
   if (!podeGerar.value) return;
 
+  const idAutorizacaoAlvo = extrairIdAutorizacao(docLista);
+
   loading.value = true;
-  statusMsg.value = 'Preparando documento para revisão...';
+  statusMsg.value = idAutorizacaoAlvo
+    ? `Preparando autorização #${idAutorizacaoAlvo} para revisão...`
+    : 'Preparando documento para revisão...';
 
   try {
     const form = new FormData();
     form.append('instance_id', instanceId.value);
     form.append('id_usuario', 1);
+
+    if (idAutorizacaoAlvo) {
+      form.append('id_autorizacao', idAutorizacaoAlvo);
+    }
 
     const res = await fetch(`${API_CONTROLLER}?acao=preparar_autorizacoes`, {
       method: 'POST',
@@ -295,10 +386,19 @@ async function prepararEdicao() {
       throw new Error('Nenhum documento retornado para revisão.');
     }
 
-    indiceDocumentoAtual.value = 0;
+    let indiceInicial = 0;
+    if (idAutorizacaoAlvo) {
+      const encontrado = documentosEdicao.value.findIndex(doc => Number(doc.id_autorizacao) === idAutorizacaoAlvo);
+      if (encontrado === -1) {
+        throw new Error(`Autorização #${idAutorizacaoAlvo} não foi retornada pelo backend.`);
+      }
+      indiceInicial = encontrado;
+    }
+
+    indiceDocumentoAtual.value = indiceInicial;
     modoEdicao.value = true;
     await nextTick();
-    abrirDocumentoEdicao(documentosEdicao.value[0]);
+    abrirDocumentoEdicao(documentosEdicao.value[indiceInicial]);
   } catch (e) {
     alert('Erro: ' + e.message);
   } finally {
@@ -451,6 +551,11 @@ function formatData(dt) {
   return dt ? new Date(dt).toLocaleString('pt-BR') : '-';
 }
 
+function formatMoeda(valor) {
+  const numero = Number(valor || 0);
+  return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 function voltar() {
   window.history.back();
 }
@@ -553,6 +658,29 @@ function voltar() {
   font-weight: bold;
 }
 
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-edit-doc {
+  background-color: #e67e22;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.btn-edit-doc:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .btn-finish {
   background-color: #2c3e50;
   color: white;
@@ -628,6 +756,58 @@ function voltar() {
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: bold;
+}
+
+.badge-muted {
+  display: inline-block;
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.badge-ok {
+  display: inline-block;
+  background-color: #d1e7dd;
+  color: #0f5132;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.auth-section,
+.history-section {
+  margin-top: 18px;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.section-title-row h3,
+.history-section h3 {
+  margin: 0 0 4px;
+  color: #2c3e50;
+}
+
+.muted-small {
+  color: #6c757d;
+  font-size: 0.84rem;
+  margin-top: 3px;
+}
+
+.docs-list {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 18px;
 }
 
 .editor-area {
