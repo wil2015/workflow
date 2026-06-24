@@ -14,12 +14,17 @@ class FluxoRepo extends BaseRepository
     // =========================================================================
 
     public function buscarQuantidadeOrdemCompra($numeroOc, $sequenciaOc) {
-        if (!$this->connSenior) return 1.0;
+        $row = $this->buscarDetalheOrdemCompra($numeroOc, $sequenciaOc);
+        return $row ? (float)$row['qtdsol'] : 1.0;
+    }
+
+    public function buscarDetalheOrdemCompra($numeroOc, $sequenciaOc) {
+        if (!$this->connSenior) return null;
         $sql = ListarOrdensCompraQuery::detalheSql();
         $stmt = $this->connSenior->prepare($sql);
         $stmt->execute([$numeroOc, $sequenciaOc]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ? (float)$row['qtdsol'] : 1.0;
+        return $row ?: null;
     }
 
     // --- USO DO QUERY OBJECT ---
@@ -79,11 +84,37 @@ class FluxoRepo extends BaseRepository
         return $this->pdo->lastInsertId();
     }
 
-    public function adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $qtd) {
-        $sql = "INSERT IGNORE INTO processos_itens (id_processo_instancia, num_solicitacao, seq_solicitacao, quantidade) 
-                VALUES (:id, :num, :seq, :qtd)";
+    public function adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $item) {
+        $sql = "INSERT IGNORE INTO processos_itens (
+                    id_processo_instancia,
+                    id_item,
+                    num_solicitacao,
+                    seq_solicitacao,
+                    quantidade,
+                    valor_unitario,
+                    valor_total,
+                    descricao_item
+                ) VALUES (
+                    :id,
+                    :id_item,
+                    :num,
+                    :seq,
+                    :qtd,
+                    :valor_unitario,
+                    :valor_total,
+                    :descricao_item
+                )";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':id' => $idProcesso, ':num' => $numeroOc, ':seq' => $sequenciaOc, ':qtd' => $qtd]);
+        $stmt->execute([
+            ':id' => $idProcesso,
+            ':id_item' => trim((string)($item['codigo_item'] ?? '')),
+            ':num' => $numeroOc,
+            ':seq' => $sequenciaOc,
+            ':qtd' => (float)($item['qtdsol'] ?? 1),
+            ':valor_unitario' => $item['preco_unitario'] ?? $item['presol'] ?? null,
+            ':valor_total' => $item['valor_total_item'] ?? null,
+            ':descricao_item' => $item['cplpro'] ?? null
+        ]);
         return $stmt->rowCount() > 0;
     }
 

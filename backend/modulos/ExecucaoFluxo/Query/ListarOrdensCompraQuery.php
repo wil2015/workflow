@@ -75,6 +75,8 @@ class ListarOrdensCompraQuery
                 oc.quantidade AS qtdsol,
                 oc.tipo_item AS unimed,
                 oc.preco_unitario AS presol,
+                oc.preco_unitario,
+                oc.valor_total_item,
                 oc.tipo_item,
                 oc.codigo_item,
                 oc.sequencia_original

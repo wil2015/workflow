@@ -69,8 +69,18 @@ class FluxoService extends BaseService
                 $idProcesso = $existente ?: $this->repo->criarProcessoPorOrdemCompra($numeroOc, $idFluxo);
             }
             foreach ($listaSeqs as $sequenciaOc) {
-                $qtdSenior = $this->repo->buscarQuantidadeOrdemCompra($numeroOc, $sequenciaOc);
-                if ($this->repo->adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $qtdSenior)) {
+                $itemSenior = $this->repo->buscarDetalheOrdemCompra($numeroOc, $sequenciaOc);
+                if (!$itemSenior) {
+                    $itemSenior = [
+                        'codigo_item' => '',
+                        'qtdsol' => 1,
+                        'preco_unitario' => null,
+                        'valor_total_item' => null,
+                        'cplpro' => null
+                    ];
+                }
+
+                if ($this->repo->adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $itemSenior)) {
                     $this->repo->inicializarCotacao($idProcesso, $numeroOc, $sequenciaOc);
                     $itensProcessados++;
                 }
