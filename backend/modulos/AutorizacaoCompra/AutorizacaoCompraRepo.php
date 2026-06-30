@@ -49,10 +49,18 @@ class AutorizacaoCompraRepo extends BaseRepository
     }
 
     public function buscarItensDoSnapshot($idProcesso, $idFornecedorSenior) {
-        $sql = "SELECT *
-                FROM autorizacao_item
-                WHERE id_processo_instancia = ?
-                  AND id_fornecedor_senior = ?";
+        $sql = "SELECT
+                    ai.*,
+                    (
+                        SELECT pi.descricao_item
+                        FROM processos_itens pi
+                        WHERE pi.id_processo_instancia = ai.id_processo_instancia
+                          AND pi.id_item = ai.id_item
+                        LIMIT 1
+                    ) AS descricao_item
+                FROM autorizacao_item ai
+                WHERE ai.id_processo_instancia = ?
+                  AND ai.id_fornecedor_senior = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([(int)$idProcesso, (int)$idFornecedorSenior]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

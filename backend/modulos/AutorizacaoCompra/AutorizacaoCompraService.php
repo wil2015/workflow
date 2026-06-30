@@ -235,7 +235,7 @@ class AutorizacaoCompraService extends BaseService
 
         foreach ($itens as $item) {
             $dto->addItem(
-                $item['descricao_item_snapshot'],
+                $item['descricao_item'] ?? '',
                 $item['quantidade'],
                 $item['valor_cotado'] ?? $item['valor_unitario_congelado'] ?? 0,
                 $item['valor_total'] ?? $item['valor_total_item'] ?? 0

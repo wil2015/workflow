@@ -22,7 +22,7 @@ class PesquisaMercadoRepo extends BaseRepository
                 FROM grade_de_custos g
                 
                 INNER JOIN processos_itens i 
-                    ON g.id_item = i.id 
+                    ON g.id_item = i.id_item 
                 
                 INNER JOIN licitacao_participantes p 
                     ON g.id_fornecedor_senior = p.id_fornecedor_senior 
