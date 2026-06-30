@@ -28,7 +28,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql xml zip
 
 # Instala versões modernas do sqlsrv e pdo_sqlsrv
-RUN pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
+RUN pecl channel-update pecl.php.net \
+    && pecl install sqlsrv \
+    && pecl install pdo_sqlsrv \
+    && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # --- 4. XDEBUG 3 ---
 RUN pecl install xdebug && docker-php-ext-enable xdebug

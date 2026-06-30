@@ -152,6 +152,7 @@ async function salvarTudoManual() {
     const payload = {
         acao: 'salvar_lote',
         id_processo: instanceId.value,
+        id_item: itemAtual.value.id_item,
         num_solicitacao: itemAtual.value.num,
         seq_solicitacao: itemAtual.value.seq,
         cotacoes: listaParaSalvar

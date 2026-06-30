@@ -24,6 +24,7 @@ class CotacaoService extends BaseService
         foreach ($vinculos as $v) {
             $detalhe = $this->repo->buscarDetalheSenior($v['num_solicitacao'], $v['seq_solicitacao']);
             $lista[] = [
+                'id_item' => $v['id_item'],
                 'num' => $v['num_solicitacao'],
                 'seq' => $v['seq_solicitacao'],
                 'desc' => $detalhe ? Formatador::utf8($detalhe['cplpro']) : "Item não encontrado",
@@ -48,16 +49,17 @@ class CotacaoService extends BaseService
     public function salvarLote($dados)
     {
         $idProc = $dados['id_processo'] ?? null;
+        $idItem = $dados['id_item'] ?? null;
         $numSol = $dados['num_solicitacao'] ?? null;
         $seqSol = $dados['seq_solicitacao'] ?? null;
-        if (!$idProc || !$numSol || !$seqSol) throw new Exception("Dados incompletos.");
+        if (!$idProc || !$idItem || !$numSol || !$seqSol) throw new Exception("Dados incompletos.");
 
         $count = 0;
         foreach (($dados['cotacoes'] ?? []) as $itemRaw) {
             $dto = new CotacaoItemDTO($itemRaw); // DTO limpa e valida
             if (!$dto->isValido()) continue;
 
-            $this->repo->salvarValorUnitario($idProc, $numSol, $seqSol, $dto->idFornecedor, $dto->valorUnitario);
+            $this->repo->salvarValorUnitario($idProc, $idItem, $numSol, $seqSol, $dto->idFornecedor, $dto->valorUnitario);
             $count++;
         }
         return ['sucesso' => true, 'msg' => "Salvo com sucesso!"];

@@ -45,8 +45,8 @@ class FornecedoresRepo extends BaseRepository
     }
 
     public function gerarMatrizCotas($idProcesso, $codFornecedor) {
-        $sql = "INSERT IGNORE INTO licitacao_itens_ofertados (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
-                SELECT id_processo_instancia, num_solicitacao, seq_solicitacao, :cod_forn, NULL 
+        $sql = "INSERT IGNORE INTO licitacao_itens_ofertados (id_processo_instancia, id_item, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) 
+                SELECT id_processo_instancia, id_item, num_solicitacao, seq_solicitacao, :cod_forn, NULL 
                 FROM processos_itens WHERE id_processo_instancia = :id_proc";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':cod_forn' => $codFornecedor, ':id_proc' => $idProcesso]);

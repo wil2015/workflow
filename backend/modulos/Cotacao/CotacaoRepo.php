@@ -8,7 +8,7 @@ use PDO;
 class CotacaoRepo extends BaseRepository
 {
     public function buscarItensDoProcesso($idProcesso) {
-        $stmt = $this->pdo->prepare("SELECT num_solicitacao, seq_solicitacao FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
+        $stmt = $this->pdo->prepare("SELECT id_item, num_solicitacao, seq_solicitacao FROM processos_itens WHERE id_processo_instancia = ? ORDER BY num_solicitacao, seq_solicitacao");
         $stmt->execute([$idProcesso]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -31,9 +31,10 @@ class CotacaoRepo extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function salvarValorUnitario($idProcesso, $num, $seq, $codForn, $valorFloat) {
-        $sql = "INSERT INTO licitacao_itens_ofertados (id_processo_instancia, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) VALUES (:id, :num, :seq, :cod, :val) ON DUPLICATE KEY UPDATE valor_unitario = :val";
+    public function salvarValorUnitario($idProcesso, $idItem, $num, $seq, $codForn, $valorFloat) {
+      
+        $sql = "INSERT INTO licitacao_itens_ofertados (id_processo_instancia, id_item, num_solicitacao, seq_solicitacao, id_fornecedor_senior, valor_unitario) VALUES (:id, :id_item, :num, :seq, :cod, :val) ON DUPLICATE KEY UPDATE valor_unitario = :val";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':id' => $idProcesso, ':num' => $num, ':seq' => $seq, ':cod' => $codForn, ':val' => $valorFloat]);
+        $stmt->execute([':id' => $idProcesso, ':id_item' => $idItem, ':num' => $num, ':seq' => $seq, ':cod' => $codForn, ':val' => $valorFloat]);
     }
 }
