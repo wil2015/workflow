@@ -48,21 +48,48 @@ class AutorizacaoCompraRepo extends BaseRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function buscarItensDoSnapshot($idAutorizacao) {
-        $sql = "SELECT * FROM autorizacao_item WHERE id_autorizacao = ?";
+    public function buscarItensDoSnapshot($idProcesso, $idFornecedorSenior) {
+        $sql = "SELECT *
+                FROM autorizacao_item
+                WHERE id_processo_instancia = ?
+                  AND id_fornecedor_senior = ?";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$idAutorizacao]);
+        $stmt->execute([(int)$idProcesso, (int)$idFornecedorSenior]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // --- 3. DADOS EXTERNOS (Senior / Legado) ---
     public function buscarDadosFornecedorSenior($idFornecedor) {
-        // Aqui entraria a conexão com SQL Server se necessário
-        return [
-            'nomfor' => "Fornecedor Teste $idFornecedor", 
-            'cgccpf' => '00.000.000/0001-00', 
-            'intnet' => 'fornecedor@exemplo.com'
-        ];
+        $idFornecedor = (int)$idFornecedor;
+        if ($idFornecedor <= 0) {
+            return [];
+        }
+
+        $this->checkSenior();
+
+        $sql = "SELECT
+                    codfor AS codfor,
+                    nomfor AS nomfor,
+                    cgccpf AS cgccpf,
+                    endfor AS endfor,
+                    nenfor AS nenfor,
+                    cplend AS cplend,
+                    baifor AS baifor,
+                    cepfor AS cepfor,
+                    cidfor AS cidfor,
+                    sigufs AS sigufs,
+                    fonfor AS fonfor,
+                    fonfo2 AS fonfo2,
+                    fonfo3 AS fonfo3,
+                    intnet AS intnet
+                FROM Sapiens.sapiens.e095for
+                WHERE codfor = ?";
+
+        $stmt = $this->connSenior->prepare($sql);
+        $stmt->execute([$idFornecedor]);
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $dados ?: [];
     }
 
     // --- 4. MANIPULAÇÃO DE ARQUIVOS FÍSICOS ---

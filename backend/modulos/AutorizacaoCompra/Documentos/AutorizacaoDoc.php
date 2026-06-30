@@ -26,6 +26,17 @@ class AutorizacaoDoc implements DocumentoInterface {
             'numero_processo' => $this->dto->numeroProcesso,
             'fornecedor_nome' => $this->dto->fornecedorNome,
             'fornecedor_cnpj' => $this->dto->fornecedorCnpj,
+            'logradouro' => $this->dto->logradouro,
+            'numero' => $this->dto->numero,
+            'complemento' => $this->dto->complemento,
+            'bairro' => $this->dto->bairro,
+            'cep' => $this->dto->cep,
+            'cidade' => $this->dto->cidade,
+            'estado' => $this->dto->estado,
+            'telefone1' => $this->dto->telefone1,
+            'telefone2' => $this->dto->telefone2,
+            'telefone3' => $this->dto->telefone3,
+            'email' => $this->dto->email,
             'itens' => $this->dto->itens,
             'valor_total_pedido' => Formatador::moeda($this->dto->valorTotalPedido)
         ];

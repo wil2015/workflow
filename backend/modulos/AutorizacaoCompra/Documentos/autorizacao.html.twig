@@ -8,6 +8,7 @@
         td, th { border: 1px solid #ccc; padding: 6px; }
         th { background-color: #f8f9fa; }
         .total { text-align: right; margin-top: 12px; font-weight: bold; }
+        .dados-fornecedor th { width: 22%; text-align: left; }
     </style>
 </head>
 <body>
@@ -15,6 +16,42 @@
 
     <p><strong>Fornecedor:</strong> {{ fornecedor_nome }} ({{ fornecedor_cnpj }})</p>
     <p><strong>Processo:</strong> {{ numero_processo }}</p>
+
+    <h3>Dados do Fornecedor</h3>
+    <table class="dados-fornecedor">
+        <tbody>
+            <tr>
+                <th>Endereco</th>
+                <td>{{ logradouro }}</td>
+                <th>Numero</th>
+                <td>{{ numero }}</td>
+            </tr>
+            <tr>
+                <th>Complemento</th>
+                <td>{{ complemento }}</td>
+                <th>Bairro</th>
+                <td>{{ bairro }}</td>
+            </tr>
+            <tr>
+                <th>CEP</th>
+                <td>{{ cep }}</td>
+                <th>Cidade/UF</th>
+                <td>{{ cidade }}{% if cidade and estado %}/{% endif %}{{ estado }}</td>
+            </tr>
+            <tr>
+                <th>Telefone 1</th>
+                <td>{{ telefone1 }}</td>
+                <th>Telefone 2</th>
+                <td>{{ telefone2 }}</td>
+            </tr>
+            <tr>
+                <th>Telefone 3</th>
+                <td>{{ telefone3 }}</td>
+                <th>E-mail</th>
+                <td>{{ email }}</td>
+            </tr>
+        </tbody>
+    </table>
 
     <h3>Itens Autorizados</h3>
     <table>

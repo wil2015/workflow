@@ -57,13 +57,15 @@ class AutorizacaoCompraService extends BaseService
         $autorizacoesResumo = [];
         foreach ($autorizacoesAtuais as $auth) {
             $idAutorizacao = (int)$auth['id'];
-            $forn = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
+            $idFornecedorSenior = $this->obterIdFornecedorSenior($auth);
+            $forn = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
             $docAtual = $documentosPorAutorizacao[$idAutorizacao] ?? null;
 
             $autorizacoesResumo[] = [
                 'id_autorizacao' => $idAutorizacao,
-                'id_fornecedor' => (int)$auth['id_fornecedor'],
-                'fornecedor_nome' => $forn['nomfor'] ?? ('Fornecedor ' . $auth['id_fornecedor']),
+                'id_fornecedor' => $idFornecedorSenior,
+                'id_fornecedor_senior' => $idFornecedorSenior,
+                'fornecedor_nome' => $forn['nomfor'] ?? ('Fornecedor ' . $idFornecedorSenior),
                 'fornecedor_cnpj' => $forn['cgccpf'] ?? '',
                 'valor_total_pedido' => (float)($auth['valor_total_pedido'] ?? 0),
                 'documento' => $docAtual,
@@ -106,9 +108,11 @@ class AutorizacaoCompraService extends BaseService
             $autorizacoes = [$auth];
         } else {
             // Sem uma autorizacao especifica, estamos preparando/atualizando o conjunto do processo.
-            // Neste caso a geracao do snapshot continua correta.
-            $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
             $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+            if (empty($autorizacoes)) {
+                $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
+                $autorizacoes = $this->repo->buscarAutorizacoesGeradas($idProcesso);
+            }
         }
 
         if (empty($autorizacoes)) throw new Exception("Nenhuma autorização gerada.");
@@ -216,27 +220,33 @@ class AutorizacaoCompraService extends BaseService
     }
 
     private function montarDtoAutorizacao($idProcesso, array $auth) {
-        $itens = $this->repo->buscarItensDoSnapshot($auth['id']);
-        $forn = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
+        $idFornecedorSenior = $this->obterIdFornecedorSenior($auth);
+        $itens = $this->repo->buscarItensDoSnapshot($idProcesso, $idFornecedorSenior);
+        $forn = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
 
         $dto = new AutorizacaoDTO(
             (int)$auth['id'],
             "$idProcesso/" . date('Y'),
             $forn['nomfor'] ?? '',
             $forn['cgccpf'] ?? '',
-            (float)$auth['valor_total_pedido']
+            (float)$auth['valor_total_pedido'],
+            $forn
         );
 
         foreach ($itens as $item) {
             $dto->addItem(
                 $item['descricao_item_snapshot'],
                 $item['quantidade'],
-                $item['valor_unitario_congelado'],
-                $item['valor_total_item']
+                $item['valor_cotado'] ?? $item['valor_unitario_congelado'] ?? 0,
+                $item['valor_total'] ?? $item['valor_total_item'] ?? 0
             );
         }
 
         return $dto;
+    }
+
+    private function obterIdFornecedorSenior(array $auth): int {
+        return (int)($auth['id_fornecedor_senior'] ?? $auth['id_fornecedor'] ?? 0);
     }
 
     private function renderizarTwig(AutorizacaoDoc $doc) {
@@ -279,9 +289,11 @@ class AutorizacaoCompraService extends BaseService
         $logs = []; $enviados = 0;
 
         foreach ($autorizacoes as $auth) {
-            $dados = $this->repo->buscarDadosFornecedorSenior($auth['id_fornecedor']);
+            $idFornecedorSenior = $this->obterIdFornecedorSenior($auth);
+            $dados = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
             if (empty($dados['intnet'])) {
-                $logs[] = "Fornecedor {$dados['nomfor']} sem email.";
+                $nomeFornecedor = $dados['nomfor'] ?? ('Fornecedor ' . $idFornecedorSenior);
+                $logs[] = "Fornecedor {$nomeFornecedor} sem email.";
                 continue;
             }
 
