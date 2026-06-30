@@ -54,7 +54,7 @@ class AutorizacaoCompraController extends BaseController
             case 'enviar_emails':
                 return $this->atomic(fn() => $this->service->enviarEmailsEConcluir($idProcesso, $idUsuario));
             case 'listar_documentos':
-                return $this->service->listarDocumentosGerados($idProcesso);
+                return $this->service->listarDocumentosGerados($idProcesso, $idUsuario);
             default:
                 throw new Exception("Ação desconhecida: '$acao'");
         }

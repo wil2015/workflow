@@ -21,7 +21,12 @@ class AutorizacaoCompraService extends BaseService
         $this->repo = $repo;
     }
 
-    public function listarDocumentosGerados($idProcesso) {
+    public function listarDocumentosGerados($idProcesso, $idUsuario = 1) {
+        $idProcesso = (int)$idProcesso;
+        $idUsuario = (int)$idUsuario;
+
+        $this->repo->executarSnapshotDados($idProcesso, $idUsuario);
+
         $docs = $this->repo->listarDocumentosPorProcesso($idProcesso);
 
         // IDs das autorizacoes que existem HOJE no snapshot do processo.
