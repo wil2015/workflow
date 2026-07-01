@@ -1,60 +1,255 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; font-size: 12px; }
-        .titulo { color: #004085; border-bottom: 2px solid #004085; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td, th { border: 1px solid #ccc; padding: 6px; }
-        th { background-color: #f8f9fa; }
-        .total { text-align: right; margin-top: 12px; font-weight: bold; }
-        .dados-fornecedor th { width: 22%; text-align: left; }
+        @page {
+            margin: 22mm 24mm 20mm 24mm;
+            footer: html_footer;
+        }
+
+        body {
+            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .cabecalho {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .logo-fundunesp {
+            margin-bottom: 24px;
+            width: 160px;
+        }
+
+        .titulo {
+            color: #000080;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: .3px;
+            margin: 0 0 6px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .subtitulo {
+            font-size: 15px;
+            font-style: italic;
+            margin: 0;
+            text-align: center;
+        }
+
+        .data {
+            font-size: 15px;
+            margin: 28px 0 8px;
+            text-align: right;
+        }
+
+        .destinatario {
+            margin-top: 8px;
+        }
+
+        .destinatario p {
+            margin: 0 0 8px;
+        }
+
+        .fornecedor {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .linha-processo {
+            margin: 28px 0 8px;
+        }
+
+        .linha-processo table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .linha-processo td {
+            border: 0;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .rotulo {
+            text-decoration: underline;
+        }
+
+        .texto-introdutorio {
+            margin: 26px 0 24px;
+        }
+
+        .secao {
+            font-size: 14px;
+            font-weight: normal;
+            margin: 0 0 16px;
+            text-decoration: underline;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #fff;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .itens-autorizados th:nth-child(2),
+        .itens-autorizados td:nth-child(2),
+        .itens-autorizados th:nth-child(3),
+        .itens-autorizados td:nth-child(3),
+        .itens-autorizados th:nth-child(4),
+        .itens-autorizados td:nth-child(4) {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-top: 12px;
+            text-align: right;
+        }
+
+        .condicoes {
+            margin-top: 24px;
+        }
+
+        .condicoes p {
+            margin: 4px 0 10px;
+        }
+
+        .condicoes ul {
+            margin: 0 0 14px 18px;
+            padding: 0;
+        }
+
+        .condicoes li {
+            margin-bottom: 5px;
+        }
+
+        .faturamento {
+            margin: 20px auto 0;
+            width: 82%;
+        }
+
+        .faturamento table {
+            border-collapse: collapse;
+            margin: 8px auto 0;
+            width: 100%;
+        }
+
+        .faturamento th {
+            background: #d9d9d9;
+            border: 1px solid #000;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .faturamento td {
+            border: 1px solid #000;
+            font-weight: bold;
+            padding: 8px;
+        }
+
+        .faturamento td p {
+            margin: 0 0 6px;
+        }
+
+        .assinatura {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .assinatura p {
+            text-align: center;
+        }
+
+        .assinatura-nome,
+        .assinatura-unidade {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .aceite {
+            margin-top: 34px;
+        }
+
+        .aceite-destaque {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .rodape {
+            color: #666;
+            font-size: 10px;
+            line-height: 1.35;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h2 class="titulo">Autorização de Compra</h2>
+    <htmlpagefooter name="footer">
+        <div class="rodape">
+            <strong>Certificada ISO 9001:2015</strong><br>
+            Rua Libero Badaró, 377 - 23º Andar - Conj. 2310 - Centro - São Paulo - SP - CEP 01009-906<br>
+            www.fundunesp.org.br - compras@fundunesp.org.br - Telefone: (11) 3474-5300
+        </div>
+    </htmlpagefooter>
 
-    <p><strong>Fornecedor:</strong> {{ fornecedor_nome }} ({{ fornecedor_cnpj }})</p>
-    <p><strong>Processo:</strong> {{ numero_processo }}</p>
+    <div class="cabecalho">
+        <img class="logo-fundunesp" alt="Fundunesp" src="public/logo.png">
+        <h1 class="titulo" style="color: #000080; font-size: 18px; font-weight: bold; letter-spacing: .3px; margin: 0 0 6px; text-align: center; text-transform: uppercase;">Autorização de Compra Nº {{ numero_autorizacao|default(id_autorizacao|default('')) }}</h1>
+        <p class="subtitulo" style="font-size: 15px; font-style: italic; margin: 0; text-align: center;">(Regulamento de Compras da Fundunesp)</p>
+    </div>
 
-    <h3>Dados do Fornecedor</h3>
-    <table class="dados-fornecedor">
-        <tbody>
-            <tr>
-                <th>Endereco</th>
-                <td>{{ logradouro }}</td>
-                <th>Numero</th>
-                <td>{{ numero }}</td>
-            </tr>
-            <tr>
-                <th>Complemento</th>
-                <td>{{ complemento }}</td>
-                <th>Bairro</th>
-                <td>{{ bairro }}</td>
-            </tr>
-            <tr>
-                <th>CEP</th>
-                <td>{{ cep }}</td>
-                <th>Cidade/UF</th>
-                <td>{{ cidade }}{% if cidade and estado %}/{% endif %}{{ estado }}</td>
-            </tr>
-            <tr>
-                <th>Telefone 1</th>
-                <td>{{ telefone1 }}</td>
-                <th>Telefone 2</th>
-                <td>{{ telefone2 }}</td>
-            </tr>
-            <tr>
-                <th>Telefone 3</th>
-                <td>{{ telefone3 }}</td>
-                <th>E-mail</th>
-                <td>{{ email }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <p class="data" style="font-size: 15px; margin: 28px 0 8px; text-align: right;">{{ data_emissao_extenso }}</p>
 
-    <h3>Itens Autorizados</h3>
-    <table>
+    <div class="destinatario">
+        <p>À</p>
+        <p class="fornecedor">{{ fornecedor_nome }}</p>
+        <p>Endereço: {{ logradouro }}{% if numero %}, Nº {{ numero }}{% endif %}{% if complemento %}, {{ complemento }}{% endif %}{% if bairro %} - {{ bairro }}{% endif %}{% if cidade %} - {{ cidade }}{% endif %}{% if estado %} - {{ estado }}{% endif %}{% if cep %} - CEP: {{ cep }}{% endif %}</p>
+        <p>Telefone: {{ telefone1 }}{% if telefone2 %} / {{ telefone2 }}{% endif %}{% if telefone3 %} / {{ telefone3 }}{% endif %}</p>
+        {% if email %}<p>E-mail: {{ email }}</p>{% endif %}
+        {% if fornecedor_cnpj %}<p>CNPJ/CPF: {{ fornecedor_cnpj }}</p>{% endif %}
+    </div>
+
+    <div class="linha-processo">
+        <table>
+            <tr>
+                <td><span class="rotulo">Processo de Compras:</span> <strong>Nº {{ numero_processo }}</strong></td>
+                <td style="width: 34%;"><span class="rotulo">Modalidade:</span> <strong>COMPRA DIRETA.</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <p><span class="rotulo">Fundamento Legal:</span> (Inciso I, Artigo 5º do Regul. de Compras da FUNDUNESP).</p>
+
+    <p class="texto-introdutorio">
+        Conforme sua proposta, referente ao processo acima, vimos autorizar a execução dos serviços,
+        conforme segue:
+    </p>
+
+    <h2 class="secao">1 - Do objeto e sua caracterização:</h2>
+
+    <table class="itens-autorizados">
         <thead>
             <tr>
                 <th>Descrição</th>
@@ -77,10 +272,85 @@
 
     <p class="total">Valor total: {{ valor_total_pedido }}</p>
 
-    <h3>Condições Complementares</h3>
-    <p><strong>Prazo:</strong> informar prazo de entrega/execução.</p>
-    <p><strong>Garantia:</strong> informar garantia, quando aplicável.</p>
-    <p><strong>Regime de entrega/execução:</strong> informar se será integral, parcelado, contínuo etc.</p>
-    <p><strong>Observações:</strong> inserir demais condições específicas deste processo.</p>
+    <div class="condicoes">
+        <h2 class="secao">2 - Do regime de execução e forma de fornecimento:</h2>
+        <ul>
+            <li>Execução indireta, pronta entrega e de forma integral.</li>
+        </ul>
+
+        <h2 class="secao">3 - Dos prazos de:</h2>
+        <ul>
+            <li><strong>Execução:</strong> nos dias e horários agendados pela Coordenação do Evento.</li>
+            <li><strong>Recebimento provisório:</strong> em até 24 (vinte e quatro) horas da entrega.</li>
+            <li><strong>Recebimento definitivo:</strong> em até 24 (vinte e quatro) horas do recebimento provisório.</li>
+        </ul>
+
+        <h2 class="secao">4 - Do preço e condições:</h2>
+        <ul>
+            <li><strong>Ajustado total:</strong> {{ valor_total_pedido }}.</li>
+            <li><strong>Pagamento:</strong> em até 15 (quinze) dias após a execução dos serviços, acompanhado da respectiva nota fiscal atestada.</li>
+        </ul>
+
+        <h2 class="secao">5 - Da prestação de garantia:</h2>
+        <ul>
+            <li>Para o bem: garantia de bons serviços prestados e do material utilizado.</li>
+        </ul>
+
+        <h2 class="secao">6 - Da despesa:</h2>
+        <ul>
+            <li>As despesas decorrentes da execução da presente onerarão os recursos financeiros do projeto informado no processo de compras.</li>
+        </ul>
+
+        <h2 class="secao">7 - Do procedimento:</h2>
+        <ul>
+            <li>O procedimento subordina-se ao Regulamento de Compras da FUNDUNESP, que estabelece os direitos e as responsabilidades das partes, as penalidades cabíveis e os valores das multas, esta última regulamentada pela Portaria Fundunesp nº 04/19, de 19/06/2019.</li>
+        </ul>
+
+        <h2 class="secao">8 - Dos encargos:</h2>
+        <ul>
+            <li>Os encargos trabalhistas, previdenciários, fiscais e comerciais resultantes da execução da presente são de responsabilidade do fornecedor contratado.</li>
+        </ul>
+
+        <h2 class="secao">9 - Do foro:</h2>
+        <ul>
+            <li>É competente o foro da cidade de São Paulo - Capital - para dirimir qualquer questão decorrente do pacto.</li>
+        </ul>
+
+        <div class="faturamento">
+            <p>O faturamento dos serviços deverá observar os dados seguintes:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>DADOS PARA FATURAMENTO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <p>FUNDAÇÃO PARA O DESENVOLVIMENTO DA UNESP - FUNDUNESP.</p>
+                            <p>Rua Líbero Badaró, 377, 23º Andar, conjunto 2310, Centro Histórico.</p>
+                            <p>São Paulo - SP - CEP: 01009-906.</p>
+                            <p>Telefone: (11) 3474-5309.</p>
+                            <p>C.N.P.J.: 57.394.652/0001-75 - Inscrição Estadual: 112.308.414.114.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="assinatura" style="margin-top: 28px; text-align: center;">
+            <p style="text-align: center;">Sem mais para o momento, reiteramos os protestos de estima.</p>
+            <p style="text-align: center;">Atenciosamente,</p>
+            <p class="assinatura-nome" style="font-weight: bold; text-align: center;">Clodoaldo Soares Ferreira</p>
+            <p class="assinatura-unidade" style="font-weight: bold; text-align: center;">Unidade de Compras e Importação</p>
+        </div>
+
+        <div class="aceite">
+            <p><span class="aceite-destaque">IMPORTANTE:</span> Favor assinar a presente, <span class="aceite-destaque">OBRIGATORIAMENTE</span>, sob pena de não o fazendo, sujeitar-se às sanções legais.</p>
+            <p>Declaro estar de acordo com o conteúdo desta autorização de Nº {{ numero_autorizacao|default(id_autorizacao|default('')) }}.</p>
+            <p>____/_____/______._______________________</p>
+            <p>Carimbo e assinatura do representante legal.</p>
+        </div>
+    </div>
 </body>
 </html>

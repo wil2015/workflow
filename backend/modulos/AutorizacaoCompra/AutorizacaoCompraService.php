@@ -286,7 +286,10 @@ class AutorizacaoCompraService extends BaseService
 
     private function extrairConteudoBody($html) {
         if (preg_match('/<body[^>]*>(.*?)<\/body>/is', $html, $matches)) {
-            return trim($matches[1]);
+            $body = $matches[1];
+            $body = preg_replace('/<htmlpagefooter\b[^>]*>.*?<\/htmlpagefooter>/is', '', $body);
+
+            return trim($body);
         }
 
         return trim($html);

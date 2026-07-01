@@ -40,7 +40,7 @@ class AutorizacaoHtmlEditadoDoc implements DocumentoInterface
 
     public function getNomeArquivoBase()
     {
-        // Mantém o padrão auth_{id} para o envio de e-mail continuar encontrando o arquivo.
+        // Mantem o padrao auth_{id} para o envio de e-mail continuar encontrando o arquivo.
         return 'auth_' . $this->normalizarIdArquivo($this->idAutorizacao);
     }
 

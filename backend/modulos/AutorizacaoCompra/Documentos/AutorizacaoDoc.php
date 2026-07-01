@@ -21,9 +21,11 @@ class AutorizacaoDoc implements DocumentoInterface {
     }
 
     public function getDados() {
-        // Converte DTO para array simples pro Twig
         return [
+            'id_autorizacao' => $this->dto->idAutorizacao,
+            'numero_autorizacao' => $this->numeroAutorizacao(),
             'numero_processo' => $this->dto->numeroProcesso,
+            'data_emissao_extenso' => $this->dataEmissaoExtenso(),
             'fornecedor_nome' => $this->dto->fornecedorNome,
             'fornecedor_cnpj' => $this->dto->fornecedorCnpj,
             'logradouro' => $this->dto->logradouro,
@@ -44,6 +46,39 @@ class AutorizacaoDoc implements DocumentoInterface {
 
     public function getNomePastaStorage() { return 'autorizacao_compra'; }
     public function getNomeArquivoBase() { return 'auth_' . $this->normalizarIdArquivo($this->dto->idAutorizacao); }
+
+    private function numeroAutorizacao(): string {
+        $id = trim($this->dto->idAutorizacao);
+
+        if (preg_match('/\/\d{4}$/', $id)) {
+            return $id;
+        }
+
+        return $id . '/' . date('Y');
+    }
+
+    private function dataEmissaoExtenso(): string {
+        $meses = [
+            1 => 'janeiro',
+            2 => 'fevereiro',
+            3 => 'março',
+            4 => 'abril',
+            5 => 'maio',
+            6 => 'junho',
+            7 => 'julho',
+            8 => 'agosto',
+            9 => 'setembro',
+            10 => 'outubro',
+            11 => 'novembro',
+            12 => 'dezembro',
+        ];
+
+        $dia = date('d');
+        $mes = $meses[(int)date('n')];
+        $ano = date('Y');
+
+        return "São Paulo, {$dia} de {$mes} de {$ano}";
+    }
 
     private function normalizarIdArquivo(string $idAutorizacao): string {
         return trim(preg_replace('/[^A-Za-z0-9]+/', '_', $idAutorizacao), '_');

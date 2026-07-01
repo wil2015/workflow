@@ -1,42 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <style>
-        body {
-            font-family: sans-serif;
-            font-size: 12px;
-            line-height: 1.45;
+        @page {
+            margin: 22mm 24mm 20mm 24mm;
+            footer: html_footer;
         }
 
-        h2:first-of-type,
-        .titulo {
-            color: #004085;
-            border-bottom: 2px solid #004085;
-            margin-bottom: 20px;
+        body {
+            color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .cabecalho {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .logo-fundunesp {
+            margin-bottom: 24px;
+            width: 160px;
+        }
+
+        .titulo,
+        h1.titulo,
+        h2:first-of-type {
+            color: #000080;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: .3px;
+            margin: 0 0 6px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .subtitulo {
+            font-size: 15px;
+            font-style: italic;
+            margin: 0;
+            text-align: center;
+        }
+
+        .data {
+            font-size: 15px;
+            margin: 28px 0 8px;
+            text-align: right;
+        }
+
+        .destinatario {
+            margin-top: 8px;
+        }
+
+        .destinatario p {
+            margin: 0 0 8px;
+        }
+
+        .fornecedor {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .linha-processo {
+            margin: 28px 0 8px;
+        }
+
+        .linha-processo table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .linha-processo td {
+            border: 0;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .rotulo {
+            text-decoration: underline;
+        }
+
+        .texto-introdutorio {
+            margin: 26px 0 24px;
+        }
+
+        .secao {
+            font-size: 14px;
+            font-weight: normal;
+            margin: 0 0 16px;
+            text-decoration: underline;
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            width: 100%;
         }
 
-        td, th {
-            border: 1px solid #ccc;
-            padding: 6px;
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            vertical-align: top;
         }
 
         th {
-            background-color: #f8f9fa;
+            background: #fff;
+            font-weight: bold;
+            text-align: center;
         }
 
-        .ql-align-center, .text-align-center { text-align: center; }
-        .ql-align-right, .text-align-right { text-align: right; }
-        .ql-align-justify, .text-align-justify { text-align: justify; }
+        .itens-autorizados th:nth-child(2),
+        .itens-autorizados td:nth-child(2),
+        .itens-autorizados th:nth-child(3),
+        .itens-autorizados td:nth-child(3),
+        .itens-autorizados th:nth-child(4),
+        .itens-autorizados td:nth-child(4) {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-top: 12px;
+            text-align: right;
+        }
+
+        .condicoes {
+            margin-top: 24px;
+        }
+
+        .condicoes p {
+            margin: 4px 0 10px;
+        }
+
+        .condicoes ul {
+            margin: 0 0 14px 18px;
+            padding: 0;
+        }
+
+        .condicoes li {
+            margin-bottom: 5px;
+        }
+
+        .faturamento {
+            margin: 20px auto 0;
+            width: 82%;
+        }
+
+        .faturamento table {
+            border-collapse: collapse;
+            margin: 8px auto 0;
+            width: 100%;
+        }
+
+        .faturamento th {
+            background: #d9d9d9;
+            border: 1px solid #000;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .faturamento td {
+            border: 1px solid #000;
+            font-weight: bold;
+            padding: 8px;
+        }
+
+        .faturamento td p {
+            margin: 0 0 6px;
+        }
+
+        .assinatura {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .assinatura p {
+            text-align: center;
+        }
+
+        .assinatura-nome,
+        .assinatura-unidade {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .aceite {
+            margin-top: 34px;
+        }
+
+        .aceite-destaque {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .rodape {
+            color: #666;
+            font-size: 10px;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        .ql-align-center,
+        .text-align-center { text-align: center; }
+        .ql-align-right,
+        .text-align-right { text-align: right; }
+        .ql-align-justify,
+        .text-align-justify { text-align: justify; }
     </style>
 </head>
 <body>
+    <htmlpagefooter name="footer">
+        <div class="rodape">
+            <strong>Certificada ISO 9001:2015</strong><br>
+            Rua Libero Badaró, 377 - 23º Andar - Conj. 2310 - Centro - São Paulo - SP - CEP 01009-906<br>
+            www.fundunesp.org.br - compras@fundunesp.org.br - Telefone: (11) 3474-5300
+        </div>
+    </htmlpagefooter>
+
     {{ html_documento|raw }}
 </body>
 </html>
