@@ -43,5 +43,9 @@ class AutorizacaoDoc implements DocumentoInterface {
     }
 
     public function getNomePastaStorage() { return 'autorizacao_compra'; }
-    public function getNomeArquivoBase() { return 'auth_' . $this->dto->idAutorizacao; }
+    public function getNomeArquivoBase() { return 'auth_' . $this->normalizarIdArquivo($this->dto->idAutorizacao); }
+
+    private function normalizarIdArquivo(string $idAutorizacao): string {
+        return trim(preg_replace('/[^A-Za-z0-9]+/', '_', $idAutorizacao), '_');
+    }
 }

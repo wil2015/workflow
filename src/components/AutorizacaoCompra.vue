@@ -338,20 +338,20 @@ async function carregarLista() {
 }
 
 function extrairIdAutorizacao(doc) {
-  if (!doc) return 0;
+  if (!doc) return '';
 
   if (doc.id_autorizacao) {
-    return Number(doc.id_autorizacao) || 0;
+    return String(doc.id_autorizacao);
   }
 
   if (doc.id) {
-    return Number(doc.id) || 0;
+    return String(doc.id);
   }
 
   const fonte = `${doc.nome_arquivo || ''} ${doc.caminho_arquivo || ''}`;
-  const match = fonte.match(/auth_(\d+)/i);
+  const match = fonte.match(/auth_([A-Za-z0-9_]+)/i);
 
-  return match ? Number(match[1]) : 0;
+  return match ? match[1] : '';
 }
 
 async function prepararEdicao(docLista = null) {
@@ -373,6 +373,10 @@ async function prepararEdicao(docLista = null) {
       form.append('id_autorizacao', idAutorizacaoAlvo);
     }
 
+    if (docLista?.id_fornecedor_senior) {
+      form.append('id_fornecedor_senior', docLista.id_fornecedor_senior);
+    }
+
     const res = await fetch(`${API_CONTROLLER}?acao=preparar_autorizacoes`, {
       method: 'POST',
       body: form
@@ -388,7 +392,7 @@ async function prepararEdicao(docLista = null) {
 
     let indiceInicial = 0;
     if (idAutorizacaoAlvo) {
-      const encontrado = documentosEdicao.value.findIndex(doc => Number(doc.id_autorizacao) === idAutorizacaoAlvo);
+      const encontrado = documentosEdicao.value.findIndex(doc => String(doc.id_autorizacao) === idAutorizacaoAlvo);
       if (encontrado === -1) {
         throw new Error(`Autorização #${idAutorizacaoAlvo} não foi retornada pelo backend.`);
       }
@@ -492,6 +496,9 @@ async function emitirPdfEditado() {
     form.append('instance_id', instanceId.value);
     form.append('id_usuario', 1);
     form.append('id_autorizacao', documentoAtual.value.id_autorizacao);
+    if (documentoAtual.value.id_fornecedor_senior) {
+      form.append('id_fornecedor_senior', documentoAtual.value.id_fornecedor_senior);
+    }
     form.append('html_documento', html);
 
     const res = await fetch(`${API_CONTROLLER}?acao=emitir_autorizacao_editada`, {

@@ -32,8 +32,12 @@ class AutorizacaoCompraService extends BaseService
         // IDs das autorizacoes que existem HOJE no snapshot do processo.
         // Esses IDs devem ser a fonte de verdade para o botao Revisar / Emitir.
         $autorizacoesAtuais = $this->repo->buscarAutorizacoesGeradas($idProcesso);
-        $idsAtuais = array_map(fn($linha) => (int)$linha['id'], $autorizacoesAtuais);
+        $idsAtuais = array_map(fn($linha) => $this->obterIdAutorizacao($linha), $autorizacoesAtuais);
         $idsAtuaisMap = array_flip($idsAtuais);
+        $idsAtuaisPorArquivo = [];
+        foreach ($idsAtuais as $idAtual) {
+            $idsAtuaisPorArquivo[$this->normalizarIdArquivo($idAtual)] = $idAtual;
+        }
 
         $documentosPorAutorizacao = [];
 
@@ -43,13 +47,16 @@ class AutorizacaoCompraService extends BaseService
 
             // Exemplo de arquivo: auth_42_20260618193416.pdf -> id_autorizacao = 42
             $fonteNome = ($doc['nome_arquivo'] ?? '') . ' ' . ($doc['caminho_arquivo'] ?? '');
-            $idDocAutorizacao = 0;
-            if (preg_match('/auth_(\d+)/i', $fonteNome, $m)) {
-                $idDocAutorizacao = (int)$m[1];
+            $idDocAutorizacao = '';
+            foreach ($idsAtuaisPorArquivo as $idArquivo => $idAtual) {
+                if ($idArquivo !== '' && stripos($fonteNome, 'auth_' . $idArquivo) !== false) {
+                    $idDocAutorizacao = $idAtual;
+                    break;
+                }
             }
 
             $doc['id_autorizacao'] = $idDocAutorizacao ?: null;
-            $doc['id_autorizacao_valido'] = $idDocAutorizacao > 0 && isset($idsAtuaisMap[$idDocAutorizacao]);
+            $doc['id_autorizacao_valido'] = $idDocAutorizacao !== '' && isset($idsAtuaisMap[$idDocAutorizacao]);
 
             // Como a consulta dos documentos vem em ordem decrescente de criacao,
             // o primeiro documento encontrado por autorizacao tende a ser o mais recente.
@@ -61,7 +68,7 @@ class AutorizacaoCompraService extends BaseService
 
         $autorizacoesResumo = [];
         foreach ($autorizacoesAtuais as $auth) {
-            $idAutorizacao = (int)$auth['id'];
+            $idAutorizacao = $this->obterIdAutorizacao($auth);
             $idFornecedorSenior = $this->obterIdFornecedorSenior($auth);
             $forn = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
             $docAtual = $documentosPorAutorizacao[$idAutorizacao] ?? null;
@@ -92,19 +99,20 @@ class AutorizacaoCompraService extends BaseService
      * Gera o snapshot e renderiza o Twig como HTML inicial,
      * mas NÃO chama o DocumentoEngine para criar PDF.
      */
-    public function prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao = 0) {
+    public function prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao = '', $idFornecedorSenior = 0) {
         $idProcesso = (int)$idProcesso;
-        $idAutorizacao = (int)$idAutorizacao;
+        $idAutorizacao = trim((string)$idAutorizacao);
+        $idFornecedorSenior = (int)$idFornecedorSenior;
 
-        if ($idAutorizacao > 0) {
+        if ($idAutorizacao !== '') {
             // IMPORTANTE:
             // Ao revisar uma autorizacao ja listada, nao execute a procedure novamente.
             // A procedure pode recriar o snapshot e alterar os IDs; isso faz o PDF auth_42
             // apontar para uma autorizacao que acabou de ser apagada/recriada.
-            $auth = $this->repo->buscarAutorizacaoPorId($idProcesso, $idAutorizacao);
+            $auth = $this->repo->buscarAutorizacaoPorId($idProcesso, $idAutorizacao, $idFornecedorSenior);
             if (!$auth) {
                 $idsAtuais = array_map(
-                    fn($linha) => (int)$linha['id'],
+                    fn($linha) => $this->obterIdAutorizacao($linha),
                     $this->repo->buscarAutorizacoesGeradas($idProcesso)
                 );
                 $detalhe = empty($idsAtuais) ? 'Nenhuma autorizacao atual encontrada.' : 'Autorizacoes atuais: ' . implode(', ', $idsAtuais) . '.';
@@ -132,8 +140,9 @@ class AutorizacaoCompraService extends BaseService
             $htmlEditavel = $this->extrairConteudoBody($htmlCompleto);
 
             $documentos[] = [
-                'id_autorizacao' => (int)$auth['id'],
-                'titulo' => 'Autorização #' . $auth['id'] . ' - ' . $dto->fornecedorNome,
+                'id_autorizacao' => $this->obterIdAutorizacao($auth),
+                'id_fornecedor_senior' => $this->obterIdFornecedorSenior($auth),
+                'titulo' => 'Autorização #' . $this->obterIdAutorizacao($auth) . ' - ' . $dto->fornecedorNome,
                 'html' => $htmlEditavel
             ];
         }
@@ -148,11 +157,12 @@ class AutorizacaoCompraService extends BaseService
      * Novo passo 2:
      * Recebe o HTML editado no Tiptap e só então gera/registrar o PDF.
      */
-    public function emitirDocumentoEditado($idProcesso, $idUsuario, $idAutorizacao, $htmlDocumento) {
+    public function emitirDocumentoEditado($idProcesso, $idUsuario, $idAutorizacao, $idFornecedorSenior, $htmlDocumento) {
         $idProcesso = (int)$idProcesso;
-        $idAutorizacao = (int)$idAutorizacao;
+        $idAutorizacao = trim((string)$idAutorizacao);
+        $idFornecedorSenior = (int)$idFornecedorSenior;
 
-        $auth = $this->repo->buscarAutorizacaoPorId($idProcesso, $idAutorizacao);
+        $auth = $this->repo->buscarAutorizacaoPorId($idProcesso, $idAutorizacao, $idFornecedorSenior);
         if (!$auth) {
             throw new Exception("Autorização não encontrada para este processo.");
         }
@@ -230,7 +240,7 @@ class AutorizacaoCompraService extends BaseService
         $forn = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
 
         $dto = new AutorizacaoDTO(
-            (int)$auth['id'],
+            $this->obterIdAutorizacao($auth),
             "$idProcesso/" . date('Y'),
             $forn['nomfor'] ?? '',
             $forn['cgccpf'] ?? '',
@@ -252,6 +262,14 @@ class AutorizacaoCompraService extends BaseService
 
     private function obterIdFornecedorSenior(array $auth): int {
         return (int)($auth['id_fornecedor_senior'] ?? $auth['id_fornecedor'] ?? 0);
+    }
+
+    private function obterIdAutorizacao(array $auth): string {
+        return trim((string)($auth['id_autorizacao'] ?? ''));
+    }
+
+    private function normalizarIdArquivo(string $idAutorizacao): string {
+        return trim(preg_replace('/[^A-Za-z0-9]+/', '_', $idAutorizacao), '_');
     }
 
     private function renderizarTwig(AutorizacaoDoc $doc) {
@@ -302,7 +320,7 @@ class AutorizacaoCompraService extends BaseService
                 continue;
             }
 
-            $doc = $this->repo->buscarDocumentoPorNomeParcial($idProcesso, "auth_" . $auth['id']);
+            $doc = $this->repo->buscarDocumentoPorNomeParcial($idProcesso, "auth_" . $this->normalizarIdArquivo($this->obterIdAutorizacao($auth)));
             $pathFisico = '';
             if ($doc) {
                 $relativo = ltrim(str_replace(['/public/', 'public/'], '', $doc['caminho_arquivo']), '/');

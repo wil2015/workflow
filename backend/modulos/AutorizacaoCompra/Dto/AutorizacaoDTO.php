@@ -4,7 +4,7 @@ namespace App\Modulos\AutorizacaoCompra\Dto;
 use App\Core\Utils\Formatador;
 
 class AutorizacaoDTO {
-    public int $idAutorizacao;
+    public string $idAutorizacao;
     public string $numeroProcesso;
     public string $fornecedorNome;
     public string $fornecedorCnpj;
@@ -22,7 +22,7 @@ class AutorizacaoDTO {
     public ?float $valorTotalPedido;
     public array $itens = [];
 
-    public function __construct(int $id, string $proc, string $nome, string $cnpj, ?float $total, array $dadosFornecedor = []) {
+    public function __construct(string $id, string $proc, string $nome, string $cnpj, ?float $total, array $dadosFornecedor = []) {
         $this->idAutorizacao = $id;
         $this->numeroProcesso = $proc;
         $this->fornecedorNome = $nome ?: 'Consumidor';

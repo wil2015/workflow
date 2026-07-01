@@ -41,10 +41,18 @@ class AutorizacaoCompraRepo extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function buscarAutorizacaoPorId($idProcesso, $idAutorizacao) {
-        $sql = "SELECT * FROM autorizacao_compra WHERE id_processo_instancia = ? AND id = ? LIMIT 1";
+    public function buscarAutorizacaoPorId($idProcesso, $idAutorizacao, $idFornecedorSenior = 0) {
+        $params = [$idProcesso, $idAutorizacao];
+        $filtroFornecedor = '';
+
+        if ((int)$idFornecedorSenior > 0) {
+            $filtroFornecedor = " AND id_fornecedor_senior = ?";
+            $params[] = (int)$idFornecedorSenior;
+        }
+
+        $sql = "SELECT * FROM autorizacao_compra WHERE id_processo_instancia = ? AND id_autorizacao = ?{$filtroFornecedor} LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$idProcesso, $idAutorizacao]);
+        $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -107,13 +115,14 @@ class AutorizacaoCompraRepo extends BaseRepository
     }
 
     public function limparDocumentoAutorizacaoAnterior($idProcesso, $idAutorizacao) {
+        $idArquivo = trim(preg_replace('/[^A-Za-z0-9]+/', '_', (string)$idAutorizacao), '_');
         $stmt = $this->pdo->prepare("
             DELETE FROM documentos_oficiais
             WHERE id_processo_instancia = ?
               AND tipo_documento = 'AUTORIZACAO_COMPRA'
               AND nome_arquivo LIKE ?
         ");
-        $stmt->execute([$idProcesso, 'auth_' . $idAutorizacao . '%']);
+        $stmt->execute([$idProcesso, 'auth_' . $idArquivo . '%']);
     }
 
     public function registrarDocumento($idProcesso, $tipo, $meta, $idUsuario) {

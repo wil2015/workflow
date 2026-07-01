@@ -5,11 +5,11 @@ use App\Core\Documentos\Interfaces\DocumentoInterface;
 
 class AutorizacaoHtmlEditadoDoc implements DocumentoInterface
 {
-    private int $idAutorizacao;
+    private string $idAutorizacao;
     private string $numeroProcesso;
     private string $htmlDocumento;
 
-    public function __construct(int $idAutorizacao, string $numeroProcesso, string $htmlDocumento)
+    public function __construct(string $idAutorizacao, string $numeroProcesso, string $htmlDocumento)
     {
         $this->idAutorizacao = $idAutorizacao;
         $this->numeroProcesso = $numeroProcesso;
@@ -41,6 +41,11 @@ class AutorizacaoHtmlEditadoDoc implements DocumentoInterface
     public function getNomeArquivoBase()
     {
         // Mantém o padrão auth_{id} para o envio de e-mail continuar encontrando o arquivo.
-        return 'auth_' . $this->idAutorizacao;
+        return 'auth_' . $this->normalizarIdArquivo($this->idAutorizacao);
+    }
+
+    private function normalizarIdArquivo(string $idAutorizacao): string
+    {
+        return trim(preg_replace('/[^A-Za-z0-9]+/', '_', $idAutorizacao), '_');
     }
 }

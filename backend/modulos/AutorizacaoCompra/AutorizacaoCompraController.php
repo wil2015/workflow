@@ -31,15 +31,17 @@ class AutorizacaoCompraController extends BaseController
             // mas ele não gera mais o PDF diretamente.
             case 'preparar_autorizacoes':
             case 'gerar_autorizacoes':
-                $idAutorizacao = $this->getParam('id_autorizacao', 0, 'int');
-                return $this->service->prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao);
+                $idAutorizacao = $this->getParam('id_autorizacao', '', 'string');
+                $idFornecedorSenior = $this->getParam('id_fornecedor_senior', 0, 'int');
+                return $this->service->prepararDocumentosParaEdicao($idProcesso, $idUsuario, $idAutorizacao, $idFornecedorSenior);
 
             // Segundo passo: recebe o HTML editado no Tiptap e só então emite o PDF.
             case 'emitir_autorizacao_editada':
-                $idAutorizacao = $this->getParam('id_autorizacao', 0, 'int');
+                $idAutorizacao = $this->getParam('id_autorizacao', '', 'string');
+                $idFornecedorSenior = $this->getParam('id_fornecedor_senior', 0, 'int');
                 $htmlDocumento = $this->getParam('html_documento', '', 'string');
 
-                if ($idAutorizacao === 0) throw new Exception("ID da autorização obrigatório.");
+                if (trim($idAutorizacao) === '') throw new Exception("ID da autorização obrigatório.");
                 if (trim($htmlDocumento) === '') throw new Exception("HTML do documento obrigatório.");
 
                 return $this->atomic(fn() =>
@@ -47,6 +49,7 @@ class AutorizacaoCompraController extends BaseController
                         $idProcesso,
                         $idUsuario,
                         $idAutorizacao,
+                        $idFornecedorSenior,
                         $htmlDocumento
                     )
                 );
