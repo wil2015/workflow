@@ -59,19 +59,27 @@ class AutorizacaoCompraRepo extends BaseRepository
     public function buscarItensDoSnapshot($idProcesso, $idFornecedorSenior) {
         $sql = "SELECT
                     ai.*,
-                    (
-                        SELECT pi.descricao_item
-                        FROM processos_itens pi
-                        WHERE pi.id_processo_instancia = ai.id_processo_instancia
-                          AND pi.id_item = ai.id_item
-                        LIMIT 1
-                    ) AS descricao_item
+                    pi.descricao_item
                 FROM autorizacao_item ai
+                LEFT JOIN vw_processos_itens_distintos pi
+                       ON pi.id_item = ai.id_item
                 WHERE ai.id_processo_instancia = ?
                   AND ai.id_fornecedor_senior = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([(int)$idProcesso, (int)$idFornecedorSenior]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarNomeFluxoDoProcesso($idProcesso): string {
+        $sql = "SELECT nf.nome_do_fluxo
+                FROM processos_instancia pi
+                INNER JOIN nome_do_fluxo nf ON nf.id_fluxo_definicao = pi.id_fluxo_definicao
+                WHERE pi.id = ?
+                   OR pi.id_processo_instancia = ?
+                LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([(int)$idProcesso, (int)$idProcesso]);
+        return trim((string)($stmt->fetchColumn() ?: ''));
     }
 
     // --- 3. DADOS EXTERNOS (Senior / Legado) ---

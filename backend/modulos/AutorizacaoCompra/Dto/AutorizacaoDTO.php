@@ -19,15 +19,17 @@ class AutorizacaoDTO {
     public string $telefone2;
     public string $telefone3;
     public string $email;
+    public string $modalidade;
     public ?float $valorTotalPedido;
     public array $itens = [];
 
-    public function __construct(string $id, string $proc, string $nome, string $cnpj, ?float $total, array $dadosFornecedor = []) {
+    public function __construct(string $id, string $proc, string $nome, string $cnpj, ?float $total, array $dadosFornecedor = [], string $modalidade = '') {
         $this->idAutorizacao = $id;
         $this->numeroProcesso = $proc;
         $this->fornecedorNome = $nome ?: 'Consumidor';
         $this->fornecedorCnpj = Formatador::documento($cnpj); // Helper formata
         $this->valorTotalPedido = $total;
+        $this->modalidade = trim($modalidade);
         $this->logradouro = self::textoFornecedor($dadosFornecedor, 'endfor');
         $this->numero = self::textoFornecedor($dadosFornecedor, 'nenfor');
         $this->complemento = self::textoFornecedor($dadosFornecedor, 'cplend');

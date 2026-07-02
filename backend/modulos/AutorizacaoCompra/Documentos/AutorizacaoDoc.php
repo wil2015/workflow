@@ -39,6 +39,7 @@ class AutorizacaoDoc implements DocumentoInterface {
             'telefone2' => $this->dto->telefone2,
             'telefone3' => $this->dto->telefone3,
             'email' => $this->dto->email,
+            'modalidade' => $this->dto->modalidade,
             'itens' => $this->dto->itens,
             'valor_total_pedido' => Formatador::moeda($this->dto->valorTotalPedido)
         ];

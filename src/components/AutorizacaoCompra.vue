@@ -121,9 +121,6 @@
               <h3>Autorizações do processo</h3>
               <small>Use esta lista para revisar a autorização correta. Ela vem da tabela atual de autorizações, não do nome do PDF.</small>
             </div>
-            <button v-if="podeGerar" type="button" class="btn-secondary" :disabled="sending" @click="prepararEdicao()">
-              🔄 Preparar todas
-            </button>
           </div>
 
           <table v-if="autorizacoes.length > 0" class="table-docs">
@@ -172,7 +169,7 @@
           <div v-else class="regenerate-area highlight-warning">
             <div class="regenerate-info">
               <p>Nenhuma autorização atual encontrada no snapshot.</p>
-              <small>Há PDFs no histórico, mas os IDs deles podem não existir mais. Clique em <strong>Preparar todas</strong> para recriar/preparar as autorizações atuais do processo.</small>
+              <small>Há PDFs no histórico, mas os IDs deles podem não existir mais.</small>
             </div>
           </div>
         </section>

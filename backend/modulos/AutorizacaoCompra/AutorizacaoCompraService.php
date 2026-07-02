@@ -3,6 +3,7 @@ namespace App\Modulos\AutorizacaoCompra;
 
 use App\Core\BaseService;
 use App\Core\Documentos\Engine\DocumentoEngine;
+use App\Core\Utils\Formatador;
 use App\Modulos\AutorizacaoCompra\Documentos\AutorizacaoDoc;
 use App\Modulos\AutorizacaoCompra\Documentos\AutorizacaoHtmlEditadoDoc;
 use App\Modulos\AutorizacaoCompra\Dto\AutorizacaoDTO;
@@ -238,6 +239,7 @@ class AutorizacaoCompraService extends BaseService
         $idFornecedorSenior = $this->obterIdFornecedorSenior($auth);
         $itens = $this->repo->buscarItensDoSnapshot($idProcesso, $idFornecedorSenior);
         $forn = $this->repo->buscarDadosFornecedorSenior($idFornecedorSenior);
+        $modalidade = rtrim(Formatador::utf8($this->repo->buscarNomeFluxoDoProcesso($idProcesso)), " \t\n\r\0\x0B.");
 
         $dto = new AutorizacaoDTO(
             $this->obterIdAutorizacao($auth),
@@ -245,7 +247,8 @@ class AutorizacaoCompraService extends BaseService
             $forn['nomfor'] ?? '',
             $forn['cgccpf'] ?? '',
             (float)$auth['valor_total_pedido'],
-            $forn
+            $forn,
+            $modalidade
         );
 
         foreach ($itens as $item) {
