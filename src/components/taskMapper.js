@@ -8,6 +8,7 @@ import GradeComparativa from './GradeComparativa.vue';
 import DefaultTask      from './DefaultTask.vue';    
 import EmailFornecedores from './EmailFornecedores.vue';  
 import AutorizacaoCompra from './AutorizacaoCompra.vue';
+import OrdemDeCompra from './OrdemDeCompra.vue';
 import PesquisaMercado from './PesquisaMercado.vue';
 import Parametros from './Parametros/Parametros.vue';
 
@@ -19,6 +20,8 @@ export const taskMap = {
     'Activity_Grade':           GradeComparativa,
     'Event_AguardarOrcamentos': EmailFornecedores,
     'Activity_EnviarAutorizacao': AutorizacaoCompra,
+    'Activity_OrdemCompra': OrdemDeCompra,
+    'Activity_OC': OrdemDeCompra,
     'Activity_pesquisa_de_mercado': PesquisaMercado, 
     'Activity_parametros': Parametros,
 

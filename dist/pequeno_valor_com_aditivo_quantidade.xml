@@ -26,7 +26,7 @@
         <bpmn:flowNodeRef>Activity_ReceberAssinatura</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_RecebeNF</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_Atesto</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Activity_MemorandoOC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_OC</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_parametros</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_0npc569</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_Aditivo</bpmn:flowNodeRef>
@@ -36,6 +36,7 @@
         <bpmn:flowNodeRef>Activity_EnviarAutorizacao</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_AguardarOrcamentos</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_rescisao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_Memorando</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_CCP_GAF" name="CCP / GAF (Solicitantes)">
         <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
@@ -71,17 +72,10 @@
       <bpmn:incoming>Flow_8</bpmn:incoming>
       <bpmn:outgoing>Flow_9</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:serviceTask id="Activity_MemorandoOC" name="Gerar Memorando e Ordem de Compra (Senior)">
+    <bpmn:serviceTask id="Activity_OC" name="Gerar Ordem de Compra (Senior)">
       <bpmn:incoming>Flow_9</bpmn:incoming>
-      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_03r9gqc</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
-      <bpmn:incoming>Flow_10</bpmn:incoming>
-      <bpmn:outgoing>Flow_11</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_Conclusao" name="Processo Finalizado">
-      <bpmn:incoming>Flow_11</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:task id="Activity_parametros" name="Parametros">
       <bpmn:incoming>Flow_1364pjw</bpmn:incoming>
       <bpmn:outgoing>Flow_0i983ng</bpmn:outgoing>
@@ -94,9 +88,7 @@
     <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="Activity_ClassificarValores" />
     <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
     <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_Atesto" />
-    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_MemorandoOC" />
-    <bpmn:sequenceFlow id="Flow_10" sourceRef="Activity_MemorandoOC" targetRef="Activity_Pagar" />
-    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_Pagar" targetRef="EndEvent_Conclusao" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_OC" />
     <bpmn:exclusiveGateway id="Gateway_0npc569" default="Flow_0e6kczf">
       <bpmn:incoming>Flow_1fl9bns</bpmn:incoming>
       <bpmn:outgoing>Flow_105siw7</bpmn:outgoing>
@@ -141,21 +133,35 @@
     <bpmn:task id="Activity_rescisao" name="Rescisão">
       <bpmn:incoming>Flow_0p4kuvr</bpmn:incoming>
     </bpmn:task>
+    <bpmn:task id="Activity_Memorando" name="Gerar Memorando">
+      <bpmn:incoming>Flow_03r9gqc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xnza7u</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_03r9gqc" sourceRef="Activity_OC" targetRef="Activity_Memorando" />
+    <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
+      <bpmn:incoming>Flow_1xnza7u</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Conclusao" name="Processo Finalizado">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_Pagar" targetRef="EndEvent_Conclusao" />
+    <bpmn:sequenceFlow id="Flow_1xnza7u" sourceRef="Activity_Memorando" targetRef="Activity_Pagar" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0x8l6g2">
       <bpmndi:BPMNShape id="Participant_Empresa_di" bpmnElement="Participant_Empresa" isHorizontal="true">
-        <dc:Bounds x="155" y="80" width="2200" height="550" />
+        <dc:Bounds x="155" y="80" width="2425" height="550" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_CCP_GAF_di" bpmnElement="Lane_CCP_GAF" isHorizontal="true">
-        <dc:Bounds x="185" y="80" width="2170" height="120" />
+        <dc:Bounds x="185" y="80" width="2395" height="120" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Compras_di" bpmnElement="Lane_Compras" isHorizontal="true">
-        <dc:Bounds x="185" y="200" width="2170" height="280" />
+        <dc:Bounds x="185" y="200" width="2395" height="280" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Financeiro_di" bpmnElement="Lane_Financeiro" isHorizontal="true">
-        <dc:Bounds x="185" y="480" width="2170" height="150" />
+        <dc:Bounds x="185" y="480" width="2395" height="150" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="247" y="122" width="36" height="36" />
@@ -185,18 +191,9 @@
       <bpmndi:BPMNShape id="Activity_Atesto_di" bpmnElement="Activity_Atesto">
         <dc:Bounds x="1928" y="280" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_MemorandoOC">
+      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_OC">
         <dc:Bounds x="2088" y="280" width="100" height="80" />
         <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Pagar_di" bpmnElement="Activity_Pagar">
-        <dc:Bounds x="2088" y="520" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_Conclusao_di" bpmnElement="EndEvent_Conclusao">
-        <dc:Bounds x="2260" y="542" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2253" y="585" width="51" height="27" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_08ziif1_di" bpmnElement="Activity_parametros">
         <dc:Bounds x="510" y="280" width="100" height="80" />
@@ -232,6 +229,19 @@
       <bpmndi:BPMNShape id="Activity_0ndq4cs_di" bpmnElement="Activity_rescisao">
         <dc:Bounds x="1520" y="380" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bnyry3_di" bpmnElement="Activity_Memorando">
+        <dc:Bounds x="2220" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Pagar_di" bpmnElement="Activity_Pagar">
+        <dc:Bounds x="2220" y="520" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Conclusao_di" bpmnElement="EndEvent_Conclusao">
+        <dc:Bounds x="2389" y="542" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2382" y="585" width="51" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
         <di:waypoint x="283" y="140" />
@@ -269,14 +279,6 @@
         <di:waypoint x="2028" y="320" />
         <di:waypoint x="2088" y="320" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
-        <di:waypoint x="2138" y="360" />
-        <di:waypoint x="2138" y="520" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
-        <di:waypoint x="2188" y="560" />
-        <di:waypoint x="2260" y="560" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1fl9bns_di" bpmnElement="Flow_1fl9bns">
         <di:waypoint x="1357" y="320" />
         <di:waypoint x="1425" y="320" />
@@ -313,8 +315,20 @@
         <di:waypoint x="1205" y="320" />
         <di:waypoint x="1257" y="320" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03r9gqc_di" bpmnElement="Flow_03r9gqc">
+        <di:waypoint x="2188" y="320" />
+        <di:waypoint x="2220" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="2320" y="560" />
+        <di:waypoint x="2389" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xnza7u_di" bpmnElement="Flow_1xnza7u">
+        <di:waypoint x="2270" y="360" />
+        <di:waypoint x="2270" y="520" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_Fornecedor_di" bpmnElement="Participant_Fornecedor" isHorizontal="true">
-        <dc:Bounds x="155" y="650" width="2200" height="100" />
+        <dc:Bounds x="155" y="650" width="2425" height="100" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_EmailOrcamento_di" bpmnElement="Flow_EmailOrcamento">
         <di:waypoint x="718" y="360" />

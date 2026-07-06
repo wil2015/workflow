@@ -37,6 +37,7 @@ import { ref, onMounted, shallowRef } from 'vue';
 import BpmnNavigatedViewer from 'bpmn-js/lib/NavigatedViewer';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
+import DefaultTask from './DefaultTask.vue';
 import { getComponentForTask } from './taskMapper.js';
 
 const canvasRef = ref(null);
@@ -64,9 +65,9 @@ onMounted(async () => {
   const eventBus = viewer.get('eventBus');
 
   eventBus.on('element.click', (e) => {
-    const type = e.element.type;
-    if (type.toLowerCase().includes('task') || type.toLowerCase().includes('catchevent')) {
-      clicarTarefa(e.element.id);
+    const type = (e.element.type || '').toLowerCase();
+    if (type.includes('task') || type.includes('catchevent')) {
+      clicarTarefa(obterIdElementoBpmn(e.element));
     }
   });
 
@@ -87,12 +88,18 @@ function clicarTarefa(taskId) {
     return;
   }
 
-  const componenteEncontrado = getComponentForTask(taskId);
-  if (!componenteEncontrado) return;
+  const componenteEncontrado = getComponentForTask(taskId) || DefaultTask;
 
   componenteAtual.value = componenteEncontrado;
   taskIdAtual.value = taskId;
   modalAberto.value = true;
+}
+
+function obterIdElementoBpmn(elemento) {
+  return elemento?.businessObject?.id
+    || elemento?.businessObject?.di?.bpmnElement?.id
+    || elemento?.id
+    || '';
 }
 
 async function fecharModal() {
