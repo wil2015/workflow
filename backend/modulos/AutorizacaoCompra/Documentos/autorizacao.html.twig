@@ -21,7 +21,8 @@
         }
 
         .logo-fundunesp {
-            margin-bottom: 24px;
+            display: block;
+            margin: 0 auto 24px;
             width: 160px;
         }
 
@@ -214,8 +215,10 @@
         </div>
     </htmlpagefooter>
 
-    <div class="cabecalho">
-        <img class="logo-fundunesp" alt="Fundunesp" src="public/logo.png">
+    <div class="cabecalho" style="margin-bottom: 28px; text-align: center; width: 100%;">
+        <div style="width: 100%; margin: 0 0 24px 0; padding: 0; text-align: center;">
+            <img class="logo-fundunesp" alt="Fundunesp" src="/var/www/html/public/logo.png" style="width: 160px; height: auto; border: 0;">
+        </div>
         <h1 class="titulo" style="color: #000080; font-size: 18px; font-weight: bold; letter-spacing: .3px; margin: 0 0 6px; text-align: center; text-transform: uppercase;">Autorização de Compra Nº {{ numero_autorizacao|default(id_autorizacao|default('')) }}</h1>
         <p class="subtitulo" style="font-size: 15px; font-style: italic; margin: 0; text-align: center;">(Regulamento de Compras da Fundunesp)</p>
     </div>

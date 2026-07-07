@@ -87,11 +87,8 @@ class AutorizacaoCompraService extends BaseService
 
         return [
             'sucesso' => true,
-            'documentos' => $docs,
             'autorizacoes' => $autorizacoesResumo,
-            // Mantem a tela operacional mesmo quando so ha PDFs antigos.
-            // Nesse caso o front mostra os PDFs como historico e oferece preparar novamente.
-            'tem_cotacao' => !empty($autorizacoesResumo) || !empty($docs),
+            'tem_cotacao' => !empty($autorizacoesResumo),
         ];
     }
 
@@ -139,6 +136,7 @@ class AutorizacaoCompraService extends BaseService
 
             $htmlCompleto = $this->renderizarTwig($doc);
             $htmlEditavel = $this->extrairConteudoBody($htmlCompleto);
+            $htmlEditavel = $this->prepararHtmlParaEditor($htmlEditavel);
 
             $documentos[] = [
                 'id_autorizacao' => $this->obterIdAutorizacao($auth),
@@ -169,6 +167,7 @@ class AutorizacaoCompraService extends BaseService
         }
 
         $htmlLimpo = $this->sanitizarHtmlBasico($htmlDocumento);
+        $htmlLimpo = $this->prepararHtmlParaPdf($htmlLimpo);
 
         $engine = new DocumentoEngine(new Mailer(Transport::fromDsn('smtp://null:null@localhost')));
         $doc = new AutorizacaoHtmlEditadoDoc(
@@ -296,6 +295,65 @@ class AutorizacaoCompraService extends BaseService
         }
 
         return trim($html);
+    }
+
+    private function prepararHtmlParaEditor($html) {
+        return str_replace(
+            [
+                'src="public/logo.png"',
+                "src='public/logo.png'",
+                'src="/var/www/html/public/logo.png"',
+                "src='/var/www/html/public/logo.png'",
+            ],
+            [
+                'src="/logo.png"',
+                "src='/logo.png'",
+                'src="/logo.png"',
+                "src='/logo.png'",
+            ],
+            $html
+        );
+    }
+
+    private function prepararHtmlParaPdf($html) {
+        $html = str_replace(
+            [
+                'src="/logo.png"',
+                "src='/logo.png'",
+                'src="public/logo.png"',
+                "src='public/logo.png'",
+            ],
+            [
+                'src="/var/www/html/public/logo.png"',
+                "src='/var/www/html/public/logo.png'",
+                'src="/var/www/html/public/logo.png"',
+                "src='/var/www/html/public/logo.png'",
+            ],
+            $html
+        );
+
+        $html = $this->removerLogoCabecalho($html);
+        $html = $this->inserirLogoCabecalhoPdf($html);
+
+        return $html;
+    }
+
+    private function removerLogoCabecalho($html) {
+        $html = preg_replace('/<(p|div)\b[^>]*\bclass=(["\'])[^"\']*\bcabecalho\b[^"\']*\2[^>]*>.*?<img\b[^>]*\blogo-fundunesp\b[^>]*>.*?<\/\1>/is', '', $html);
+        $html = preg_replace('/<img\b[^>]*\blogo-fundunesp\b[^>]*>/i', '', $html);
+
+        return $html;
+    }
+
+    private function inserirLogoCabecalhoPdf($html) {
+        $logo = '<div class="cabecalho-logo-pdf" style="width: 100%; margin: 0 0 24px 0; padding: 0; text-align: center;"><img class="logo-fundunesp" alt="Fundunesp" src="/var/www/html/public/logo.png" style="width: 160px; height: auto; border: 0;"></div>';
+
+        $padraoTitulo = '/<h[1-3]\b[^>]*(?:class=(["\'])[^"\']*\btitulo\b[^"\']*\1)[^>]*>/i';
+        if (preg_match($padraoTitulo, $html, $match)) {
+            return preg_replace($padraoTitulo, $logo . $match[0], $html, 1);
+        }
+
+        return $logo . $html;
     }
 
     /**

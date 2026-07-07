@@ -26,7 +26,7 @@
         <bpmn:flowNodeRef>Activity_ReceberAssinatura</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_RecebeNF</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_Atesto</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Activity_OC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_OrdemCompra</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_parametros</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_0npc569</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_Aditivo</bpmn:flowNodeRef>
@@ -72,7 +72,7 @@
       <bpmn:incoming>Flow_8</bpmn:incoming>
       <bpmn:outgoing>Flow_9</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:serviceTask id="Activity_OC" name="Gerar Ordem de Compra (Senior)">
+    <bpmn:serviceTask id="Activity_OrdemCompra" name="Gerar Ordem de Compra (Senior)">
       <bpmn:incoming>Flow_9</bpmn:incoming>
       <bpmn:outgoing>Flow_03r9gqc</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -88,7 +88,7 @@
     <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_AguardarOrcamentos" targetRef="Activity_ClassificarValores" />
     <bpmn:sequenceFlow id="Flow_7" sourceRef="Activity_ReceberAssinatura" targetRef="Event_RecebeNF" />
     <bpmn:sequenceFlow id="Flow_8" sourceRef="Event_RecebeNF" targetRef="Activity_Atesto" />
-    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_OC" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Activity_Atesto" targetRef="Activity_OrdemCompra" />
     <bpmn:exclusiveGateway id="Gateway_0npc569" default="Flow_0e6kczf">
       <bpmn:incoming>Flow_1fl9bns</bpmn:incoming>
       <bpmn:outgoing>Flow_105siw7</bpmn:outgoing>
@@ -137,7 +137,7 @@
       <bpmn:incoming>Flow_03r9gqc</bpmn:incoming>
       <bpmn:outgoing>Flow_1xnza7u</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_03r9gqc" sourceRef="Activity_OC" targetRef="Activity_Memorando" />
+    <bpmn:sequenceFlow id="Flow_03r9gqc" sourceRef="Activity_OrdemCompra" targetRef="Activity_Memorando" />
     <bpmn:userTask id="Activity_Pagar" name="Realizar Pagamento">
       <bpmn:incoming>Flow_1xnza7u</bpmn:incoming>
       <bpmn:outgoing>Flow_11</bpmn:outgoing>
@@ -191,7 +191,7 @@
       <bpmndi:BPMNShape id="Activity_Atesto_di" bpmnElement="Activity_Atesto">
         <dc:Bounds x="1928" y="280" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_OC">
+      <bpmndi:BPMNShape id="Activity_MemorandoOC_di" bpmnElement="Activity_OrdemCompra">
         <dc:Bounds x="2088" y="280" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>

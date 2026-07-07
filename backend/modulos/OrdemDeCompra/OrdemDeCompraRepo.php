@@ -2,6 +2,7 @@
 namespace App\Modulos\OrdemDeCompra;
 
 use App\Core\BaseRepository;
+use Exception;
 use PDO;
 
 class OrdemDeCompraRepo extends BaseRepository

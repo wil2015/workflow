@@ -107,9 +107,9 @@
         </div>
       </div>
 
-      <div v-else-if="autorizacoes.length > 0 || documentos.length > 0" class="docs-list">
+      <div v-else-if="autorizacoes.length > 0" class="docs-list">
         <div v-if="temArquivoQuebrado" class="alert-warning">
-          ⚠️ <strong>Atenção:</strong> Alguns PDFs do histórico não foram encontrados fisicamente.
+          ⚠️ <strong>Atenção:</strong> Alguns PDFs atuais não foram encontrados fisicamente.
         </div>
         <div v-else class="alert-success">
           ✅ <strong>Sucesso!</strong> Dados disponíveis para revisão.
@@ -167,46 +167,11 @@
           </table>
 
           <div v-else class="regenerate-area highlight-warning">
-            <div class="regenerate-info">
-              <p>Nenhuma autorização atual encontrada no snapshot.</p>
-              <small>Há PDFs no histórico, mas os IDs deles podem não existir mais.</small>
-            </div>
+          <div class="regenerate-info">
+            <p>Nenhuma autorização atual encontrada no snapshot.</p>
+              <small>Prepare as autorizações novamente para revisar e emitir.</small>
           </div>
-        </section>
-
-        <section v-if="documentos.length > 0" class="history-section">
-          <h3>Histórico de PDFs emitidos</h3>
-          <table class="table-docs">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Arquivo</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="doc in documentos" :key="doc.id">
-                <td>{{ formatData(doc.criado_em) }}</td>
-                <td>
-                  <span class="file-name">📄 {{ doc.nome_arquivo }}</span>
-                </td>
-                <td>
-                  <span v-if="doc.id_autorizacao_valido" class="badge-ok">Autorização atual #{{ doc.id_autorizacao }}</span>
-                  <span v-else-if="doc.id_autorizacao" class="badge-muted">Histórico antigo #{{ doc.id_autorizacao }}</span>
-                  <span v-else class="badge-muted">Sem vínculo identificado</span>
-                </td>
-                <td>
-                  <div class="row-actions">
-                    <a v-if="doc.existe_fisicamente" :href="montarLink(doc.caminho_arquivo)" target="_blank" class="btn-view">
-                      👁️ Visualizar PDF
-                    </a>
-                    <span v-else class="badge-error">❌ Perdido</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          </div>
         </section>
 
         <div class="actions-footer">
@@ -237,6 +202,7 @@
 
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue';
+import { Node, mergeAttributes } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -247,8 +213,31 @@ import { TableKit } from '@tiptap/extension-table';
 const BASE_APACHE = 'http://localhost:8081/';
 const API_CONTROLLER = '/backend/modulos/AutorizacaoCompra/AutorizacaoCompraController.php';
 
+const ImagemDocumento = Node.create({
+  name: 'imagemDocumento',
+  inline: true,
+  group: 'inline',
+  atom: true,
+
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: null },
+      title: { default: null },
+      class: { default: null },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'img[src]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['img', mergeAttributes(HTMLAttributes)];
+  },
+});
+
 const instanceId = ref(null);
-const documentos = ref([]);
 const autorizacoes = ref([]);
 const documentosEdicao = ref([]);
 const documentoAtual = ref(null);
@@ -265,6 +254,7 @@ const editor = useEditor({
   content: '',
   extensions: [
     StarterKit,
+    ImagemDocumento,
     Underline,
     Link.configure({
       openOnClick: false,
@@ -293,8 +283,7 @@ const editor = useEditor({
 });
 
 const temArquivoQuebrado = computed(() => {
-  if (!documentos.value) return false;
-  return documentos.value.some(d => d.existe_fisicamente === false);
+  return autorizacoes.value.some(auth => auth.documento && auth.documento.existe_fisicamente === false);
 });
 
 onMounted(async () => {
@@ -318,13 +307,11 @@ async function carregarLista() {
     if (json.erro) throw new Error(json.erro);
 
     if (Array.isArray(json)) {
-      documentos.value = json;
       autorizacoes.value = [];
-      podeGerar.value = true;
+      podeGerar.value = false;
     } else {
-      documentos.value = json.documentos || [];
       autorizacoes.value = json.autorizacoes || [];
-      podeGerar.value = json.tem_cotacao ?? (documentos.value.length > 0 || autorizacoes.value.length > 0);
+      podeGerar.value = json.tem_cotacao ?? autorizacoes.value.length > 0;
     }
   } catch (e) {
     console.error(e);
@@ -416,7 +403,7 @@ function abrirDocumentoEdicao(doc) {
   documentoAtual.value = doc;
 
   const rascunhoSalvo = localStorage.getItem(chaveRascunho(doc));
-  const htmlInicial = rascunhoSalvo || doc.html || '';
+  const htmlInicial = garantirLogoCabecalho(rascunhoSalvo || doc.html || '');
 
   htmlDocumento.value = htmlInicial;
   editor.value?.commands.setContent(htmlInicial, false);
@@ -430,6 +417,18 @@ function obterHtmlEditor() {
     documentoAtual.value.html = html;
   }
   return html;
+}
+
+function garantirLogoCabecalho(html) {
+  const conteudo = html || '';
+  if (conteudo.includes('logo-fundunesp')) return conteudo;
+
+  const logo = '<p class="cabecalho"><img class="logo-fundunesp" alt="Fundunesp" src="/logo.png"></p>';
+  const matchTitulo = conteudo.match(/<h[1-3][^>]*(class="[^"]*titulo[^"]*"|class='[^']*titulo[^']*')[^>]*>/i);
+
+  if (!matchTitulo) return `${logo}${conteudo}`;
+
+  return conteudo.replace(matchTitulo[0], `${logo}${matchTitulo[0]}`);
 }
 
 function salvarRascunho() {
@@ -549,10 +548,6 @@ function montarLink(caminhoRelativo) {
   if (path.startsWith('http')) return path;
 
   return BASE_APACHE + path;
-}
-
-function formatData(dt) {
-  return dt ? new Date(dt).toLocaleString('pt-BR') : '-';
 }
 
 function formatMoeda(valor) {
@@ -782,8 +777,7 @@ function voltar() {
   font-weight: 700;
 }
 
-.auth-section,
-.history-section {
+.auth-section {
   margin-top: 18px;
 }
 
@@ -795,8 +789,7 @@ function voltar() {
   margin-bottom: 8px;
 }
 
-.section-title-row h3,
-.history-section h3 {
+.section-title-row h3 {
   margin: 0 0 4px;
   color: #2c3e50;
 }
@@ -1025,6 +1018,19 @@ function voltar() {
   border-bottom: 2px solid #004085;
   padding-bottom: 6px;
   margin-bottom: 20px;
+}
+
+:deep(.ProseMirror .cabecalho) {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+:deep(.ProseMirror .logo-fundunesp) {
+  display: block;
+  margin: 0 auto 24px;
+  width: 160px;
+  max-width: 45%;
+  height: auto;
 }
 
 :deep(.ProseMirror table) {
