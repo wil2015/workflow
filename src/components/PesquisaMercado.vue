@@ -91,7 +91,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 
-const BASE_APACHE = 'http://localhost:8081/'; 
+const BASE_APACHE = '/'; 
 // Ajuste o caminho do Controller conforme a sua nova arquitetura
 const API_CONTROLLER = '/backend/modulos/PesquisaMercado/PesquisaMercadoController.php';
 

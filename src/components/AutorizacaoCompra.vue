@@ -210,7 +210,7 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { TableKit } from '@tiptap/extension-table';
 
-const BASE_APACHE = 'http://localhost:8081/';
+const BASE_APACHE = '/';
 const API_CONTROLLER = '/backend/modulos/AutorizacaoCompra/AutorizacaoCompraController.php';
 
 const ImagemDocumento = Node.create({
