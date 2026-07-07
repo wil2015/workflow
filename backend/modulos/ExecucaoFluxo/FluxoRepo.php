@@ -77,11 +77,38 @@ class FluxoRepo extends BaseRepository
     // --- ESCRITA ---
 
     public function criarProcessoPorOrdemCompra($numeroOc, $idFluxo) {
-        $sql = "INSERT INTO processos_instancia (id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
-                VALUES (:num, :num, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':num' => $numeroOc, ':fluxo' => $idFluxo]);
-        return $this->pdo->lastInsertId();
+        $lockName = 'processos_instancia_create';
+        $lockObtido = false;
+
+        try {
+            $stmt = $this->pdo->prepare("SELECT GET_LOCK(:lock_name, 10)");
+            $stmt->execute([':lock_name' => $lockName]);
+            $lockObtido = ((int)$stmt->fetchColumn() === 1);
+
+            if (!$lockObtido) {
+                throw new \RuntimeException('Nao foi possivel bloquear a criacao do processo. Tente novamente.');
+            }
+
+            $stmt = $this->pdo->query("
+                SELECT AUTO_INCREMENT
+                  FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'processos_instancia'
+            ");
+            $idProcesso = (int)$stmt->fetchColumn();
+
+            $sql = "INSERT INTO processos_instancia (id, id_processo_senior, id_processo_instancia, id_fluxo_definicao, data_inicio, status_atual, etapa_bpmn_atual) 
+                    VALUES (:id, :num, :id, :fluxo, NOW(), 'Em Andamento', 'Activity_SelecionarSolicitacao')";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id' => $idProcesso, ':num' => $numeroOc, ':fluxo' => $idFluxo]);
+
+            return $idProcesso;
+        } finally {
+            if ($lockObtido) {
+                $stmt = $this->pdo->prepare("SELECT RELEASE_LOCK(:lock_name)");
+                $stmt->execute([':lock_name' => $lockName]);
+            }
+        }
     }
 
     public function adicionarItemOrdemCompra($idProcesso, $numeroOc, $sequenciaOc, $item) {

@@ -26,6 +26,8 @@ class EmailFornecedoresController extends BaseController
                 return $this->atomic(fn() => $this->service->salvarEmailsSelecionados($this->params['instance_id'] ?? 0, $this->params['emails_selecionados'] ?? []));
             case 'add_email':
                 return $this->service->adicionarEmailManual($this->params['id_fornecedor_senior'] ?? 0, $this->params['email'] ?? '');
+            case 'remove_email':
+                return $this->atomic(fn() => $this->service->removerEmailManual($this->params['id_fornecedor_senior'] ?? 0, $this->params['email'] ?? ''));
             default:
                 throw new Exception("Ação desconhecida: $acao");
         }

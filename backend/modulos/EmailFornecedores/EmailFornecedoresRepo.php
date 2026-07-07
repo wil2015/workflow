@@ -36,6 +36,16 @@ class EmailFornecedoresRepo extends BaseRepository
         $stmt->execute([$codFornecedor, $email]);
     }
 
+    public function removerEmailMestre($codFornecedor, $email) {
+        $stmt = $this->pdo->prepare("DELETE FROM email_fornecedor WHERE id_fornecedor_senior = ? AND email_fornecedor = ?");
+        $stmt->execute([$codFornecedor, $email]);
+    }
+
+    public function removerEmailInstancias($codFornecedor, $email) {
+        $stmt = $this->pdo->prepare("DELETE FROM email_instancia WHERE id_fornecedor_senior = ? AND email_fornecedor = ?");
+        $stmt->execute([$codFornecedor, $email]);
+    }
+
     // --- ETAPA 2: LEITURA UNIFICADA ---
 
     public function buscarEmailsParaSelecao($idProcesso) {

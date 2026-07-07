@@ -53,6 +53,18 @@ class EmailFornecedoresService extends BaseService
         return ['sucesso' => true];
     }
 
+    public function removerEmailManual($codFornSenior, $email)
+    {
+        if (empty($codFornSenior)) throw new Exception("Fornecedor invÃ¡lido.");
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new Exception("E-mail invÃ¡lido.");
+
+        $this->repo->removerEmailInstancias($codFornSenior, $email);
+        $this->repo->removerEmailMestre($codFornSenior, $email);
+
+        return ['sucesso' => true];
+    }
+
     public function salvarEmailsSelecionados($idProcesso, $selecao) 
     {
         $this->repo->limparSelecaoAnterior($idProcesso);

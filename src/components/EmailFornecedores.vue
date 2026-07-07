@@ -23,15 +23,26 @@
           </div>
           
           <div class="card-emails">
-            <label 
-                v-for="(emailObj, idx) in forn.emails" 
-                :key="idx" 
+            <div 
+                v-for="emailObj in forn.emails" 
+                :key="emailObj.email" 
                 class="item-email"
                 :class="{ 'selecionado': emailObj.checked }"
             >
-              <input type="checkbox" v-model="emailObj.checked">
-              <span class="email-texto">{{ emailObj.email }}</span>
-            </label>
+              <label class="email-check">
+                <input type="checkbox" v-model="emailObj.checked">
+                <span class="email-texto">{{ emailObj.email }}</span>
+              </label>
+              <button
+                  type="button"
+                  class="btn-remover-email"
+                  @click="removerEmail(forn, emailObj)"
+                  :disabled="removendoLocal === chaveEmail(forn, emailObj)"
+                  title="Remover e-mail"
+              >
+                  {{ removendoLocal === chaveEmail(forn, emailObj) ? '...' : 'x' }}
+              </button>
+            </div>
 
             <div class="add-email-row">
                 <input 
@@ -78,6 +89,7 @@ const emit = defineEmits(['fechar']);
 const loading = ref(true);
 const salvando = ref(false);
 const salvandoLocal = ref(null);
+const removendoLocal = ref(null);
 const listaFornecedores = ref([]);
 
 const API_URL = '/backend/modulos/EmailFornecedores/EmailFornecedoresController.php';
@@ -160,6 +172,41 @@ async function adicionarEmail(forn) {
     }
 }
 
+function chaveEmail(forn, emailObj) {
+    return `${forn.id_participante}-${emailObj.email}`;
+}
+
+async function removerEmail(forn, emailObj) {
+    if (!confirm(`Remover o e-mail ${emailObj.email} deste fornecedor?`)) return;
+
+    const chave = chaveEmail(forn, emailObj);
+    removendoLocal.value = chave;
+
+    try {
+        const req = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                acao: 'remove_email',
+                id_fornecedor_senior: forn.id_fornecedor_senior,
+                email: emailObj.email
+            })
+        });
+
+        const res = await req.json();
+
+        if (res.sucesso) {
+            forn.emails = forn.emails.filter(e => e.email.toLowerCase() !== emailObj.email.toLowerCase());
+        } else {
+            throw new Error(res.erro || "Erro ao remover.");
+        }
+    } catch (e) {
+        alert("Erro: " + e.message);
+    } finally {
+        removendoLocal.value = null;
+    }
+}
+
 async function salvar() {
     const selecionados = [];
     
@@ -220,11 +267,15 @@ async function salvar() {
 .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 .cod-senior { font-size: 12px; color: #666; background: #eee; padding: 2px 6px; border-radius: 4px; }
 
-.item-email { display: flex; align-items: center; padding: 8px; cursor: pointer; transition: 0.2s; border-radius: 4px; margin-bottom: 2px; }
+.item-email { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; transition: 0.2s; border-radius: 4px; margin-bottom: 2px; }
 .item-email:hover { background: #f8f9fa; }
 .item-email.selecionado { background: #e8f0fe; color: #1967d2; font-weight: 500; }
 .item-email input { transform: scale(1.3); margin-right: 10px; }
-.email-texto { font-size: 14px; }
+.email-check { display: flex; align-items: center; flex: 1; min-width: 0; cursor: pointer; }
+.email-texto { font-size: 14px; overflow-wrap: anywhere; }
+.btn-remover-email { background: #dc3545; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.btn-remover-email:hover:not(:disabled) { background: #c82333; }
+.btn-remover-email:disabled { opacity: 0.6; cursor: wait; }
 
 .add-email-row { display: flex; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee; }
 .input-novo { flex: 1; padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 13px; }
